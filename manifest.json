@@ -1,12 +1,12 @@
 {
   "name": "Azkar",
   "short_name": "Azkar",
-  "description": "Электронные чётки (тасбих) для зикра с подсчётом, целями, хадисами и напоминаниями.",
+  "description": "Электронные чётки для зикра с подсчётом, целями, хадисами и напоминаниями.",
   "lang": "ru",
   "dir": "ltr",
-  "start_url": "/Tasbih/",
-  "scope": "/Tasbih/",
-  "id": "/Tasbih/",
+  "start_url": "./?source=pwa",
+  "scope": "./",
+  "id": "azkar-app",
   "display": "standalone",
   "display_override": ["standalone", "fullscreen"],
   "orientation": "portrait",
@@ -15,25 +15,25 @@
   "categories": ["lifestyle", "utilities"],
   "icons": [
     {
-      "src": "/Tasbih/icon-192.png",
+      "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/Tasbih/icon-512.png",
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/Tasbih/icon-192.png",
+      "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/Tasbih/icon-512.png",
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
