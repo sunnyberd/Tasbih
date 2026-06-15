@@ -16,16 +16,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
     
     <!-- PWA Manifest -->
-    <link rel="manifest" href="/Tasbih/manifest.json">
+    <link rel="manifest" href="manifest.json">
 
     <!-- Иконки для разных устройств -->
-    <link rel="icon" type="image/png" sizes="192x192" href="/Tasbih/icon-192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="/Tasbih/icon-512.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 
     <!-- Для iOS (iPhone/iPad) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="/Tasbih/icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
 
     <style>
         /* ===== THEME: @property — позволяет браузеру интерполировать CSS-переменные как цвета ===== */
@@ -5572,7 +5572,7 @@
 
     <!-- Данные хадисов вынесены в отдельный файл. Если его удалить — приложение
          продолжит работать как обычно, просто без показа хадисов. -->
-    <script src="/Tasbih/hadiths.js"></script>
+    <script src="hadiths.js"></script>
     <script>
         // ==================== I18N ====================
         const i18n = {
@@ -9643,11 +9643,11 @@
             const title = t('completionTitle');
             const body = t('completionSub');
             if (Notification.permission === 'granted') {
-                try { new Notification(title, { body, icon: '/Tasbih/icon-192.png', badge: '/Tasbih/icon-192.png' }); } catch(e) {}
+                try { new Notification(title, { body, icon: 'icon-192.png', badge: 'icon-192.png' }); } catch(e) {}
             } else if (Notification.permission === 'default') {
                 Notification.requestPermission().then(perm => {
                     if (perm === 'granted') {
-                        try { new Notification(title, { body, icon: '/Tasbih/icon-192.png', badge: '/Tasbih/icon-192.png' }); } catch(e) {}
+                        try { new Notification(title, { body, icon: 'icon-192.png', badge: 'icon-192.png' }); } catch(e) {}
                     }
                 });
             }
@@ -13444,8 +13444,8 @@
                         title: (typeof t === 'function') ? t('hadithLabel') : 'Хадис',
                         minMs: HADITH_MIN_MS,
                         maxMs: HADITH_MAX_MS,
-                        icon: '/Tasbih/icon-192.png',
-                        badge: '/Tasbih/icon-192.png'
+                        icon: 'icon-192.png',
+                        badge: 'icon-192.png'
                     });
                 } else {
                     reg.active.postMessage({ type: 'CANCEL_HADITH' });
@@ -13926,8 +13926,8 @@
                         delayMs,
                         title,
                         body,
-                        icon: '/Tasbih/icon-192.png',
-                        badge: '/Tasbih/icon-192.png',
+                        icon: 'icon-192.png',
+                        badge: 'icon-192.png',
                         reminderTime: getReminderTime(),
                     });
                 } else {
@@ -13946,8 +13946,8 @@
                 try {
                     new Notification(t('reminderNotifTitle'), {
                         body: t('reminderNotifBody'),
-                        icon: '/Tasbih/icon-192.png',
-                        badge: '/Tasbih/icon-192.png',
+                        icon: 'icon-192.png',
+                        badge: 'icon-192.png',
                         tag: 'azkar-reminder',
                         renotify: true,
                     });
@@ -17818,8 +17818,8 @@
         });
         window.addEventListener('load', async () => {
             try {
-            const reg = await navigator.serviceWorker.register('/Tasbih/sw.js', {
-                scope: '/Tasbih/',
+            const reg = await navigator.serviceWorker.register('sw.js', {
+                scope: './',
                 updateViaCache: 'none'   // always fetch a fresh sw.js so new versions are detected instantly
             });
             // Proactively check for an update on every launch.
