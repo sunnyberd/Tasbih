@@ -17670,8 +17670,28 @@
                 if (_wakeLock) { try { _wakeLock.release(); } catch(e) {} _wakeLock = null; }
             }
 
+            // Позиционирует пре-подсказку выхода ВЫШЕ кнопок цели (33/66/100/своя)
+            // с тем же вертикальным отступом, что и между кнопками цели и навбаром.
+            // Только на экране зикра; на других — оставляем CSS-фолбэк (над навбаром).
+            function positionPreHint(screenId) {
+                if (!elPreHint) return;
+                if (screenId !== 'screen-azkar') { elPreHint.style.bottom = ''; return; }
+                try {
+                    const goalsEl = document.querySelector('#screen-azkar .goals-area');
+                    const navEl = document.querySelector('.navbar');
+                    if (!goalsEl || !navEl) { elPreHint.style.bottom = ''; return; }
+                    const g = goalsEl.getBoundingClientRect();
+                    const n = navEl.getBoundingClientRect();
+                    if (g.height <= 0 || n.height <= 0) { elPreHint.style.bottom = ''; return; }
+                    // Отступ между нижним краем кнопок цели и верхним краем навбара.
+                    const gap = Math.max(8, n.top - g.bottom);
+                    // Низ подсказки = верхний край кнопок цели минус тот же отступ.
+                    const bottomFromViewport = Math.round(window.innerHeight - (g.top - gap));
+                    elPreHint.style.bottom = bottomFromViewport + 'px';
+                } catch (e) { elPreHint.style.bottom = ''; }
+            }
+
             function activate(screenId) {
-                // Always restart: cancel any running countdown or counting first
                 _active = false;
                 clearInterval(_cdTimer); _cdTimer = null;
                 clearTimeout(_holdTimer);
@@ -17688,8 +17708,13 @@
                 overlay.classList.remove('counting');
                 overlay.classList.add('active');
                 // Пре-подсказка выхода видна уже во время отсчёта (до затемнения),
-                // ярким текстом цвета темы между кольцом счётчика и навбаром.
+                // ярким текстом цвета темы. Позиционируется ВЫШЕ кнопок цели с тем же
+                // отступом, что и между кнопками цели и навбаром (см. positionPreHint).
                 if (elPreHint) elPreHint.textContent = (typeof t === 'function' && t('stealthHint')) || 'удержите для выхода';
+                positionPreHint(screenId);
+                // Повторяем после того, как анимация появления экрана (translateY)
+                // завершится, чтобы координаты были точными.
+                setTimeout(() => { if (_active && !overlay.classList.contains('counting')) positionPreHint(screenId); }, 260);
                 // Прогреваем AudioContext, пока есть пользовательский жест входа в
                 // тёмный режим — чтобы звук достижения надёжно сработал и в нём.
                 try {
