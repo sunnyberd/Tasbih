@@ -13086,6 +13086,7 @@
                     customGoal: customGoal,
                     duas: duas,
                     stats: JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}'),
+                    dhikrTotals: JSON.parse(localStorage.getItem('azkar_dhikr_totals') || '{}'),
                     completedSpecial: completedSpecial,
                     specialProgress: specialProgress,
                     specialDhikrs: specialDhikrs
@@ -13134,6 +13135,10 @@
                             _statsCache = JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}');
                             completedSpecial = JSON.parse(localStorage.getItem('azkar_special_completed') || '{}');
                             specialProgress = JSON.parse(localStorage.getItem('azkar_special_progress') || '{}');
+                            // Перечитываем общий прогресс зикров (azkar_dhikr_totals) в память —
+                            // иначе экран «Прогресс» останется пустым после импорта, пока
+                            // страница не будет перезагружена.
+                            loadDhikrTotals();
                             loadCustomSpecialDhikrs();
                             lastActiveSpecialId = localStorage.getItem('azkar_last_special_id') || null;
                         } catch(e1) {}
@@ -13147,6 +13152,7 @@
                         updateDisplay();
                         updateSettingsUI();
                         updateHadithUI();
+                        try { updateDhikrOverallProgress(); } catch(e5) {}
                         markDirty('dua','favorites','names','stats','special');
                         try { showToast(t('toastImported')); } catch(e3) {}
                         return;
@@ -13174,6 +13180,11 @@
                         _statsCache = data.stats;
                         localStorage.setItem('azkar_stats_v2', JSON.stringify(_statsCache));
                     }
+                    // Restore overall dhikr progress (общий прогресс зикров)
+                    if (data.dhikrTotals && typeof data.dhikrTotals === 'object') {
+                        dhikrTotals = data.dhikrTotals;
+                        saveDhikrTotals();
+                    }
                     // Restore special
                     if (data.completedSpecial) completedSpecial = data.completedSpecial;
                     if (data.specialProgress) specialProgress = data.specialProgress;
@@ -13189,6 +13200,7 @@
                     applyTheme(settings.theme || 'dark');
                     applyLanguage(currentLang);
                     updateDisplay();
+                    try { updateDhikrOverallProgress(); } catch(e6) {}
                     // После импорта — помечаем все разделы устаревшими,
                     // они перерисуются при следующем переходе в них
                     markDirty('dua','favorites','names','stats','special');
@@ -17908,6 +17920,8 @@
                             _statsCache = JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}');
                             completedSpecial = JSON.parse(localStorage.getItem('azkar_special_completed') || '{}');
                             specialProgress = JSON.parse(localStorage.getItem('azkar_special_progress') || '{}');
+                            // Перечитываем общий прогресс зикров в память (см. importData).
+                            if (typeof loadDhikrTotals === 'function') loadDhikrTotals();
                             if (typeof loadCustomSpecialDhikrs === 'function') loadCustomSpecialDhikrs();
                             lastActiveSpecialId = localStorage.getItem('azkar_last_special_id') || null;
                         } catch(e1) {}
@@ -17917,6 +17931,7 @@
                         if (typeof updateDisplay === 'function') updateDisplay();
                         if (typeof updateSettingsUI === 'function') updateSettingsUI();
                         if (typeof updateHadithUI === 'function') updateHadithUI();
+                        try { if (typeof updateDhikrOverallProgress === 'function') updateDhikrOverallProgress(); } catch(e5) {}
                         if (typeof markDirty === 'function') markDirty('dua','favorites','names','stats','special');
                         closeBackupModal();
                         try { showToast(t('toastImported')); } catch(e3) {}
@@ -17940,11 +17955,16 @@
                         _statsCache = data.stats;
                         localStorage.setItem('azkar_stats_v2', JSON.stringify(_statsCache));
                     }
+                    if (data.dhikrTotals && typeof data.dhikrTotals === 'object') {
+                        dhikrTotals = data.dhikrTotals;
+                        if (typeof saveDhikrTotals === 'function') saveDhikrTotals();
+                    }
                     if (typeof flushSave === 'function') flushSave();
                     if (typeof markDataChanged === 'function') markDataChanged();
                     if (typeof applyTheme === 'function') applyTheme(settings.theme || 'dark');
                     if (typeof applyLanguage === 'function') applyLanguage(currentLang);
                     if (typeof updateDisplay === 'function') updateDisplay();
+                    try { if (typeof updateDhikrOverallProgress === 'function') updateDhikrOverallProgress(); } catch(e7) {}
                     if (typeof markDirty === 'function') markDirty('dua','favorites','names','stats','special');
                     if (typeof updateSettingsUI === 'function') updateSettingsUI();
                     closeBackupModal();
@@ -18050,6 +18070,7 @@
                 customGoal: customGoal,
                 duas: duas,
                 stats: JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}'),
+                dhikrTotals: JSON.parse(localStorage.getItem('azkar_dhikr_totals') || '{}'),
                 completedSpecial: completedSpecial,
                 specialProgress: specialProgress,
                 specialDhikrs: specialDhikrs
