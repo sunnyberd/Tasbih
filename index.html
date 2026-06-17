@@ -10080,6 +10080,25 @@
                     document.getElementById('completionOverlay').classList.add('show');
                 }
             }
+
+            // ─── ФОНОВОЕ АВТО-ПРОДЛЕНИЕ «СВОЕЙ ЦЕЛИ» (+100) ──────────────────
+            // Если у «своей цели» включено +100, её порог срабатывает по общему
+            // счёту (count) ДАЖЕ когда сейчас активна другая цель (33/66/100).
+            // Пример: своя цель 1000 с +100, пользователь дошёл до 950, переключился
+            // на «33» и досчитал общий счёт до 1000 — срабатывает +100 (цель → 1100).
+            // Если +100 выключено — блок пропускается, всё работает как обычно.
+            if (settings.autoExtend && !isUnlimited && !isCustomGoalActive &&
+                customGoal > 0 && count >= customGoal) {
+                // Поднимаем порог своей цели выше текущего счёта шагами по +100
+                // (на случай, если +100 включили, когда счёт уже перевалил за цель).
+                do { customGoal += 100; } while (customGoal <= count);
+                localStorage.setItem('azkar_custom_goal', customGoal);
+                const _cgNum = document.getElementById('customGoalNum');
+                if (_cgNum) _cgNum.innerText = formatGoalShort(customGoal);
+                playGoalSound();
+                showToast('+100');
+                saveDataDebounced();
+            }
         }
 
         function promptResetCounter() { document.getElementById('resetCounterOverlay').classList.add('show'); }
@@ -10105,10 +10124,12 @@
                     goal += 100;
                     customGoal = goal;
                     goalTriggered = false;
+                    localStorage.setItem('azkar_custom_goal', customGoal);
                     document.getElementById('customGoalNum').innerText = formatGoalShort(customGoal);
                     document.querySelectorAll('.goal-chip').forEach(ch => ch.classList.remove('active'));
                     document.getElementById('customGoalChip').classList.add('active');
                     updateDisplay();
+                    saveDataDebounced();
                     showToast('+100');
                 }
             }
