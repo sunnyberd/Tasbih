@@ -10,7 +10,10 @@ const OFFLINE_URL = './index.html';
 // Файлы, которые кешируем сразу при установке
 const PRECACHE_ASSETS = [
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  './hadiths.js',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 // Внешние домены, которые кешируем по запросу (runtime cache)
@@ -124,8 +127,8 @@ self.addEventListener('push', event => {
 
   const options = {
     body: data.body || '',
-    icon: './icons/icon-192.png',
-    badge: './icons/icon-96.png',
+    icon: './icon-192.png',
+    badge: './icon-192.png',
     vibrate: [200, 100, 200],
     tag: data.tag || 'azkar-notification',
     renotify: true,
