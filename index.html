@@ -15,17 +15,6 @@
     <title>Azkar</title>
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
     
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json">
-
-    <!-- Иконки для разных устройств -->
-    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-
-    <!-- Для iOS (iPhone/iPad) -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="icon-192.png">
 
     <style>
         /* ===== THEME: @property — позволяет браузеру интерполировать CSS-переменные как цвета ===== */
@@ -804,8 +793,8 @@
             pointer-events: auto;
             animation: fadeInScreen 0.22s cubic-bezier(0.2, 0.9, 0.4, 1) both;
         }
-        /* ===== MAIN TASBIH SCREEN — ring absolutely centred on screen ===== */
-        #screen-tasbih {
+        /* ===== MAIN AZKAR SCREEN — ring absolutely centred on screen ===== */
+        #screen-azkar {
             overflow: hidden !important;
             display: flex;
             flex-direction: column;
@@ -815,9 +804,9 @@
             -webkit-mask-image: none !important;
             mask-image: none !important;
         }
-        #screen-tasbih .premium-header { flex: 0 0 auto; }
+        #screen-azkar .premium-header { flex: 0 0 auto; }
         /* counter-area — невидимый placeholder, не занимает место в потоке */
-        #screen-tasbih .counter-area {
+        #screen-azkar .counter-area {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -832,8 +821,8 @@
             z-index: 5;
             pointer-events: auto;
         }
-        #screen-tasbih .goals-area { flex: 0 0 auto; }
-        #screen-tasbih .reset-area { flex: 0 0 auto; }
+        #screen-azkar .goals-area { flex: 0 0 auto; }
+        #screen-azkar .reset-area { flex: 0 0 auto; }
 
         #screen-special-counter { justify-content: flex-start; }
         #screen-special-counter .counter-area {
@@ -2218,7 +2207,7 @@
         .nav-label { font-size: clamp(0.52rem, 1.9vw, 0.6rem); color: var(--text-dim); font-weight: 500; transition: color 0.12s; }
         .nav-item.active .nav-label { color: var(--gold); }
         /* Поворот иконки чёток — хвостик на ~16:30 */
-        [data-tab="tasbih"] .nav-icon-wrap svg { transform: rotate(-30deg); }
+        [data-tab="azkar"] .nav-icon-wrap svg { transform: rotate(-30deg); }
 
         /* ===== MODALS ===== */
         .modal-overlay {
@@ -2762,7 +2751,7 @@
             align-items: center;
             gap: 6px;
             font-size: 0.75rem;
-            color: var(--text-dim);
+            color: var(--gold);
             letter-spacing: 0.06em;
             font-family: 'Montserrat', sans-serif;
         }
@@ -2771,14 +2760,11 @@
             font-size: 0.95rem;
             font-weight: 600;
             letter-spacing: 0.05em;
-            background: linear-gradient(135deg, var(--grad-start), var(--grad-mid));
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
+            color: var(--gold);
         }
         .app-version-dot {
-            color: var(--text-dim);
-            opacity: 0.5;
+            color: var(--gold);
+            opacity: 0.6;
         }
         .app-version-love .love-heart {
             display: inline-flex;
@@ -3152,7 +3138,7 @@
                 --nav-h:       54px;
             }
 
-            #screen-tasbih {
+            #screen-azkar {
                 flex-direction: row;
                 flex-wrap: nowrap;
                 align-items: center;
@@ -3160,25 +3146,25 @@
                 overflow-y: auto !important;
                 padding-bottom: calc(var(--nav-h) + var(--safe-b) + 4px);
             }
-            #screen-tasbih .premium-header {
+            #screen-azkar .premium-header {
                 flex: 0 0 auto;
                 width: auto;
                 min-width: 130px;
                 max-width: 155px;
                 padding: calc(var(--safe-t) + 4px) 10px 4px;
             }
-            #screen-tasbih .counter-area {
+            #screen-azkar .counter-area {
                 flex: 0 0 auto;
                 margin: 0 6px;
                 justify-content: center;
                 min-height: unset;
             }
-            #screen-tasbih .goals-area {
+            #screen-azkar .goals-area {
                 width: 145px;
                 flex: 0 0 auto;
                 margin: 0 6px;
             }
-            #screen-tasbih .reset-area { display: none; }
+            #screen-azkar .reset-area { display: none; }
 
             .moon-stars    { height: 34px; margin-bottom: 2px; }
             .moon-icon     { width: 28px; height: 28px; }
@@ -3260,11 +3246,21 @@
         .checklist-overall-progress.clickable:active { transform: scale(0.985); }
         .cop-right { display: flex; align-items: center; gap: 8px; }
         .cop-stats-icon { width: 16px; height: 16px; stroke: var(--gold); opacity: 0.85; flex-shrink: 0; }
+        /* Карточка прогресса зикров не содержит полоски-бара (только число),
+           поэтому убираем нижний отступ заголовка, оставшийся от чек-листа. */
+        #dhikrOverallProgress .cop-header { margin-bottom: 0; }
+        #dhikrOverallProgress .cop-percent { font-size: 1.3rem; }
 
         /* ===== CHECKLIST DETAILED STATS MODAL ===== */
         /* Shorter than full screen: leaves a comfortable tap-to-close gap at the
            top. Tall content simply scrolls inside the sheet. */
         #checklistStatsOverlay .modal-sheet {
+            max-height: 80vh;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+        /* ===== DHIKR DETAILED STATS MODAL ===== */
+        #dhikrStatsOverlay .modal-sheet {
             max-height: 80vh;
             overflow-y: auto;
             overscroll-behavior: contain;
@@ -3290,7 +3286,13 @@
         .clstat-ring { position: relative; width: 104px; height: 104px; flex-shrink: 0; }
         .clstat-ring-svg { width: 100%; height: 100%; display: block; }
         .clstat-ring-track { stroke: var(--border); }
-        .clstat-ring-fill { stroke: var(--gold); transition: stroke-dashoffset 0.6s cubic-bezier(0.2,0.9,0.4,1); filter: drop-shadow(0 0 6px var(--gold-glow)); }
+        .clstat-ring-fill { stroke: var(--gold); transition: stroke-dashoffset 0.6s cubic-bezier(0.2,0.9,0.4,1); }
+        /* Two-tone ring used in the Dhikr Progress modal: main dhikr gets the
+           theme's primary accent color, special dhikrs get the theme's lighter
+           accent shade — both vars are redefined per [data-theme], so colors
+           automatically match whichever theme is active. */
+        .clstat-ring-fill-main { stroke: var(--gold-dark); transition: stroke-dasharray 0.6s cubic-bezier(0.2,0.9,0.4,1), stroke-dashoffset 0.6s cubic-bezier(0.2,0.9,0.4,1); }
+        .clstat-ring-fill-special { stroke: var(--gold-light); transition: stroke-dasharray 0.6s cubic-bezier(0.2,0.9,0.4,1), stroke-dashoffset 0.6s cubic-bezier(0.2,0.9,0.4,1); }
         .clstat-ring-pct {
             position: absolute; inset: 0;
             display: flex; align-items: center; justify-content: center;
@@ -3354,6 +3356,9 @@
         .clstat-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 0.72rem; color: var(--text-dim); margin-top: 6px; }
         /* Sub-rows: folder's own tasks + each subfolder */
         .clstat-subrow { margin-top: 10px; padding-left: 10px; border-left: 2px solid var(--border); }
+        /* Внутри модалки "Прогресс зикров" вертикальная полоска не нужна — у каждого
+           специального зикра уже есть свой круглый значок-маркер слева. */
+        #dhikrStatsOverlay .clstat-subrow { border-left: none; padding-left: 0; }
         .clstat-subrow-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 5px; }
         .clstat-subrow-head .nm { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .clstat-subrow-head .ct { color: var(--text-dim); font-size: 0.72rem; white-space: nowrap; flex-shrink: 0; }
@@ -4372,7 +4377,7 @@
         </div>
     </div>
 
-    <div class="screen active" id="screen-tasbih">
+    <div class="screen active" id="screen-azkar">
         <div class="premium-header">
             <div class="moon-stars">
                 <div class="moon-icon" aria-hidden="true">
@@ -4421,7 +4426,7 @@
             </div>
         </div>
         <div style="flex:1 1 0%;min-height:0;pointer-events:none;" aria-hidden="true"></div>
-        <div class="goals-area">
+        <div class="goals-area" style="margin-bottom: clamp(12px, 3.5vw, 20px);">
             <div class="goals-grid">
                 <div class="goal-chip" data-goal="33" onclick="setGoal(33)"><div class="goal-chip-num">33</div><div class="goal-chip-label" id="labelGoal">Цель</div></div>
                 <div class="goal-chip" data-goal="66" onclick="setGoal(66)"><div class="goal-chip-num">66</div><div class="goal-chip-label" id="labelGoal2">Цель</div></div>
@@ -4433,16 +4438,10 @@
                      ontouchstart="startCustomGoalPress(event)"
                      ontouchend="cancelCustomGoalPress()"
                      ontouchcancel="cancelCustomGoalPress()">
-                    <div class="goal-chip-num" id="customGoalNum">999</div>
+                    <div class="goal-chip-num" id="customGoalNum">1000</div>
                     <div class="goal-chip-label" id="labelCustom">Своя цель</div>
                 </div>
             </div>
-        </div>
-        <div class="reset-area" id="tasbihResetArea">
-            <button class="reset-btn" onclick="promptResetCounter()" aria-label="Сбросить счетчик">
-                <svg viewBox="0 0 24 24" width="16" stroke="currentColor" fill="none" aria-hidden="true"><path d="M21 12a9 9 0 0 0-9-9 9 9 0 0 0-9 9 9 9 0 0 0 9 9 9 9 0 0 0 9-9z"/><path d="M12 7v5l3 3"/></svg>
-                <span id="btnReset">Сбросить зикр</span>
-            </button>
         </div>
     </div>
 
@@ -4450,7 +4449,7 @@
 
     <!-- ===== QIBLA SCREEN ===== -->
     <div class="screen" id="screen-qibla">
-        <!-- Same premium header as tasbih -->
+        <!-- Same premium header as azkar -->
         <div class="premium-header">
             <div class="moon-stars">
                 <div class="moon-icon" aria-hidden="true">
@@ -4609,6 +4608,20 @@
         <div class="screen-header">
             <h2 id="titleStats">Статистика</h2>
         </div>
+
+        <!-- Общий показатель по зикрам (накопленный, без сброса) — клик открывает детальную статистику -->
+        <div class="checklist-overall-progress clickable" id="dhikrOverallProgress" role="button" tabindex="0"
+             onclick="openDhikrStats()"
+             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDhikrStats();}">
+            <div class="cop-header">
+                <span class="cop-label" id="dhikrProgressLabel">Прогресс зикров</span>
+                <span class="cop-right">
+                    <span class="cop-percent" id="dhikrOverallPercent">0</span>
+                    <svg class="cop-stats-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                </span>
+            </div>
+        </div>
+
         <div class="stats-summary">
             <div class="stat-card">
                 <div class="stat-icon">🕐</div>
@@ -4644,10 +4657,11 @@
                 <svg class="line-chart-svg" id="lineChartSvg" viewBox="0 0 400 200" preserveAspectRatio="none"></svg>
             </div>
         </div>
+
         <div class="reset-area" style="margin-top: 20px;">
-            <button class="reset-btn" onclick="promptClearStats()" aria-label="Очистить статистику">
+            <button class="reset-btn" onclick="promptClearStats()" aria-label="Очистить всё">
                 <svg viewBox="0 0 24 24" width="16" stroke="currentColor" fill="none" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                <span id="btnClearStats">Очистить статистику</span>
+                <span id="btnClearStats">Очистить всё</span>
             </button>
         </div>
     </div>
@@ -4794,6 +4808,21 @@
             <div id="clStatsBody"></div>
             <div class="clstat-actions">
                 <button class="cl-modal-btn cl-modal-cancel" id="clStatsCloseBtn" onclick="closeChecklistStats()">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== DHIKR DETAILED STATS MODAL ===== -->
+    <div class="modal-overlay" id="dhikrStatsOverlay" onclick="if(event.target===this)closeDhikrStats()">
+        <div class="modal-sheet">
+            <div class="modal-handle"></div>
+            <div class="clstat-header">
+                <div class="clstat-title" id="dhikrStatsTitle">Прогресс зикров</div>
+                <div class="clstat-subtitle" id="dhikrStatsSubtitle">Основные и специальные зикры</div>
+            </div>
+            <div id="dhikrStatsBody"></div>
+            <div class="clstat-actions">
+                <button class="cl-modal-btn cl-modal-cancel" id="dhikrStatsCloseBtn" onclick="closeDhikrStats()">Закрыть</button>
             </div>
         </div>
     </div>
@@ -5254,8 +5283,8 @@
 
     <div class="overlay" id="clearStatsOverlay">
         <div class="overlay-card">
-            <div class="overlay-title" id="clearStatsTitle">Очистить статистику?</div>
-            <div class="overlay-sub" id="clearStatsSub">Все данные о зикрах будут удалены безвозвратно</div>
+            <div class="overlay-title" id="clearStatsTitle">Очистить всё?</div>
+            <div class="overlay-sub" id="clearStatsSub">Счётчик и вся статистика зикров будут удалены безвозвратно</div>
             <div class="overlay-btns">
                 <button class="overlay-btn-cancel" onclick="cancelClearStats()" id="btnNoClearStats">Нет</button>
                 <button class="overlay-btn-confirm" onclick="confirmClearStats()" id="btnYesClearStats">Да</button>
@@ -5510,7 +5539,7 @@
 
     <div class="navbar">
         <div class="nav-inner">
-            <div class="nav-item active" data-tab="tasbih" onclick="switchTab('tasbih')">
+            <div class="nav-item active" data-tab="azkar" onclick="switchTab('azkar')">
                 <div class="nav-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
                   <!-- Нить круга -->
                   <circle cx="12" cy="10" r="7" stroke-width="1.3" fill="none" opacity="0.5"/>
@@ -5530,7 +5559,7 @@
                   <!-- Маркерная бусина -->
                   <circle cx="12" cy="21" r="1.8" fill="currentColor" stroke="none"/>
                 </svg></div>
-                <span class="nav-label" id="navTasbih">Зикр</span>
+                <span class="nav-label" id="navAzkar">Зикр</span>
             </div>
             <div class="nav-item" data-tab="dua" onclick="switchTab('dua')">
                 <div class="nav-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -5578,7 +5607,7 @@
         const i18n = {
             ru: {
                 headerTitle: "Воистину, поминанием Аллаха утешаются сердца",
-                labelGoal: "Цель", labelCustom: "Своя цель", btnReset: "Сбросить зикр",
+                labelGoal: "Цель", labelCustom: "Своя цель", btnReset: "Очистить всё",
                 titleDua: "Дуа", subtitleDua: "Ваши личные молитвы и зикры",
                 titleFav: "Избранное", subtitleFav: "Любимые дуа под рукой",
                 titleStats: "Статистика",
@@ -5586,8 +5615,8 @@
                 chartTitle: "Прогресс", timeChartTitle: "Любимое время для зикра",
                 titleSettings: "Настройки",
                 labelLang: "Язык", labelTheme: "Тема", labelSound: "Звук при достижении", labelClickSound: "Звук при нажатии",
-                btnClearStats: "Очистить статистику",
-                clearStatsTitle: "Очистить статистику?", clearStatsSub: "Все данные о зикрах будут удалены безвозвратно",
+                btnClearStats: "Очистить всё",
+                clearStatsTitle: "Очистить всё?", clearStatsSub: "Счётчик и вся статистика зикров будут удалены безвозвратно",
                 modalTitleNew: "Новое дуа", modalTitleEdit: "Редактировать дуа",
                 labelDuaText: "Текст дуа", labelDuaName: "Название дуа", labelDuaTrans: "Описание / пояснение",
                 placeholderDua: "Текст дуа", placeholderDuaName: "Название дуа", placeholderTrans: "Описание", placeholderSearch: "Поиск по дуа...",
@@ -5596,7 +5625,7 @@
                 resetCounterTitle: "Сбросить счётчик?", resetCounterSub: "Текущий прогресс будет обнулён",
                 deleteDuaTitle: "Удалить дуа?", deleteDuaSub: "Это действие нельзя отменить",
                 btnYes: "Да", btnNo: "Нет",
-                navTasbih: "Зикр", navDua: "Дуа", navFav: "Избранное", navStats: "Статистика", navSettings: "Настройки",
+                navAzkar: "Зикр", navDua: "Дуа", navFav: "Избранное", navStats: "Статистика", navSettings: "Настройки",
                 toastSaved: "Дуа сохранено", toastDeleted: "Удалено", toastFavAdded: "В избранном", toastFavRemoved: "Убрано",
                 toastReset: "Счетчик сброшен", toastStatsCleared: "Статистика очищена",
                 toastThemeDark: "Тёмная тема", toastThemeLight: "Светлая тема",
@@ -5651,7 +5680,7 @@
                 reminderNotifTitle: "Azkar · Время зикра 🌙",
                 reminderNotifBody: "Помни об Аллахе в свои светлые дни — и Он не оставит тебя в трудный день.",
                 titleChecklist: "Задачи", subtitleChecklist: "Отмечайте выполненные дела", overallProgressLabel: "Общий прогресс",
-                clStatsTitle: "Статистика задач", clStatsSubtitle: "Подробный прогресс по папкам", clStatsByFolders: "По папкам",
+                clStatsTitle: "Статистика задач", dhikrProgressLabel: "Всего зикров", dhikrStatsTitle: "Прогресс зикров", dhikrStatsSubtitle: "Накопленная сумма по каждому зикру", dhikrStatsMainDhikr: "Основной зикр", dhikrStatsCounter: "Счётчик", dhikrStatsFoldersTitle: "Папки зикров", dhikrStatsSpecialDhikrs: "Специальные зикры", dhikrStatsSpecialLabel: "Спец. зикры", dhikrStatsTotal: "Всего", dhikrStatsNoDhikrs: "Нет зикров для отображения", clStatsSubtitle: "Подробный прогресс по папкам", clStatsByFolders: "По папкам",
                 clStatsFolders: "Папки", clStatsSubfolders: "Подпапки", clStatsTotal: "Всего задач", clStatsCompleted: "Выполнено", clStatsRemaining: "Осталось",
                 clStatsCompletedFolders: "Папок завершено", clStatsDaily: "Ежедневные", clStatsOneTime: "Разовые", clStatsOwnTasks: "Задачи папки", clStatsEmpty: "Пока нет задач", clStatsClose: "Закрыть",
                 duaCountLabel: "дуа", emptyFolder: "Пусто", toastMovedToFolder: "Перемещено в «{name}»", toastMovedOutOfFolder: "Вынесено из папки",
@@ -5702,7 +5731,7 @@
             },
             en: {
                 headerTitle: "Verily, in the remembrance of Allah do hearts find rest",
-                labelGoal: "Goal", labelCustom: "Custom", btnReset: "Reset dhikr",
+                labelGoal: "Goal", labelCustom: "Custom", btnReset: "Clear everything",
                 titleDua: "Duas", subtitleDua: "Your personal prayers and dhikrs",
                 titleFav: "Favorites", subtitleFav: "Favorite duas at hand",
                 titleStats: "Statistics",
@@ -5710,8 +5739,8 @@
                 chartTitle: "Progress", timeChartTitle: "Favorite time for dhikr",
                 titleSettings: "Settings",
                 labelLang: "Language", labelTheme: "Theme", labelSound: "Sound on goal", labelClickSound: "Sound on tap",
-                btnClearStats: "Clear statistics",
-                clearStatsTitle: "Clear statistics?", clearStatsSub: "All dhikr data will be permanently deleted",
+                btnClearStats: "Clear everything",
+                clearStatsTitle: "Clear everything?", clearStatsSub: "Counter and all dhikr statistics will be permanently deleted",
                 modalTitleNew: "New dua", modalTitleEdit: "Edit dua",
                 labelDuaText: "Dua text", labelDuaName: "Dua name", labelDuaTrans: "Description / note",
                 placeholderDua: "Dua text", placeholderDuaName: "Dua name", placeholderTrans: "Description", placeholderSearch: "Search duas...",
@@ -5720,7 +5749,7 @@
                 resetCounterTitle: "Reset counter?", resetCounterSub: "Current progress will be cleared",
                 deleteDuaTitle: "Delete dua?", deleteDuaSub: "This action cannot be undone",
                 btnYes: "Yes", btnNo: "No",
-                navTasbih: "Dhikr", navDua: "Duas", navFav: "Favorites", navStats: "Stats", navSettings: "Settings",
+                navAzkar: "Dhikr", navDua: "Duas", navFav: "Favorites", navStats: "Stats", navSettings: "Settings",
                 toastSaved: "Dua saved", toastDeleted: "Deleted", toastFavAdded: "Added to favorites", toastFavRemoved: "Removed",
                 toastReset: "Counter reset", toastStatsCleared: "Statistics cleared",
                 toastThemeDark: "Dark theme", toastThemeLight: "Light theme",
@@ -5775,7 +5804,7 @@
                 reminderNotifTitle: "Azkar · Time for Dhikr 🌙",
                 reminderNotifBody: "Remember Allah in your days of ease, and He will not forget you in your days of hardship.",
                 titleChecklist: "Tasks", subtitleChecklist: "Mark completed tasks", overallProgressLabel: "Overall Progress",
-                clStatsTitle: "Task statistics", clStatsSubtitle: "Detailed progress by folder", clStatsByFolders: "By folders",
+                clStatsTitle: "Task statistics", dhikrProgressLabel: "Total Dhikrs", dhikrStatsTitle: "Dhikr Progress", dhikrStatsSubtitle: "Cumulative count for each dhikr", dhikrStatsMainDhikr: "Main dhikr", dhikrStatsCounter: "Counter", dhikrStatsFoldersTitle: "Dhikr folders", dhikrStatsSpecialDhikrs: "Special dhikrs", dhikrStatsSpecialLabel: "Special", dhikrStatsTotal: "Total", dhikrStatsNoDhikrs: "No dhikrs to display", clStatsSubtitle: "Detailed progress by folder", clStatsByFolders: "By folders",
                 clStatsFolders: "Folders", clStatsSubfolders: "Subfolders", clStatsTotal: "Total tasks", clStatsCompleted: "Completed", clStatsRemaining: "Remaining",
                 clStatsCompletedFolders: "Folders completed", clStatsDaily: "Daily", clStatsOneTime: "One-time", clStatsOwnTasks: "Folder tasks", clStatsEmpty: "No tasks yet", clStatsClose: "Close",
                 duaCountLabel: "duas", emptyFolder: "Empty", toastMovedToFolder: "Moved to \"{name}\"", toastMovedOutOfFolder: "Moved out of folder",
@@ -5825,7 +5854,7 @@
             },
             uz: {
                 headerTitle: "Allohning zikri ila qalblar orom topur",
-                labelGoal: "Maqsad", labelCustom: "O'z maqsad", btnReset: "Zikrni tiklash",
+                labelGoal: "Maqsad", labelCustom: "O'z maqsad", btnReset: "Hammasini tozalash",
                 titleDua: "Duolar", subtitleDua: "Shaxsiy duolar va zikrlaringiz",
                 titleFav: "Sevimlilar", subtitleFav: "Sevimli duolar qo'lingizda",
                 titleStats: "Statistika",
@@ -5833,8 +5862,8 @@
                 chartTitle: "Progress", timeChartTitle: "Zikr uchun sevimli vaqt",
                 titleSettings: "Sozlamalar",
                 labelLang: "Til", labelTheme: "Mavzu", labelSound: "Ovoz (maqsadga yetganda)", labelClickSound: "Bosishda ovoz",
-                btnClearStats: "Statistikani tozalash",
-                clearStatsTitle: "Statistikani tozalash?", clearStatsSub: "Barcha zikr ma'lumotlari butunlay o'chiriladi",
+                btnClearStats: "Hammasini tozalash",
+                clearStatsTitle: "Hammasini tozalash?", clearStatsSub: "Hisoblagich va barcha zikr statistikasi butunlay o'chiriladi",
                 modalTitleNew: "Yangi duo", modalTitleEdit: "Duoni tahrirlash",
                 labelDuaText: "Duo matni", labelDuaName: "Duo nomi", labelDuaTrans: "Tavsif / izoh",
                 placeholderDua: "Duo matni", placeholderDuaName: "Duo nomi", placeholderTrans: "Tavsif", placeholderSearch: "Duolarni qidirish...",
@@ -5843,7 +5872,7 @@
                 resetCounterTitle: "Hisoblagichni tiklash?", resetCounterSub: "Joriy natija nolga tushiriladi",
                 deleteDuaTitle: "Duoni o'chirish?", deleteDuaSub: "Bu amalni ortga qaytarib bo'lmaydi",
                 btnYes: "Ha", btnNo: "Yo'q",
-                navTasbih: "Zikr", navDua: "Duolar", navFav: "Sevimlilar", navStats: "Statistika", navSettings: "Sozlamalar",
+                navAzkar: "Zikr", navDua: "Duolar", navFav: "Sevimlilar", navStats: "Statistika", navSettings: "Sozlamalar",
                 toastSaved: "Duo saqlandi", toastDeleted: "O'chirildi", toastFavAdded: "Sevimlilarga qo'shildi", toastFavRemoved: "Olib tashlandi",
                 toastReset: "Hisoblagich tiklandi", toastStatsCleared: "Statistika tozalandi",
                 toastThemeDark: "Qorong'u mavzu", toastThemeLight: "Yorug' mavzu",
@@ -5898,7 +5927,7 @@
                 reminderNotifTitle: "Azkar · Zikr vaqti 🌙",
                 reminderNotifBody: "Yaxshi kunlaringda Allohni esla — U ham og'ir kuningda seni unutmaydi.",
                 titleChecklist: "Vazifalar", subtitleChecklist: "Bajarilgan vazifalarni belgilang", overallProgressLabel: "Umumiy jarayon",
-                clStatsTitle: "Vazifalar statistikasi", clStatsSubtitle: "Papkalar bo'yicha batafsil jarayon", clStatsByFolders: "Papkalar bo'yicha",
+                clStatsTitle: "Vazifalar statistikasi", dhikrProgressLabel: "Jami zikrlar", dhikrStatsTitle: "Zikr jarayoni", dhikrStatsSubtitle: "Har bir zikr bo'yicha jami hisob", dhikrStatsMainDhikr: "Asosiy zikr", dhikrStatsCounter: "Hisoblagich", dhikrStatsFoldersTitle: "Zikr papkalari", dhikrStatsSpecialDhikrs: "Maxsus zikrlar", dhikrStatsSpecialLabel: "Maxsus", dhikrStatsTotal: "Jami", dhikrStatsNoDhikrs: "Ko'rsatish uchun zikr yo'q", clStatsSubtitle: "Papkalar bo'yicha batafsil jarayon", clStatsByFolders: "Papkalar bo'yicha",
                 clStatsFolders: "Papkalar", clStatsSubfolders: "Ichki papkalar", clStatsTotal: "Jami vazifalar", clStatsCompleted: "Bajarilgan", clStatsRemaining: "Qolgan",
                 clStatsCompletedFolders: "Papkalar bajarildi", clStatsDaily: "Kunlik", clStatsOneTime: "Bir martalik", clStatsOwnTasks: "Papka vazifalari", clStatsEmpty: "Hozircha vazifa yo'q", clStatsClose: "Yopish",
                 duaCountLabel: "duo", emptyFolder: "Bo'sh", toastMovedToFolder: "«{name}» papkasiga ko'chirildi", toastMovedOutOfFolder: "Papkadan chiqarildi",
@@ -5948,7 +5977,7 @@
             },
             de: {
                 headerTitle: "Wahrlich, im Gedenken Allahs finden die Herzen Ruhe",
-                labelGoal: "Ziel", labelCustom: "Eigenes Ziel", btnReset: "Dhikr zurücksetzen",
+                labelGoal: "Ziel", labelCustom: "Eigenes Ziel", btnReset: "Alles löschen",
                 titleDua: "Duas", subtitleDua: "Deine persönlichen Gebete und Dhikrs",
                 titleFav: "Favoriten", subtitleFav: "Lieblingsgebete griffbereit",
                 titleStats: "Statistik",
@@ -5956,8 +5985,8 @@
                 chartTitle: "Fortschritt", timeChartTitle: "Lieblingszeit für Dhikr",
                 titleSettings: "Einstellungen",
                 labelLang: "Sprache", labelTheme: "Design", labelSound: "Sound bei Ziel", labelClickSound: "Sound beim Tippen",
-                btnClearStats: "Statistik löschen",
-                clearStatsTitle: "Statistik löschen?", clearStatsSub: "Alle Dhikr-Daten werden dauerhaft gelöscht",
+                btnClearStats: "Alles löschen",
+                clearStatsTitle: "Alles löschen?", clearStatsSub: "Zähler und alle Dhikr-Daten werden dauerhaft gelöscht",
                 modalTitleNew: "Neues Dua", modalTitleEdit: "Dua bearbeiten",
                 labelDuaText: "Dua-Text", labelDuaName: "Dua-Name", labelDuaTrans: "Beschreibung / Erläuterung",
                 placeholderDua: "Dua-Text", placeholderDuaName: "Dua-Name", placeholderTrans: "Beschreibung", placeholderSearch: "Duas suchen...",
@@ -5966,7 +5995,7 @@
                 resetCounterTitle: "Zähler zurücksetzen?", resetCounterSub: "Aktueller Fortschritt wird gelöscht",
                 deleteDuaTitle: "Dua löschen?", deleteDuaSub: "Diese Aktion kann nicht rückgängig gemacht werden",
                 btnYes: "Ja", btnNo: "Nein",
-                navTasbih: "Dhikr", navDua: "Duas", navFav: "Favoriten", navStats: "Statistik", navSettings: "Einstellungen",
+                navAzkar: "Dhikr", navDua: "Duas", navFav: "Favoriten", navStats: "Statistik", navSettings: "Einstellungen",
                 toastSaved: "Dua gespeichert", toastDeleted: "Gelöscht", toastFavAdded: "Zu Favoriten hinzugefügt", toastFavRemoved: "Entfernt",
                 toastReset: "Zähler zurückgesetzt", toastStatsCleared: "Statistik gelöscht",
                 toastThemeDark: "Dunkles Design", toastThemeLight: "Helles Design",
@@ -6021,7 +6050,7 @@
                 reminderNotifTitle: "Azkar · Dhikr-Zeit 🌙",
                 reminderNotifBody: "Gedenke Allahs in deinen guten Tagen, und Er wird dich an deinen schweren Tagen nicht vergessen.",
                 titleChecklist: "Aufgaben", subtitleChecklist: "Erledigte Aufgaben abhaken", overallProgressLabel: "Gesamtfortschritt",
-                clStatsTitle: "Aufgaben-Statistik", clStatsSubtitle: "Detaillierter Fortschritt pro Ordner", clStatsByFolders: "Nach Ordnern",
+                clStatsTitle: "Aufgaben-Statistik", dhikrProgressLabel: "Dhikrs gesamt", dhikrStatsTitle: "Dhikr-Fortschritt", dhikrStatsSubtitle: "Kumulative Anzahl je Dhikr", dhikrStatsMainDhikr: "Haupt-Dhikr", dhikrStatsCounter: "Zähler", dhikrStatsFoldersTitle: "Dhikr-Ordner", dhikrStatsSpecialDhikrs: "Besondere Dhikrs", dhikrStatsSpecialLabel: "Besonders", dhikrStatsTotal: "Gesamt", dhikrStatsNoDhikrs: "Keine Dhikrs zum Anzeigen", clStatsSubtitle: "Detaillierter Fortschritt pro Ordner", clStatsByFolders: "Nach Ordnern",
                 clStatsFolders: "Ordner", clStatsSubfolders: "Unterordner", clStatsTotal: "Aufgaben gesamt", clStatsCompleted: "Erledigt", clStatsRemaining: "Verbleibend",
                 clStatsCompletedFolders: "Ordner abgeschlossen", clStatsDaily: "Täglich", clStatsOneTime: "Einmalig", clStatsOwnTasks: "Ordner-Aufgaben", clStatsEmpty: "Noch keine Aufgaben", clStatsClose: "Schließen",
                 duaCountLabel: "Duas", emptyFolder: "Leer", toastMovedToFolder: "In \u201e{name}\u201c verschoben", toastMovedOutOfFolder: "Aus dem Ordner entfernt",
@@ -6071,7 +6100,7 @@
             },
             es: {
                 headerTitle: "Ciertamente, en el recuerdo de Allah los corazones encuentran paz",
-                labelGoal: "Meta", labelCustom: "Meta propia", btnReset: "Reiniciar dhikr",
+                labelGoal: "Meta", labelCustom: "Meta propia", btnReset: "Borrar todo",
                 titleDua: "Duas", subtitleDua: "Tus oraciones y dhikrs personales",
                 titleFav: "Favoritos", subtitleFav: "Duas favoritas a mano",
                 titleStats: "Estadísticas",
@@ -6079,8 +6108,8 @@
                 chartTitle: "Progreso", timeChartTitle: "Hora favorita para el dhikr",
                 titleSettings: "Ajustes",
                 labelLang: "Idioma", labelTheme: "Tema", labelSound: "Sonido al alcanzar meta", labelClickSound: "Sonido al pulsar",
-                btnClearStats: "Borrar estadísticas",
-                clearStatsTitle: "¿Borrar estadísticas?", clearStatsSub: "Todos los datos del dhikr se eliminarán permanentemente",
+                btnClearStats: "Borrar todo",
+                clearStatsTitle: "¿Borrar todo?", clearStatsSub: "El contador y todos los datos del dhikr se eliminarán permanentemente",
                 modalTitleNew: "Nueva dua", modalTitleEdit: "Editar dua",
                 labelDuaText: "Texto de la dua", labelDuaName: "Nombre de la dua", labelDuaTrans: "Descripción / nota",
                 placeholderDua: "Texto de la dua", placeholderDuaName: "Nombre de la dua", placeholderTrans: "Descripción", placeholderSearch: "Buscar duas...",
@@ -6089,7 +6118,7 @@
                 resetCounterTitle: "¿Reiniciar contador?", resetCounterSub: "El progreso actual se borrará",
                 deleteDuaTitle: "¿Eliminar dua?", deleteDuaSub: "Esta acción no se puede deshacer",
                 btnYes: "Sí", btnNo: "No",
-                navTasbih: "Dhikr", navDua: "Duas", navFav: "Favoritos", navStats: "Estadísticas", navSettings: "Ajustes",
+                navAzkar: "Dhikr", navDua: "Duas", navFav: "Favoritos", navStats: "Estadísticas", navSettings: "Ajustes",
                 toastSaved: "Dua guardada", toastDeleted: "Eliminada", toastFavAdded: "Añadida a favoritos", toastFavRemoved: "Eliminada",
                 toastReset: "Contador reiniciado", toastStatsCleared: "Estadísticas borradas",
                 toastThemeDark: "Tema oscuro", toastThemeLight: "Tema claro",
@@ -6144,7 +6173,7 @@
                 reminderNotifTitle: "Azkar · Hora del dhikr 🌙",
                 reminderNotifBody: "Recuerda a Allah en tus días buenos, y Él no te olvidará en tus días difíciles.",
                 titleChecklist: "Tareas", subtitleChecklist: "Marca las tareas completadas", overallProgressLabel: "Progreso total",
-                clStatsTitle: "Estadísticas de tareas", clStatsSubtitle: "Progreso detallado por carpeta", clStatsByFolders: "Por carpetas",
+                clStatsTitle: "Estadísticas de tareas", dhikrProgressLabel: "Total de dhikrs", dhikrStatsTitle: "Progreso de dhikr", dhikrStatsSubtitle: "Conteo acumulado por cada dhikr", dhikrStatsMainDhikr: "Dhikr principal", dhikrStatsCounter: "Contador", dhikrStatsFoldersTitle: "Carpetas de dhikr", dhikrStatsSpecialDhikrs: "Dhikrs especiales", dhikrStatsSpecialLabel: "Especiales", dhikrStatsTotal: "Total", dhikrStatsNoDhikrs: "No hay dhikrs para mostrar", clStatsSubtitle: "Progreso detallado por carpeta", clStatsByFolders: "Por carpetas",
                 clStatsFolders: "Carpetas", clStatsSubfolders: "Subcarpetas", clStatsTotal: "Tareas totales", clStatsCompleted: "Completadas", clStatsRemaining: "Restantes",
                 clStatsCompletedFolders: "Carpetas completadas", clStatsDaily: "Diarias", clStatsOneTime: "Únicas", clStatsOwnTasks: "Tareas de la carpeta", clStatsEmpty: "Aún no hay tareas", clStatsClose: "Cerrar",
                 duaCountLabel: "duás", emptyFolder: "Vacío", toastMovedToFolder: "Movido a «{name}»", toastMovedOutOfFolder: "Sacado de la carpeta",
@@ -6194,7 +6223,7 @@
             },
             fr: {
                 headerTitle: "Certes, c'est par le rappel d'Allah que les cœurs trouvent la paix",
-                labelGoal: "Objectif", labelCustom: "Objectif perso", btnReset: "Réinitialiser le dhikr",
+                labelGoal: "Objectif", labelCustom: "Objectif perso", btnReset: "Tout effacer",
                 titleDua: "Duas", subtitleDua: "Vos prières et dhikrs personnels",
                 titleFav: "Favoris", subtitleFav: "Duas favorites à portée de main",
                 titleStats: "Statistiques",
@@ -6202,8 +6231,8 @@
                 chartTitle: "Progrès", timeChartTitle: "Moment favori pour le dhikr",
                 titleSettings: "Paramètres",
                 labelLang: "Langue", labelTheme: "Thème", labelSound: "Son à l'objectif", labelClickSound: "Son au toucher",
-                btnClearStats: "Effacer les statistiques",
-                clearStatsTitle: "Effacer les statistiques ?", clearStatsSub: "Toutes les données de dhikr seront supprimées définitivement",
+                btnClearStats: "Tout effacer",
+                clearStatsTitle: "Tout effacer ?", clearStatsSub: "Le compteur et toutes les données de dhikr seront supprimés définitivement",
                 modalTitleNew: "Nouveau dua", modalTitleEdit: "Modifier le dua",
                 labelDuaText: "Texte du dua", labelDuaName: "Nom du dua", labelDuaTrans: "Description / note",
                 placeholderDua: "Texte du dua", placeholderDuaName: "Nom du dua", placeholderTrans: "Description", placeholderSearch: "Rechercher des duas...",
@@ -6212,7 +6241,7 @@
                 resetCounterTitle: "Réinitialiser le compteur ?", resetCounterSub: "La progression actuelle sera effacée",
                 deleteDuaTitle: "Supprimer le dua ?", deleteDuaSub: "Cette action est irréversible",
                 btnYes: "Oui", btnNo: "Non",
-                navTasbih: "Dhikr", navDua: "Duas", navFav: "Favoris", navStats: "Statistiques", navSettings: "Paramètres",
+                navAzkar: "Dhikr", navDua: "Duas", navFav: "Favoris", navStats: "Statistiques", navSettings: "Paramètres",
                 toastSaved: "Dua enregistré", toastDeleted: "Supprimé", toastFavAdded: "Ajouté aux favoris", toastFavRemoved: "Retiré",
                 toastReset: "Compteur réinitialisé", toastStatsCleared: "Statistiques effacées",
                 toastThemeDark: "Thème sombre", toastThemeLight: "Thème clair",
@@ -6267,7 +6296,7 @@
                 reminderNotifTitle: "Azkar · Heure du dhikr 🌙",
                 reminderNotifBody: "Souviens-toi d'Allah dans tes jours heureux, et Il ne t'oubliera pas dans tes jours difficiles.",
                 titleChecklist: "Tâches", subtitleChecklist: "Cochez les tâches accomplies", overallProgressLabel: "Progression globale",
-                clStatsTitle: "Statistiques des tâches", clStatsSubtitle: "Progression détaillée par dossier", clStatsByFolders: "Par dossiers",
+                clStatsTitle: "Statistiques des tâches", dhikrProgressLabel: "Total des dhikrs", dhikrStatsTitle: "Progrès du dhikr", dhikrStatsSubtitle: "Total cumulé pour chaque dhikr", dhikrStatsMainDhikr: "Dhikr principal", dhikrStatsCounter: "Compteur", dhikrStatsFoldersTitle: "Dossiers de dhikr", dhikrStatsSpecialDhikrs: "Dhikrs spéciaux", dhikrStatsSpecialLabel: "Spéciaux", dhikrStatsTotal: "Total", dhikrStatsNoDhikrs: "Aucun dhikr à afficher", clStatsSubtitle: "Progression détaillée par dossier", clStatsByFolders: "Par dossiers",
                 clStatsFolders: "Dossiers", clStatsSubfolders: "Sous-dossiers", clStatsTotal: "Tâches totales", clStatsCompleted: "Terminées", clStatsRemaining: "Restantes",
                 clStatsCompletedFolders: "Dossiers terminés", clStatsDaily: "Quotidiennes", clStatsOneTime: "Ponctuelles", clStatsOwnTasks: "Tâches du dossier", clStatsEmpty: "Aucune tâche pour l'instant", clStatsClose: "Fermer",
                 duaCountLabel: "duas", emptyFolder: "Vide", toastMovedToFolder: "Déplacé vers « {name} »", toastMovedOutOfFolder: "Sorti du dossier",
@@ -6317,7 +6346,7 @@
             },
             it: {
                 headerTitle: "In verità, nel ricordo di Allah i cuori trovano pace",
-                labelGoal: "Obiettivo", labelCustom: "Obiettivo personale", btnReset: "Reimposta dhikr",
+                labelGoal: "Obiettivo", labelCustom: "Obiettivo personale", btnReset: "Cancella tutto",
                 titleDua: "Duas", subtitleDua: "Le tue preghiere e dhikr personali",
                 titleFav: "Preferiti", subtitleFav: "Duas preferite a portata di mano",
                 titleStats: "Statistiche",
@@ -6325,8 +6354,8 @@
                 chartTitle: "Progresso", timeChartTitle: "Ora preferita per il dhikr",
                 titleSettings: "Impostazioni",
                 labelLang: "Lingua", labelTheme: "Tema", labelSound: "Suono al raggiungimento", labelClickSound: "Suono al tocco",
-                btnClearStats: "Cancella statistiche",
-                clearStatsTitle: "Cancellare le statistiche?", clearStatsSub: "Tutti i dati del dhikr verranno eliminati definitivamente",
+                btnClearStats: "Cancella tutto",
+                clearStatsTitle: "Cancellare tutto?", clearStatsSub: "Il contatore e tutti i dati del dhikr verranno eliminati definitivamente",
                 modalTitleNew: "Nuovo dua", modalTitleEdit: "Modifica dua",
                 labelDuaText: "Testo del dua", labelDuaName: "Nome del dua", labelDuaTrans: "Descrizione / nota",
                 placeholderDua: "Testo del dua", placeholderDuaName: "Nome del dua", placeholderTrans: "Descrizione", placeholderSearch: "Cerca duas...",
@@ -6335,7 +6364,7 @@
                 resetCounterTitle: "Reimpostare il contatore?", resetCounterSub: "Il progresso attuale verrà azzerato",
                 deleteDuaTitle: "Eliminare il dua?", deleteDuaSub: "Questa azione non può essere annullata",
                 btnYes: "Sì", btnNo: "No",
-                navTasbih: "Dhikr", navDua: "Duas", navFav: "Preferiti", navStats: "Statistiche", navSettings: "Impostazioni",
+                navAzkar: "Dhikr", navDua: "Duas", navFav: "Preferiti", navStats: "Statistiche", navSettings: "Impostazioni",
                 toastSaved: "Dua salvata", toastDeleted: "Eliminata", toastFavAdded: "Aggiunta ai preferiti", toastFavRemoved: "Rimossa",
                 toastReset: "Contatore reimpostato", toastStatsCleared: "Statistiche cancellate",
                 toastThemeDark: "Tema scuro", toastThemeLight: "Tema chiaro",
@@ -6390,7 +6419,7 @@
                 reminderNotifTitle: "Azkar · Ora del dhikr 🌙",
                 reminderNotifBody: "Ricorda Allah nei tuoi giorni felici, ed Egli non ti dimenticherà nei tuoi giorni difficili.",
                 titleChecklist: "Attività", subtitleChecklist: "Segna le attività completate", overallProgressLabel: "Progresso totale",
-                clStatsTitle: "Statistiche attività", clStatsSubtitle: "Progresso dettagliato per cartella", clStatsByFolders: "Per cartelle",
+                clStatsTitle: "Statistiche attività", dhikrProgressLabel: "Totale dhikr", dhikrStatsTitle: "Progresso dhikr", dhikrStatsSubtitle: "Conteggio cumulativo per ogni dhikr", dhikrStatsMainDhikr: "Dhikr principale", dhikrStatsCounter: "Contatore", dhikrStatsFoldersTitle: "Cartelle dhikr", dhikrStatsSpecialDhikrs: "Dhikr speciali", dhikrStatsSpecialLabel: "Speciali", dhikrStatsTotal: "Totale", dhikrStatsNoDhikrs: "Nessun dhikr da mostrare", clStatsSubtitle: "Progresso dettagliato per cartella", clStatsByFolders: "Per cartelle",
                 clStatsFolders: "Cartelle", clStatsSubfolders: "Sottocartelle", clStatsTotal: "Attività totali", clStatsCompleted: "Completate", clStatsRemaining: "Rimanenti",
                 clStatsCompletedFolders: "Cartelle completate", clStatsDaily: "Giornaliere", clStatsOneTime: "Una tantum", clStatsOwnTasks: "Attività della cartella", clStatsEmpty: "Ancora nessuna attività", clStatsClose: "Chiudi",
                 duaCountLabel: "due", emptyFolder: "Vuoto", toastMovedToFolder: "Spostato in «{name}»", toastMovedOutOfFolder: "Spostato fuori dalla cartella",
@@ -6440,7 +6469,7 @@
             },
             ja: {
                 headerTitle: "まことに、アッラーの御記憶によって心は安らぐ",
-                labelGoal: "目標", labelCustom: "カスタム目標", btnReset: "ズィクルをリセット",
+                labelGoal: "目標", labelCustom: "カスタム目標", btnReset: "すべて消去",
                 titleDua: "ドゥア", subtitleDua: "あなたの個人的な祈りとズィクル",
                 titleFav: "お気に入り", subtitleFav: "よく使うドゥアをすぐに",
                 titleStats: "統計",
@@ -6448,8 +6477,8 @@
                 chartTitle: "進捗", timeChartTitle: "ズィクルのお気に入り時間",
                 titleSettings: "設定",
                 labelLang: "言語", labelTheme: "テーマ", labelSound: "目標達成時のサウンド", labelClickSound: "タップ音",
-                btnClearStats: "統計を消去",
-                clearStatsTitle: "統計を消去しますか？", clearStatsSub: "すべてのズィクルデータが完全に削除されます",
+                btnClearStats: "すべて消去",
+                clearStatsTitle: "すべて消去しますか？", clearStatsSub: "カウンターとすべてのズィクルデータが完全に削除されます",
                 modalTitleNew: "新しいドゥア", modalTitleEdit: "ドゥアを編集",
                 labelDuaText: "ドゥアのテキスト", labelDuaName: "ドゥアの名前", labelDuaTrans: "説明 / メモ",
                 placeholderDua: "ドゥアのテキスト", placeholderDuaName: "ドゥアの名前", placeholderTrans: "説明", placeholderSearch: "ドゥアを検索...",
@@ -6458,7 +6487,7 @@
                 resetCounterTitle: "カウンターをリセット？", resetCounterSub: "現在の進捗が消去されます",
                 deleteDuaTitle: "ドゥアを削除？", deleteDuaSub: "この操作は元に戻せません",
                 btnYes: "はい", btnNo: "いいえ",
-                navTasbih: "ズィクル", navDua: "ドゥア", navFav: "お気に入り", navStats: "統計", navSettings: "設定",
+                navAzkar: "ズィクル", navDua: "ドゥア", navFav: "お気に入り", navStats: "統計", navSettings: "設定",
                 toastSaved: "ドゥアを保存しました", toastDeleted: "削除しました", toastFavAdded: "お気に入りに追加", toastFavRemoved: "削除しました",
                 toastReset: "カウンターをリセット", toastStatsCleared: "統計を消去",
                 toastThemeDark: "ダークテーマ", toastThemeLight: "ライトテーマ",
@@ -6513,7 +6542,7 @@
                 reminderNotifTitle: "Azkar · ズィクルの時間 🌙",
                 reminderNotifBody: "順境の日にアッラーを念じれば、苦難の日にアッラーはあなたを忘れない。",
                 titleChecklist: "タスク", subtitleChecklist: "完了したタスクをチェック", overallProgressLabel: "全体の進捗",
-                clStatsTitle: "タスク統計", clStatsSubtitle: "フォルダ別の詳細な進捗", clStatsByFolders: "フォルダ別",
+                clStatsTitle: "タスク統計", dhikrProgressLabel: "ズィクル合計", dhikrStatsTitle: "ズィクルの進捗", dhikrStatsSubtitle: "各ズィクルの累計カウント", dhikrStatsMainDhikr: "基本ズィクル", dhikrStatsCounter: "カウンター", dhikrStatsFoldersTitle: "ズィクルフォルダ", dhikrStatsSpecialDhikrs: "特別なズィクル", dhikrStatsSpecialLabel: "特別", dhikrStatsTotal: "合計", dhikrStatsNoDhikrs: "表示するズィクルがありません", clStatsSubtitle: "フォルダ別の詳細な進捗", clStatsByFolders: "フォルダ別",
                 clStatsFolders: "フォルダ", clStatsSubfolders: "サブフォルダ", clStatsTotal: "タスク合計", clStatsCompleted: "完了", clStatsRemaining: "残り",
                 clStatsCompletedFolders: "完了したフォルダ", clStatsDaily: "毎日", clStatsOneTime: "一回限り", clStatsOwnTasks: "フォルダのタスク", clStatsEmpty: "まだタスクがありません", clStatsClose: "閉じる",
                 duaCountLabel: "件", emptyFolder: "空", toastMovedToFolder: "「{name}」に移動しました", toastMovedOutOfFolder: "フォルダから移動しました",
@@ -6563,7 +6592,7 @@
             },
             ko: {
                 headerTitle: "진실로 알라를 기억함으로써 마음은 평안을 얻는다",
-                labelGoal: "목표", labelCustom: "사용자 목표", btnReset: "지크르 초기화",
+                labelGoal: "목표", labelCustom: "사용자 목표", btnReset: "모두 삭제",
                 titleDua: "두아", subtitleDua: "나의 개인 기도와 지크르",
                 titleFav: "즐겨찾기", subtitleFav: "좋아하는 두아를 한눈에",
                 titleStats: "통계",
@@ -6571,8 +6600,8 @@
                 chartTitle: "진행 상황", timeChartTitle: "지크르에 좋아하는 시간",
                 titleSettings: "설정",
                 labelLang: "언어", labelTheme: "테마", labelSound: "목표 달성 소리", labelClickSound: "탭 소리",
-                btnClearStats: "통계 삭제",
-                clearStatsTitle: "통계를 삭제하시겠습니까?", clearStatsSub: "모든 지크르 데이터가 영구적으로 삭제됩니다",
+                btnClearStats: "모두 삭제",
+                clearStatsTitle: "모두 삭제하시겠습니까?", clearStatsSub: "카운터와 모든 지크르 데이터가 영구적으로 삭제됩니다",
                 modalTitleNew: "새 두아", modalTitleEdit: "두아 편집",
                 labelDuaText: "두아 텍스트", labelDuaName: "두아 이름", labelDuaTrans: "설명 / 메모",
                 placeholderDua: "두아 텍스트", placeholderDuaName: "두아 이름", placeholderTrans: "설명", placeholderSearch: "두아 검색...",
@@ -6581,7 +6610,7 @@
                 resetCounterTitle: "카운터를 초기화하시겠습니까?", resetCounterSub: "현재 진행 상황이 삭제됩니다",
                 deleteDuaTitle: "두아를 삭제하시겠습니까?", deleteDuaSub: "이 작업은 취소할 수 없습니다",
                 btnYes: "예", btnNo: "아니요",
-                navTasbih: "지크르", navDua: "두아", navFav: "즐겨찾기", navStats: "통계", navSettings: "설정",
+                navAzkar: "지크르", navDua: "두아", navFav: "즐겨찾기", navStats: "통계", navSettings: "설정",
                 toastSaved: "두아 저장됨", toastDeleted: "삭제됨", toastFavAdded: "즐겨찾기에 추가", toastFavRemoved: "제거됨",
                 toastReset: "카운터 초기화", toastStatsCleared: "통계 삭제됨",
                 toastThemeDark: "다크 테마", toastThemeLight: "라이트 테마",
@@ -6636,7 +6665,7 @@
                 reminderNotifTitle: "Azkar · 지크르 시간 🌙",
                 reminderNotifBody: "좋은 날에 알라를 기억하라, 그러면 힘든 날에 그분께서 너를 잊지 않으시리라.",
                 titleChecklist: "할 일", subtitleChecklist: "완료된 할 일을 체크하세요", overallProgressLabel: "전체 진행률",
-                clStatsTitle: "작업 통계", clStatsSubtitle: "폴더별 상세 진행 상황", clStatsByFolders: "폴더별",
+                clStatsTitle: "작업 통계", dhikrProgressLabel: "지크르 총계", dhikrStatsTitle: "지크르 진행률", dhikrStatsSubtitle: "각 지크르의 누적 횟수", dhikrStatsMainDhikr: "기본 지크르", dhikrStatsCounter: "카운터", dhikrStatsFoldersTitle: "지크르 폴더", dhikrStatsSpecialDhikrs: "특별 지크르", dhikrStatsSpecialLabel: "특별", dhikrStatsTotal: "전체", dhikrStatsNoDhikrs: "표시할 지크르가 없습니다", clStatsSubtitle: "폴더별 상세 진행 상황", clStatsByFolders: "폴더별",
                 clStatsFolders: "폴더", clStatsSubfolders: "하위 폴더", clStatsTotal: "전체 작업", clStatsCompleted: "완료", clStatsRemaining: "남음",
                 clStatsCompletedFolders: "완료된 폴더", clStatsDaily: "매일", clStatsOneTime: "일회성", clStatsOwnTasks: "폴더 작업", clStatsEmpty: "아직 작업이 없습니다", clStatsClose: "닫기",
                 duaCountLabel: "개", emptyFolder: "비어 있음", toastMovedToFolder: "«{name}»(으)로 이동됨", toastMovedOutOfFolder: "폴더에서 꺼냄",
@@ -6686,7 +6715,7 @@
             },
             zh: {
                 headerTitle: "确实，只有记念安拉，心灵才能得到安宁",
-                labelGoal: "目标", labelCustom: "自定义目标", btnReset: "重置迪克尔",
+                labelGoal: "目标", labelCustom: "自定义目标", btnReset: "清除所有",
                 titleDua: "杜阿", subtitleDua: "您的个人祈祷和迪克尔",
                 titleFav: "收藏", subtitleFav: "常用杜阿一键直达",
                 titleStats: "统计",
@@ -6694,8 +6723,8 @@
                 chartTitle: "进度", timeChartTitle: "最喜欢的迪克尔时间",
                 titleSettings: "设置",
                 labelLang: "语言", labelTheme: "主题", labelSound: "达成目标时提示音", labelClickSound: "点击提示音",
-                btnClearStats: "清除统计",
-                clearStatsTitle: "清除统计数据？", clearStatsSub: "所有迪克尔数据将被永久删除",
+                btnClearStats: "清除所有",
+                clearStatsTitle: "清除所有？", clearStatsSub: "计数器和所有迪克尔数据将被永久删除",
                 modalTitleNew: "新杜阿", modalTitleEdit: "编辑杜阿",
                 labelDuaText: "杜阿文本", labelDuaName: "杜阿名称", labelDuaTrans: "描述 / 备注",
                 placeholderDua: "杜阿文本", placeholderDuaName: "杜阿名称", placeholderTrans: "描述", placeholderSearch: "搜索杜阿...",
@@ -6704,7 +6733,7 @@
                 resetCounterTitle: "重置计数器？", resetCounterSub: "当前进度将被清除",
                 deleteDuaTitle: "删除杜阿？", deleteDuaSub: "此操作无法撤销",
                 btnYes: "是", btnNo: "否",
-                navTasbih: "迪克尔", navDua: "杜阿", navFav: "收藏", navStats: "统计", navSettings: "设置",
+                navAzkar: "迪克尔", navDua: "杜阿", navFav: "收藏", navStats: "统计", navSettings: "设置",
                 toastSaved: "杜阿已保存", toastDeleted: "已删除", toastFavAdded: "已添加到收藏", toastFavRemoved: "已移除",
                 toastReset: "计数器已重置", toastStatsCleared: "统计已清除",
                 toastThemeDark: "深色主题", toastThemeLight: "浅色主题",
@@ -6759,7 +6788,7 @@
                 reminderNotifTitle: "Azkar · 迪克尔时间 🌙",
                 reminderNotifBody: "顺境之日记念安拉，逆境之日安拉必不忘记你。",
                 titleChecklist: "任务", subtitleChecklist: "标记已完成的任务", overallProgressLabel: "总体进度",
-                clStatsTitle: "任务统计", clStatsSubtitle: "按文件夹的详细进度", clStatsByFolders: "按文件夹",
+                clStatsTitle: "任务统计", dhikrProgressLabel: "迪克尔总数", dhikrStatsTitle: "迪克尔进度", dhikrStatsSubtitle: "每个迪克尔的累计次数", dhikrStatsMainDhikr: "主要迪克尔", dhikrStatsCounter: "计数器", dhikrStatsFoldersTitle: "迪克尔文件夹", dhikrStatsSpecialDhikrs: "特殊迪克尔", dhikrStatsSpecialLabel: "特殊", dhikrStatsTotal: "总计", dhikrStatsNoDhikrs: "没有可显示的迪克尔", clStatsSubtitle: "按文件夹的详细进度", clStatsByFolders: "按文件夹",
                 clStatsFolders: "文件夹", clStatsSubfolders: "子文件夹", clStatsTotal: "任务总数", clStatsCompleted: "已完成", clStatsRemaining: "剩余",
                 clStatsCompletedFolders: "已完成文件夹", clStatsDaily: "每日", clStatsOneTime: "一次性", clStatsOwnTasks: "文件夹任务", clStatsEmpty: "暂无任务", clStatsClose: "关闭",
                 duaCountLabel: "条", emptyFolder: "空", toastMovedToFolder: "已移至「{name}」", toastMovedOutOfFolder: "已移出文件夹",
@@ -6813,7 +6842,7 @@
             headerTitle: "Şüphesiz kalpler ancak Allah'ı anmakla huzur bulur",
             labelGoal: "Hedef",
             labelCustom: "Özel",
-            btnReset: "Zikri sıfırla",
+            btnReset: "Her şeyi temizle",
             titleDua: "Dualar",
             subtitleDua: "Kişisel dua ve zikirlerin",
             titleFav: "Favoriler",
@@ -6831,9 +6860,9 @@
             labelTheme: "Tema",
             labelSound: "Hedefte ses",
             labelClickSound: "Dokunuşta ses",
-            btnClearStats: "İstatistiği temizle",
-            clearStatsTitle: "İstatistik temizlensin mi?",
-            clearStatsSub: "Tüm zikir verileri kalıcı olarak silinecek",
+            btnClearStats: "Her şeyi temizle",
+            clearStatsTitle: "Her şeyi temizle?",
+            clearStatsSub: "Sayaç ve tüm zikir verileri kalıcı olarak silinecek",
             modalTitleNew: "Yeni dua",
             modalTitleEdit: "Duayı düzenle",
             labelDuaText: "Dua metni",
@@ -6853,7 +6882,7 @@
             deleteDuaSub: "Bu işlem geri alınamaz",
             btnYes: "Evet",
             btnNo: "Hayır",
-            navTasbih: "Zikir",
+            navAzkar: "Zikir",
             navDua: "Dualar",
             navFav: "Favoriler",
             navStats: "İstatistik",
@@ -6934,7 +6963,7 @@
             titleChecklist: "Görevler",
             subtitleChecklist: "Tamamlanan görevleri işaretle",
             overallProgressLabel: "Genel İlerleme",
-            clStatsTitle: "Görev istatistiği",
+            clStatsTitle: "Görev istatistiği", dhikrProgressLabel: "Toplam Zikir", dhikrStatsTitle: "Zikir İlerlemesi", dhikrStatsSubtitle: "Her zikir için birikimli sayım", dhikrStatsMainDhikr: "Ana zikir", dhikrStatsCounter: "Sayaç", dhikrStatsFoldersTitle: "Zikir klasörleri", dhikrStatsSpecialDhikrs: "Özel zikirler", dhikrStatsSpecialLabel: "Özel", dhikrStatsTotal: "Toplam", dhikrStatsNoDhikrs: "Gösterilecek zikir yok",
             clStatsSubtitle: "Klasöre göre ayrıntılı ilerleme",
             clStatsByFolders: "Klasörlere göre",
             clStatsFolders: "Klasörler",
@@ -7040,7 +7069,7 @@
             headerTitle: "निःसंदेह, अल्लाह के स्मरण से ही दिलों को चैन मिलता है",
             labelGoal: "लक्ष्य",
             labelCustom: "कस्टम",
-            btnReset: "ज़िक्र रीसेट करें",
+            btnReset: "सब कुछ साफ़ करें",
             titleDua: "दुआएँ",
             subtitleDua: "आपकी निजी दुआएँ और ज़िक्र",
             titleFav: "पसंदीदा",
@@ -7058,9 +7087,9 @@
             labelTheme: "थीम",
             labelSound: "लक्ष्य पर ध्वनि",
             labelClickSound: "टैप पर ध्वनि",
-            btnClearStats: "आँकड़े साफ़ करें",
-            clearStatsTitle: "आँकड़े साफ़ करें?",
-            clearStatsSub: "सभी ज़िक्र डेटा स्थायी रूप से हटा दिया जाएगा",
+            btnClearStats: "सब कुछ साफ़ करें",
+            clearStatsTitle: "सब कुछ साफ़ करें?",
+            clearStatsSub: "काउंटर और सभी ज़िक्र डेटा स्थायी रूप से हटा दिए जाएंगे",
             modalTitleNew: "नई दुआ",
             modalTitleEdit: "दुआ संपादित करें",
             labelDuaText: "दुआ पाठ",
@@ -7080,7 +7109,7 @@
             deleteDuaSub: "यह क्रिया पूर्ववत नहीं की जा सकती",
             btnYes: "हाँ",
             btnNo: "नहीं",
-            navTasbih: "ज़िक्र",
+            navAzkar: "ज़िक्र",
             navDua: "दुआएँ",
             navFav: "पसंदीदा",
             navStats: "आँकड़े",
@@ -7161,7 +7190,7 @@
             titleChecklist: "कार्य",
             subtitleChecklist: "पूर्ण किए गए कार्य चिह्नित करें",
             overallProgressLabel: "कुल प्रगति",
-            clStatsTitle: "कार्य आँकड़े",
+            clStatsTitle: "कार्य आँकड़े", dhikrProgressLabel: "कुल ज़िक्र", dhikrStatsTitle: "ज़िक्र प्रगति", dhikrStatsSubtitle: "प्रत्येक ज़िक्र की संचित गिनती", dhikrStatsMainDhikr: "मुख्य ज़िक्र", dhikrStatsCounter: "काउंटर", dhikrStatsFoldersTitle: "ज़िक्र फ़ोल्डर", dhikrStatsSpecialDhikrs: "विशेष ज़िक्र", dhikrStatsSpecialLabel: "विशेष", dhikrStatsTotal: "कुल", dhikrStatsNoDhikrs: "दिखाने के लिए कोई ज़िक्र नहीं",
             clStatsSubtitle: "फ़ोल्डर अनुसार विस्तृत प्रगति",
             clStatsByFolders: "फ़ोल्डर अनुसार",
             clStatsFolders: "फ़ोल्डर",
@@ -7267,7 +7296,7 @@
             headerTitle: "Sesungguhnya dengan mengingati Allah, hati menjadi tenang",
             labelGoal: "Sasaran",
             labelCustom: "Tersuai",
-            btnReset: "Set semula zikir",
+            btnReset: "Kosongkan semua",
             titleDua: "Doa",
             subtitleDua: "Doa dan zikir peribadi anda",
             titleFav: "Kegemaran",
@@ -7285,9 +7314,9 @@
             labelTheme: "Tema",
             labelSound: "Bunyi apabila sasaran dicapai",
             labelClickSound: "Bunyi ketika ketuk",
-            btnClearStats: "Kosongkan statistik",
-            clearStatsTitle: "Kosongkan statistik?",
-            clearStatsSub: "Semua data zikir akan dipadam secara kekal",
+            btnClearStats: "Kosongkan semua",
+            clearStatsTitle: "Kosongkan semua?",
+            clearStatsSub: "Pembilang dan semua data zikir akan dipadam secara kekal",
             modalTitleNew: "Doa baharu",
             modalTitleEdit: "Sunting doa",
             labelDuaText: "Teks doa",
@@ -7307,7 +7336,7 @@
             deleteDuaSub: "Tindakan ini tidak boleh dibatalkan",
             btnYes: "Ya",
             btnNo: "Tidak",
-            navTasbih: "Zikir",
+            navAzkar: "Zikir",
             navDua: "Doa",
             navFav: "Kegemaran",
             navStats: "Statistik",
@@ -7388,7 +7417,7 @@
             titleChecklist: "Tugas",
             subtitleChecklist: "Tandakan tugas yang selesai",
             overallProgressLabel: "Kemajuan Keseluruhan",
-            clStatsTitle: "Statistik tugas",
+            clStatsTitle: "Statistik tugas", dhikrProgressLabel: "Jumlah Zikir", dhikrStatsTitle: "Kemajuan Zikir", dhikrStatsSubtitle: "Hitungan terkumpul setiap zikir", dhikrStatsMainDhikr: "Zikir utama", dhikrStatsCounter: "Kira", dhikrStatsFoldersTitle: "Folder zikir", dhikrStatsSpecialDhikrs: "Zikir khusus", dhikrStatsSpecialLabel: "Khusus", dhikrStatsTotal: "Jumlah", dhikrStatsNoDhikrs: "Tiada zikir untuk dipaparkan",
             clStatsSubtitle: "Kemajuan terperinci mengikut folder",
             clStatsByFolders: "Mengikut folder",
             clStatsFolders: "Folder",
@@ -7494,7 +7523,7 @@
             headerTitle: "Sesungguhnya hanya dengan mengingat Allah hati menjadi tenang",
             labelGoal: "Target",
             labelCustom: "Khusus",
-            btnReset: "Atur ulang zikir",
+            btnReset: "Hapus semua",
             titleDua: "Doa",
             subtitleDua: "Doa dan zikir pribadi Anda",
             titleFav: "Favorit",
@@ -7512,9 +7541,9 @@
             labelTheme: "Tema",
             labelSound: "Suara saat target tercapai",
             labelClickSound: "Suara saat ketuk",
-            btnClearStats: "Hapus statistik",
-            clearStatsTitle: "Hapus statistik?",
-            clearStatsSub: "Semua data zikir akan dihapus permanen",
+            btnClearStats: "Hapus semua",
+            clearStatsTitle: "Hapus semua?",
+            clearStatsSub: "Penghitung dan semua data zikir akan dihapus permanen",
             modalTitleNew: "Doa baru",
             modalTitleEdit: "Edit doa",
             labelDuaText: "Teks doa",
@@ -7534,7 +7563,7 @@
             deleteDuaSub: "Tindakan ini tidak dapat dibatalkan",
             btnYes: "Ya",
             btnNo: "Tidak",
-            navTasbih: "Zikir",
+            navAzkar: "Zikir",
             navDua: "Doa",
             navFav: "Favorit",
             navStats: "Statistik",
@@ -7615,7 +7644,7 @@
             titleChecklist: "Tugas",
             subtitleChecklist: "Tandai tugas yang selesai",
             overallProgressLabel: "Kemajuan Keseluruhan",
-            clStatsTitle: "Statistik tugas",
+            clStatsTitle: "Statistik tugas", dhikrProgressLabel: "Jumlah Zikir", dhikrStatsTitle: "Kemajuan Zikir", dhikrStatsSubtitle: "Hitungan terkumpul setiap zikir", dhikrStatsMainDhikr: "Zikir utama", dhikrStatsCounter: "Hitungan", dhikrStatsFoldersTitle: "Folder zikir", dhikrStatsSpecialDhikrs: "Zikir khusus", dhikrStatsSpecialLabel: "Khusus", dhikrStatsTotal: "Total", dhikrStatsNoDhikrs: "Tidak ada zikir untuk ditampilkan",
             clStatsSubtitle: "Kemajuan rinci per folder",
             clStatsByFolders: "Berdasarkan folder",
             clStatsFolders: "Folder",
@@ -7721,7 +7750,7 @@
             headerTitle: "แท้จริง ด้วยการรำลึกถึงอัลลอฮ์ หัวใจจึงสงบ",
             labelGoal: "เป้าหมาย",
             labelCustom: "กำหนดเอง",
-            btnReset: "รีเซ็ตซิกร์",
+            btnReset: "ล้างทั้งหมด",
             titleDua: "ดุอาอ์",
             subtitleDua: "ดุอาอ์และซิกร์ส่วนตัวของคุณ",
             titleFav: "รายการโปรด",
@@ -7739,9 +7768,9 @@
             labelTheme: "ธีม",
             labelSound: "เสียงเมื่อถึงเป้าหมาย",
             labelClickSound: "เสียงเมื่อแตะ",
-            btnClearStats: "ล้างสถิติ",
-            clearStatsTitle: "ล้างสถิติหรือไม่?",
-            clearStatsSub: "ข้อมูลซิกร์ทั้งหมดจะถูกลบถาวร",
+            btnClearStats: "ล้างทั้งหมด",
+            clearStatsTitle: "ล้างทั้งหมดหรือไม่?",
+            clearStatsSub: "ตัวนับและข้อมูลซิกร์ทั้งหมดจะถูกลบถาวร",
             modalTitleNew: "ดุอาอ์ใหม่",
             modalTitleEdit: "แก้ไขดุอาอ์",
             labelDuaText: "ข้อความดุอาอ์",
@@ -7761,7 +7790,7 @@
             deleteDuaSub: "การกระทำนี้ไม่สามารถยกเลิกได้",
             btnYes: "ใช่",
             btnNo: "ไม่",
-            navTasbih: "ซิกร์",
+            navAzkar: "ซิกร์",
             navDua: "ดุอาอ์",
             navFav: "โปรด",
             navStats: "สถิติ",
@@ -7842,7 +7871,7 @@
             titleChecklist: "งาน",
             subtitleChecklist: "ทำเครื่องหมายงานที่เสร็จแล้ว",
             overallProgressLabel: "ความคืบหน้าโดยรวม",
-            clStatsTitle: "สถิติงาน",
+            clStatsTitle: "สถิติงาน", dhikrProgressLabel: "ซิกร์ทั้งหมด", dhikrStatsTitle: "ความคืบหน้าซิกร์", dhikrStatsSubtitle: "จำนวนสะสมของแต่ละซิกร์", dhikrStatsMainDhikr: "ซิกร์หลัก", dhikrStatsCounter: "ตัวนับ", dhikrStatsFoldersTitle: "โฟลเดอร์ซิกร์", dhikrStatsSpecialDhikrs: "ซิกร์พิเศษ", dhikrStatsSpecialLabel: "พิเศษ", dhikrStatsTotal: "ทั้งหมด", dhikrStatsNoDhikrs: "ไม่มีซิกร์ให้แสดง",
             clStatsSubtitle: "ความคืบหน้าโดยละเอียดตามโฟลเดอร์",
             clStatsByFolders: "ตามโฟลเดอร์",
             clStatsFolders: "โฟลเดอร์",
@@ -8690,7 +8719,7 @@
 
         function loadSpecialFolders() {
             try {
-                const saved = localStorage.getItem('tasbih_special_folders');
+                const saved = localStorage.getItem('azkar_special_folders');
                 if (saved) specialFolders = JSON.parse(saved);
             } catch(e) { specialFolders = []; }
             // Миграция: если папка «Особые Награды» ещё не создана — создаём и кладём все дефолтные зикры
@@ -8761,21 +8790,21 @@
         }
 
         function saveSpecialFolders() {
-            localStorage.setItem('tasbih_special_folders', JSON.stringify(specialFolders));
+            localStorage.setItem('azkar_special_folders', JSON.stringify(specialFolders));
             markDataChanged();
         }
         const DEFAULT_SPECIAL_IDS = new Set(SPECIAL_DHIKRS_DEFAULTS.map(d => d.id));
         // Множество дефолтных зикров, которые пользователь сознательно удалил.
         // Их НЕ нужно восстанавливать при merge, иначе удаление было бы бесполезным.
         function getDeletedDefaultIds() {
-            try { return new Set(JSON.parse(localStorage.getItem('tasbih_special_deleted_defaults') || '[]')); }
+            try { return new Set(JSON.parse(localStorage.getItem('azkar_special_deleted_defaults') || '[]')); }
             catch (e) { return new Set(); }
         }
         function markDefaultDeleted(id) {
             if (!DEFAULT_SPECIAL_IDS.has(id)) return; // пользовательские зикры не трекаем
             const set = getDeletedDefaultIds();
             set.add(id);
-            localStorage.setItem('tasbih_special_deleted_defaults', JSON.stringify([...set]));
+            localStorage.setItem('azkar_special_deleted_defaults', JSON.stringify([...set]));
         }
 
         let currentLang = 'ru';
@@ -8813,6 +8842,23 @@
             _buildSpecialFolderDropdown();
             _updateSpecialFolderSelectBtn('none');
             document.getElementById('specialModal').classList.add('show');
+        }
+        function openSpecialAddInFolder(folderIdx) {
+            document.getElementById('specialFormEditId').value = '';
+            document.getElementById('specialFormName').value = '';
+            document.getElementById('specialFormDesc').value = '';
+            document.getElementById('specialFormGoal').value = '100';
+            document.getElementById('specialModalTitle').innerText = t('specialModalTitleNew');
+            const wrap = document.getElementById('specialFolderSelectWrap');
+            const folderNameInput = document.getElementById('specialFolderNameInput');
+            const dhikrFields = document.getElementById('specialDhikrFields');
+            // Hide folder selector — folder is already chosen
+            if (wrap) wrap.style.display = 'none';
+            if (folderNameInput) { folderNameInput.value = ''; folderNameInput.style.display = 'none'; }
+            if (dhikrFields) dhikrFields.style.display = 'flex';
+            _specialFolderSelected = folderIdx;
+            document.getElementById('specialModal').classList.add('show');
+            setTimeout(() => { const n = document.getElementById('specialFormName'); if (n) n.focus(); }, 120);
         }
         function openSpecialEditModal(id) {
             const d = specialDhikrs.find(x => x.id === id); if (!d) return;
@@ -8856,15 +8902,7 @@
             noneOpt.innerHTML = '<span class="fo-icon">📄</span><span class="fo-name">' + escHtml(t('noFolderOption')) + '</span><svg class="fo-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
             noneOpt.onclick = (e) => { e.stopPropagation(); _selectSpecialFolderOption('none'); };
             dd.appendChild(noneOpt);
-            // Existing folders
-            specialFolders.forEach((folder, i) => {
-                const opt = document.createElement('div');
-                opt.className = 'cl-folder-option';
-                opt.dataset.idx = i;
-                opt.innerHTML = '<span class="fo-icon">📁</span><span class="fo-name">' + escHtml(folder.name) + '</span><svg class="fo-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
-                opt.onclick = (e) => { e.stopPropagation(); _selectSpecialFolderOption(i); };
-                dd.appendChild(opt);
-            });
+            // (Existing folders removed — add dhikr to folder via + button inside each folder)
         }
 
         function _selectSpecialFolderOption(idx) {
@@ -8997,7 +9035,7 @@
         }
         function deleteSpecialDhikr(id) { promptDeleteSpecialDhikr(id); }
         function saveSpecialDhikrsToStorage() {
-            localStorage.setItem('tasbih_custom_special_dhikrs', JSON.stringify(specialDhikrs));
+            localStorage.setItem('azkar_custom_special_dhikrs', JSON.stringify(specialDhikrs));
             markDataChanged();
         }
         function loadCustomSpecialDhikrs() {
@@ -9021,7 +9059,7 @@
             // дефолтные зикры доходят до пользователей со старым кэшем, при этом
             // пользовательские правки, удаления и порядок карточек не теряются.
             try {
-                const s = localStorage.getItem('tasbih_custom_special_dhikrs');
+                const s = localStorage.getItem('azkar_custom_special_dhikrs');
                 if (!s) return;
                 const stored = JSON.parse(s);
                 if (!Array.isArray(stored) || stored.length === 0) return;
@@ -9072,7 +9110,7 @@
                 // при перезагрузке.
                 const correctedJson = JSON.stringify(merged);
                 if (correctedJson !== s) {
-                    localStorage.setItem('tasbih_custom_special_dhikrs', correctedJson);
+                    localStorage.setItem('azkar_custom_special_dhikrs', correctedJson);
                 }
             } catch(e) {}
         }
@@ -9227,7 +9265,7 @@
                 btnYes: 'btnYes', btnNo: 'btnNo', btnYesReset: 'btnYes',
                 btnNoReset: 'btnNo', btnYesClear: 'btnYes', btnNoClear: 'btnNo',
                 btnYesClearStats: 'btnYes', btnNoClearStats: 'btnNo',
-                navTasbih: 'navTasbih', navDua: 'navDua', navFav: 'navFav', navStats: 'navStats', navSettings: 'navSettings',
+                navAzkar: 'navAzkar', navDua: 'navDua', navFav: 'navFav', navStats: 'navStats', navSettings: 'navSettings',
                 periodWeek: 'periodWeek', periodMonth: 'periodMonth', periodYear: 'periodYear',
                 namesTitle: 'namesTitle',
                 specialListTitle: 'specialListTitle', specialListSubtitle: 'specialListSubtitle',
@@ -9243,6 +9281,10 @@
                 clStatsTitle: 'clStatsTitle',
                 clStatsSubtitle: 'clStatsSubtitle',
                 clStatsCloseBtn: 'clStatsClose',
+                dhikrProgressLabel: 'dhikrProgressLabel',
+                dhikrStatsTitle: 'dhikrStatsTitle',
+                dhikrStatsSubtitle: 'dhikrStatsSubtitle',
+                dhikrStatsCloseBtn: 'clStatsClose',
                 labelTimer: 'labelTimer',
                 labelStealth: 'labelStealth',
                 labelAutoAdvance: 'labelAutoAdvance',
@@ -9469,7 +9511,7 @@
         // ==================== STATE ====================
         let count = 0, goal = 33, isUnlimited = false;
         const UNLIMITED_GOAL = 999999999;
-        let settings = { autosave: true, theme: 'dark', language: 'ru', sound: true, clickSound: false, clickSoundVolume: 5, goalSoundVolume: 5, vibration: true, vibrationLevel: 3, timerEnabled: true, autoExport: true };
+        let settings = { autosave: true, theme: 'dark', language: 'ru', sound: true, clickSound: true, clickSoundVolume: 10, goalSoundVolume: 10, vibration: false, vibrationLevel: 3, timerEnabled: false, autoExport: false };
         let duas = [], deleteId = null;
         const CIRCUMFERENCE = 848;
         let lastIncrementTime = 0;
@@ -9490,6 +9532,23 @@
         let completedSpecial = {};
         let _duaDragSrcId = null; // tracks dua id during drag-into-folder
         let specialProgress = {};
+        // Накопленный (lifetime) счётчик по каждому зикру — НЕ сбрасывается
+        // каждый день, растёт бесконечно. 'main' = основной счётчик,
+        // остальные ключи = id специальных зикров. Используется только для
+        // показа "сколько всего сделано" в статистике; не влияет на цели/прогресс.
+        let dhikrTotals = {};
+        function loadDhikrTotals() {
+            try { dhikrTotals = JSON.parse(localStorage.getItem('azkar_dhikr_totals') || '{}'); }
+            catch (e) { dhikrTotals = {}; }
+            if (!dhikrTotals || typeof dhikrTotals !== 'object') dhikrTotals = {};
+        }
+        function saveDhikrTotals() {
+            try { localStorage.setItem('azkar_dhikr_totals', JSON.stringify(dhikrTotals)); } catch (e) {}
+        }
+        function bumpDhikrTotal(id) {
+            dhikrTotals[id] = (dhikrTotals[id] || 0) + 1;
+            saveDhikrTotals();
+        }
         let lastSpecialIncrementTime = 0;
         // null = нет активного; string = id последнего запущенного зикра (сбрасывается только кнопкой "Назад" или завершением)
         let lastActiveSpecialId = null;
@@ -9513,23 +9572,23 @@
         function flushSave() {
             if (saveTimeout) clearTimeout(saveTimeout);
             saveTimeout = null;
-            localStorage.setItem('tasbih_settings', JSON.stringify({ ...settings, language: currentLang }));
-            localStorage.setItem('tasbih_count', count);
-            localStorage.setItem('tasbih_goal', isUnlimited ? UNLIMITED_GOAL : goal);
-            localStorage.setItem('tasbih_goal_baseline', goalBaseline);
-            localStorage.setItem('tasbih_duas', JSON.stringify(duas));
+            localStorage.setItem('azkar_settings', JSON.stringify({ ...settings, language: currentLang }));
+            localStorage.setItem('azkar_count', count);
+            localStorage.setItem('azkar_goal', isUnlimited ? UNLIMITED_GOAL : goal);
+            localStorage.setItem('azkar_goal_baseline', goalBaseline);
+            localStorage.setItem('azkar_duas', JSON.stringify(duas));
             saveDuaFolders();
-            localStorage.setItem('tasbih_custom_goal', customGoal);
-            localStorage.setItem('tasbih_special_completed', JSON.stringify(completedSpecial));
-            localStorage.setItem('tasbih_special_progress', JSON.stringify(specialProgress));
-            if (pendingStatsSave && _statsCache !== null) { localStorage.setItem('tasbih_stats_v2', JSON.stringify(_statsCache)); pendingStatsSave = false; }
+            localStorage.setItem('azkar_custom_goal', customGoal);
+            localStorage.setItem('azkar_special_completed', JSON.stringify(completedSpecial));
+            localStorage.setItem('azkar_special_progress', JSON.stringify(specialProgress));
+            if (pendingStatsSave && _statsCache !== null) { localStorage.setItem('azkar_stats_v2', JSON.stringify(_statsCache)); pendingStatsSave = false; }
         }
         function saveDataDebounced() { scheduleSave(); pendingStatsSave = true; markDataChanged(); }
 
         let _statsCache = null;
         function getStats() {
             if (_statsCache === null) {
-                _statsCache = JSON.parse(localStorage.getItem('tasbih_stats_v2') || '{}');
+                _statsCache = JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}');
             }
             return _statsCache;
         }
@@ -9869,7 +9928,7 @@
         }
 
         function openCustomGoalModal() {
-            document.getElementById('customGoalInput').value = customGoal || 999;
+            document.getElementById('customGoalInput').value = customGoal || 1000;
             document.getElementById('customGoalModal').classList.add('show');
             updateAutoExtendBadge();
         }
@@ -9884,12 +9943,12 @@
             const chip = document.getElementById('customGoalChip');
             const hint = document.getElementById('hintToast');
 
-            // Сразу выбираем чип и устанавливаем цель (999 по умолчанию если не задана)
-            const activeGoal = customGoal || 999;
+            // Сразу выбираем чип и устанавливаем цель (1000 по умолчанию если не задана)
+            const activeGoal = customGoal || 1000;
             if (!customGoal) {
-                customGoal = 999;
-                document.getElementById('customGoalNum').innerText = formatGoalShort(999);
-                localStorage.setItem('tasbih_custom_goal', 999);
+                customGoal = 1000;
+                document.getElementById('customGoalNum').innerText = formatGoalShort(1000);
+                localStorage.setItem('azkar_custom_goal', 1000);
             }
             document.querySelectorAll('.goal-chip').forEach(ch => ch.classList.remove('active'));
             chip.classList.add('active');
@@ -9960,6 +10019,7 @@
             // the activation to still be live).
             vibrate();
             count++;
+            bumpDhikrTotal('main');
             _timerMain.onClick();
             recordStat();
             playClickSound();
@@ -10013,7 +10073,7 @@
                     document.getElementById('specialAchieveTitle').innerText = t('completionTitle');
                     document.getElementById('specialAchieveName').innerText = '';
                     document.getElementById('specialAchieveSub').innerText = t('completionSub');
-                    window._tasbihMilestoneActive = true;
+                    window._azkarMilestoneActive = true;
                     document.getElementById('completionOverlay').classList.add('show');
                 }
             }
@@ -10024,8 +10084,8 @@
         function cancelResetCounter() { document.getElementById('resetCounterOverlay').classList.remove('show'); }
         function closeCompletion() {
             // Milestone (33/66/100): just continue counting
-            if (window._tasbihMilestoneActive) {
-                window._tasbihMilestoneActive = false;
+            if (window._azkarMilestoneActive) {
+                window._azkarMilestoneActive = false;
                 document.getElementById('completionOverlay').classList.remove('show');
                 goalTriggered = false;
                 updateDisplay();
@@ -10118,6 +10178,9 @@
                             </div>
                         </div>
                         <div class="cl-folder-right">
+                            <button class="cl-folder-add-sub" onclick="event.stopPropagation();openSpecialAddInFolder(${f})" title="${escAttr(t('addTaskBtn'))}">
+                                <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                            </button>
                             <button class="cl-folder-edit" onclick="event.stopPropagation();renameSpecialFolder(${f})" title="${escAttr(t('titleRenameFolder'))}">
                                 <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                             </button>
@@ -10224,7 +10287,7 @@
             closeSpecialDetail();
             currentSpecialId = id;
             lastActiveSpecialId = id;
-            localStorage.setItem('tasbih_last_special_id', id);
+            localStorage.setItem('azkar_last_special_id', id);
             specialCount = specialProgress[id] || 0;
             isSpecialActive = false;
             const dhikr = specialDhikrs.find(d => d.id === id);
@@ -10287,8 +10350,12 @@
             // (see comment in increment()).
             vibrate();
             specialCount++;
+            if (currentSpecialId) bumpDhikrTotal(currentSpecialId);
             _timerSpecial.onClick();
-            recordStat();
+            // Special dhikrs intentionally do NOT feed the main Statistics
+            // screen (azkar_stats_v2) — only the main dhikr counter does.
+            // Their totals still accumulate in dhikrTotals via bumpDhikrTotal()
+            // above, which keeps the "Прогресс зикров" modal unchanged.
             playClickSound();
             updateSpecialDisplay();
             requestAnimationFrame(() => {
@@ -10346,7 +10413,7 @@
             currentSpecialId = null;
             // Зикр завершён — сбрасываем, чтобы свайп открывал список
             lastActiveSpecialId = null;
-            localStorage.removeItem('tasbih_last_special_id');
+            localStorage.removeItem('azkar_last_special_id');
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('screen-special-list').classList.add('active');
             const specialFab = document.getElementById('specialAddFab');
@@ -10361,14 +10428,14 @@
             // Скрываем карточку достижения
             document.getElementById('completionOverlay').classList.remove('show');
             // If triggered by custom goal — call closeCompletion (handles +100 logic)
-            if (window._tasbihCustomGoalActive) {
-                window._tasbihCustomGoalActive = false;
+            if (window._azkarCustomGoalActive) {
+                window._azkarCustomGoalActive = false;
                 closeCompletion();
                 return;
             }
-            // If this was triggered by a tasbih milestone (33/66/100), just continue counting
-            if (window._tasbihMilestoneActive) {
-                window._tasbihMilestoneActive = false;
+            // If this was triggered by an azkar milestone (33/66/100), just continue counting
+            if (window._azkarMilestoneActive) {
+                window._azkarMilestoneActive = false;
                 goalTriggered = false;
                 updateDisplay();
                 return;
@@ -10391,7 +10458,7 @@
             specialCount = 0;
             currentSpecialId = null;
             lastActiveSpecialId = null;
-            localStorage.removeItem('tasbih_last_special_id');
+            localStorage.removeItem('azkar_last_special_id');
             // Go to next incomplete dhikr if available
             const today = _islamicDayKey();
             let nextDhikr = null;
@@ -10407,7 +10474,7 @@
                 // Start next dhikr directly without any countdown
                 currentSpecialId = nextDhikr.id;
                 lastActiveSpecialId = nextDhikr.id;
-                localStorage.setItem('tasbih_last_special_id', nextDhikr.id);
+                localStorage.setItem('azkar_last_special_id', nextDhikr.id);
                 specialCount = specialProgress[nextDhikr.id] || 0;
                 specialGoal = nextDhikr.goal || 100;
                 document.getElementById('specialCounterName').innerText = getSpecialName(nextDhikr);
@@ -10453,14 +10520,23 @@
             });
             // Сбрасываем незавершённый прогресс только при смене дня (Фаджр),
             // а не при каждом открытии приложения — иначе прогресс того же дня теряется.
-            const progressDay = localStorage.getItem('tasbih_special_progress_day');
+            const progressDay = localStorage.getItem('azkar_special_progress_day');
             if (progressDay && progressDay !== today) {
                 specialProgress = {};
                 changed = true;
             }
             // Всегда обновляем ключ дня прогресса
-            localStorage.setItem('tasbih_special_progress_day', today);
-            if (changed) saveDataDebounced();
+            localStorage.setItem('azkar_special_progress_day', today);
+            if (changed) {
+                // ВАЖНО: пишем очищенные данные в localStorage СРАЗУ (синхронно),
+                // а не только через debounce (saveDataDebounced ждёт 3 сек).
+                // Иначе при быстром закрытии приложения после смены дня маркер
+                // дня уже обновится, а старый незавершённый прогресс останется
+                // на диске и "застрянет" навсегда — баг, который мы чиним.
+                localStorage.setItem('azkar_special_completed', JSON.stringify(completedSpecial));
+                localStorage.setItem('azkar_special_progress', JSON.stringify(specialProgress));
+                saveDataDebounced();
+            }
         }
 
         function goBackFromSpecialCounter() {
@@ -10472,7 +10548,7 @@
             currentSpecialId = null;
             // Нажата кнопка "Назад" — явно сбрасываем, свайп откроет список
             lastActiveSpecialId = null;
-            localStorage.removeItem('tasbih_last_special_id');
+            localStorage.removeItem('azkar_last_special_id');
             updateSpecialDisplay();
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('screen-special-list').classList.add('active');
@@ -10528,7 +10604,7 @@
         }
 
         function setupSwipe() {
-            const tasbihScreen = document.getElementById('screen-tasbih');
+            const azkarScreen = document.getElementById('screen-azkar');
             const duaScreen = document.getElementById('screen-dua');
             const namesScreen = document.getElementById('screen-names');
             const specialListScreen = document.getElementById('screen-special-list');
@@ -10553,39 +10629,39 @@
                 startX = 0;
             }
 
-            function handleTouchEndTasbihSpecial(e) {
+            function handleTouchEndAzkarSpecial(e) {
                 if (!startX) return;
                 const diff = startX - e.changedTouches[0].clientX;
                 if (Math.abs(diff) > 50) {
-                    if (diff > 0 && tasbihScreen.classList.contains('active')) {
+                    if (diff > 0 && azkarScreen.classList.contains('active')) {
                         // swipe left → special dhikrs
                         if (specialDhikrs && specialDhikrs.length > 0) switchToSpecialList();
-                    } else if (diff < 0 && tasbihScreen.classList.contains('active')) {
+                    } else if (diff < 0 && azkarScreen.classList.contains('active')) {
                         // swipe right → qibla
                         switchToQibla();
                     } else if (diff < 0 && specialListScreen.classList.contains('active')) {
-                        switchToTasbih();
+                        switchToAzkar();
                     }
                 }
                 startX = 0;
             }
 
-            // Qibla: swipe left → back to tasbih
+            // Qibla: swipe left → back to azkar
             function handleTouchEndQibla(e) {
                 if (!startX) return;
                 const diff = startX - e.changedTouches[0].clientX;
                 if (diff > 50) {
-                    switchToTasbih();
+                    switchToAzkar();
                 }
                 startX = 0;
             }
 
-            // Swipe right on special counter → go back to tasbih (home)
+            // Swipe right on special counter → go back to azkar (home)
             function handleTouchEndSpecialCounter(e) {
                 if (!startX) return;
                 const diff = startX - e.changedTouches[0].clientX;
                 if (diff < -50) {
-                    switchToTasbih();
+                    switchToAzkar();
                 }
                 startX = 0;
             }
@@ -10609,10 +10685,10 @@
             duaScreen.addEventListener('touchend', handleTouchEndDuaNames, { passive: true });
             namesScreen.addEventListener('touchstart', handleTouchStart, { passive: true });
             namesScreen.addEventListener('touchend', handleTouchEndDuaNames, { passive: true });
-            tasbihScreen.addEventListener('touchstart', handleTouchStart, { passive: true });
-            tasbihScreen.addEventListener('touchend', handleTouchEndTasbihSpecial, { passive: true });
+            azkarScreen.addEventListener('touchstart', handleTouchStart, { passive: true });
+            azkarScreen.addEventListener('touchend', handleTouchEndAzkarSpecial, { passive: true });
             specialListScreen.addEventListener('touchstart', handleTouchStart, { passive: true });
-            specialListScreen.addEventListener('touchend', handleTouchEndTasbihSpecial, { passive: true });
+            specialListScreen.addEventListener('touchend', handleTouchEndAzkarSpecial, { passive: true });
             specialCounterScreen.addEventListener('touchstart', handleTouchStart, { passive: true });
             specialCounterScreen.addEventListener('touchend', handleTouchEndSpecialCounter, { passive: true });
             statsScreen.addEventListener('touchstart', handleTouchStart, { passive: true });
@@ -10651,8 +10727,8 @@
 
             addMouseSwipe(duaScreen, handleTouchEndDuaNames);
             addMouseSwipe(namesScreen, handleTouchEndDuaNames);
-            addMouseSwipe(tasbihScreen, handleTouchEndTasbihSpecial);
-            addMouseSwipe(specialListScreen, handleTouchEndTasbihSpecial);
+            addMouseSwipe(azkarScreen, handleTouchEndAzkarSpecial);
+            addMouseSwipe(specialListScreen, handleTouchEndAzkarSpecial);
             addMouseSwipe(specialCounterScreen, handleTouchEndSpecialCounter);
             addMouseSwipe(statsScreen, handleTouchEndStatsChecklist);
             addMouseSwipe(checklistScreen, handleTouchEndStatsChecklist);
@@ -10687,12 +10763,12 @@
                 }
                 // Зикр завершён сегодня — сбрасываем
                 lastActiveSpecialId = null;
-                localStorage.removeItem('tasbih_last_special_id');
+                localStorage.removeItem('azkar_last_special_id');
             }
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('screen-special-list').classList.add('active');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.querySelector('[data-tab="tasbih"]').classList.add('active');
+            document.querySelector('[data-tab="azkar"]').classList.add('active');
             const specialFab = document.getElementById('specialAddFab');
             if (specialFab) specialFab.style.display = '';
             renderSpecialList();
@@ -10707,7 +10783,7 @@
         function startSpecialDhikrDirect(id) {
             currentSpecialId = id;
             lastActiveSpecialId = id;
-            localStorage.setItem('tasbih_last_special_id', id);
+            localStorage.setItem('azkar_last_special_id', id);
             specialCount = specialProgress[id] || 0;
             isSpecialActive = false;
             const dhikr = specialDhikrs.find(d => d.id === id);
@@ -10718,7 +10794,7 @@
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('screen-special-counter').classList.add('active');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.querySelector('[data-tab="tasbih"]').classList.add('active');
+            document.querySelector('[data-tab="azkar"]').classList.add('active');
             const specialFab = document.getElementById('specialAddFab');
             if (specialFab) specialFab.style.display = 'none';
             pipMode = 'special';
@@ -10728,8 +10804,8 @@
             if (specialCenterText) {
                 if (id === 'salavat' || id === 'sleep_salavat_seal') {
                     specialCenterText.textContent = 'ﷺ';
-                    specialCenterText.setAttribute('font-size', '20');
-                    specialCenterText.setAttribute('y', '42');
+                    specialCenterText.setAttribute('font-size', '36');
+                    specialCenterText.setAttribute('y', '44');
                 } else {
                     specialCenterText.textContent = 'الله';
                     specialCenterText.setAttribute('font-size', '36');
@@ -10743,18 +10819,18 @@
                 if (typeof window._stealthTryActivate === 'function') window._stealthTryActivate('screen-special-counter');
             } catch(e) {}
         }
-        function switchToTasbih() {
+        function switchToAzkar() {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById('screen-tasbih').classList.add('active');
+            document.getElementById('screen-azkar').classList.add('active');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.querySelector('[data-tab="tasbih"]').classList.add('active');
+            document.querySelector('[data-tab="azkar"]').classList.add('active');
             const specialFab = document.getElementById('specialAddFab');
             if (specialFab) specialFab.style.display = 'none';
             pipMode = 'main';
             updatePipCounter();
             try {
-                document.dispatchEvent(new CustomEvent('_screenChanged', { detail: 'screen-tasbih' }));
-                if (typeof window._stealthTryActivate === 'function') window._stealthTryActivate('screen-tasbih');
+                document.dispatchEvent(new CustomEvent('_screenChanged', { detail: 'screen-azkar' }));
+                if (typeof window._stealthTryActivate === 'function') window._stealthTryActivate('screen-azkar');
             } catch(e) {}
         }
 
@@ -10762,7 +10838,7 @@
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('screen-qibla').classList.add('active');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.querySelector('[data-tab="tasbih"]').classList.add('active');
+            document.querySelector('[data-tab="azkar"]').classList.add('active');
             // Cancel stealth (dark dhikr mode) when navigating to qibla
             if (typeof window._stealthDeactivate === 'function') window._stealthDeactivate();
             qiblaOnOpen();
@@ -11321,10 +11397,18 @@
             // "Today" follows the Islamic day — it resets at Fajr, not midnight.
             let today = _islamicDayKey();
             const anchorDate = _dateFromLocalDayKey(today);
+            // "Week" is a calendar week starting Monday — it resets every
+            // Monday at Fajr, same as "Today" resets daily. We sum only
+            // from this week's Monday up to today (not the full Mon-Sun
+            // span), since future days haven't happened yet.
             let weekSum = 0;
-            for (let i = 0; i < 7; i++) {
-                let d = new Date(anchorDate); d.setDate(anchorDate.getDate() - i);
-                weekSum += stats[_localDayKey(d)]?.count || 0;
+            {
+                const dow = anchorDate.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+                const daysSinceMonday = (dow === 0) ? 6 : dow - 1;
+                for (let i = 0; i <= daysSinceMonday; i++) {
+                    let d = new Date(anchorDate); d.setDate(anchorDate.getDate() - i);
+                    weekSum += stats[_localDayKey(d)]?.count || 0;
+                }
             }
             let monthSum = 0;
             let cur = anchorDate;
@@ -11363,6 +11447,7 @@
             animateCount('statTotal', total);
 
             renderLineChart(stats);
+            updateDhikrOverallProgress();
         }
 
         function renderLineChart(stats) {
@@ -11538,11 +11623,38 @@
         }
 
         function promptClearStats() { document.getElementById('clearStatsOverlay').classList.add('show'); }
+        function promptClearAll() { document.getElementById('clearStatsOverlay').classList.add('show'); }
         function confirmClearStats() {
-            localStorage.removeItem('tasbih_stats_v2');
+            // Сброс основного счётчика зикра
+            count = 0; goalTriggered = false; _prevLap = 0; goalBaseline = 0;
+            // Сброс цели на 100 по умолчанию
+            goal = 100; isUnlimited = false;
+            localStorage.setItem('azkar_goal', 100);
+            document.querySelectorAll('.goal-chip').forEach(c => c.classList.remove('active'));
+            document.querySelector('[data-goal="100"]').classList.add('active');
+            updateDisplay(); saveDataDebounced();
+            // Сброс статистики
+            localStorage.removeItem('azkar_stats_v2');
             _statsCache = {};
             pendingStatsSave = false;
+            dhikrTotals = {};
+            saveDhikrTotals();
+            // Полный сброс специальных зикров: убираем недописанный прогресс
+            // (например, если зикр был сделан 30 раз из 100 и не дочитан до
+            // конца) и пометки "выполнено сегодня" — пишем синхронно, без
+            // debounce, чтобы сброс точно сохранился.
+            specialProgress = {};
+            completedSpecial = {};
+            localStorage.setItem('azkar_special_progress', JSON.stringify(specialProgress));
+            localStorage.setItem('azkar_special_completed', JSON.stringify(completedSpecial));
+            // Если прямо сейчас открыт экран специального зикра — сбрасываем
+            // его живой счётчик на экране тоже.
+            if (currentSpecialId) {
+                specialCount = 0;
+                updateSpecialDisplay();
+            }
             renderStats();
+            renderSpecialList();
             showToast(t('toastStatsCleared'));
             document.getElementById('clearStatsOverlay').classList.remove('show');
         }
@@ -12055,13 +12167,13 @@
 
         function loadDuaFolders() {
             try {
-                const saved = localStorage.getItem('tasbih_dua_folders');
+                const saved = localStorage.getItem('azkar_dua_folders');
                 if (saved) duaFolders = JSON.parse(saved);
             } catch(e) { duaFolders = []; }
         }
 
         function saveDuaFolders() {
-            localStorage.setItem('tasbih_dua_folders', JSON.stringify(duaFolders));
+            localStorage.setItem('azkar_dua_folders', JSON.stringify(duaFolders));
             markDataChanged();
         }
 
@@ -12970,7 +13082,7 @@
                     goal: isUnlimited ? 999999999 : goal,
                     customGoal: customGoal,
                     duas: duas,
-                    stats: JSON.parse(localStorage.getItem('tasbih_stats_v2') || '{}'),
+                    stats: JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}'),
                     completedSpecial: completedSpecial,
                     specialProgress: specialProgress,
                     specialDhikrs: specialDhikrs
@@ -13005,22 +13117,22 @@
                         AppStorage.importAll(data.snapshot);
                         // Перечитываем всё состояние из localStorage в память.
                         try {
-                            const ss = localStorage.getItem('tasbih_settings');
+                            const ss = localStorage.getItem('azkar_settings');
                             if (ss) Object.assign(settings, JSON.parse(ss));
                             currentLang = settings.language || 'ru';
-                            count = parseInt(localStorage.getItem('tasbih_count') || '0');
-                            const gg = localStorage.getItem('tasbih_goal');
+                            count = parseInt(localStorage.getItem('azkar_count') || '0');
+                            const gg = localStorage.getItem('azkar_goal');
                             if (gg) { const pg = parseInt(gg); isUnlimited = (pg === UNLIMITED_GOAL); goal = isUnlimited ? 33 : pg; }
-                            goalBaseline = parseInt(localStorage.getItem('tasbih_goal_baseline') || '0');
+                            goalBaseline = parseInt(localStorage.getItem('azkar_goal_baseline') || '0');
                             if (isNaN(goalBaseline) || goalBaseline < 0 || goalBaseline > count) goalBaseline = 0;
-                            customGoal = parseInt(localStorage.getItem('tasbih_custom_goal') || '0');
-                            duas = JSON.parse(localStorage.getItem('tasbih_duas') || '[]');
+                            customGoal = parseInt(localStorage.getItem('azkar_custom_goal') || '0');
+                            duas = JSON.parse(localStorage.getItem('azkar_duas') || '[]');
                             loadDuaFolders();
-                            _statsCache = JSON.parse(localStorage.getItem('tasbih_stats_v2') || '{}');
-                            completedSpecial = JSON.parse(localStorage.getItem('tasbih_special_completed') || '{}');
-                            specialProgress = JSON.parse(localStorage.getItem('tasbih_special_progress') || '{}');
+                            _statsCache = JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}');
+                            completedSpecial = JSON.parse(localStorage.getItem('azkar_special_completed') || '{}');
+                            specialProgress = JSON.parse(localStorage.getItem('azkar_special_progress') || '{}');
                             loadCustomSpecialDhikrs();
-                            lastActiveSpecialId = localStorage.getItem('tasbih_last_special_id') || null;
+                            lastActiveSpecialId = localStorage.getItem('azkar_last_special_id') || null;
                         } catch(e1) {}
                         // Задачи/списки перечитываем через loadChecklist() — он сам
                         // разберёт новый формат (списки) или мигрирует старый v4.
@@ -13057,7 +13169,7 @@
                     // Restore stats
                     if (data.stats && typeof data.stats === 'object') {
                         _statsCache = data.stats;
-                        localStorage.setItem('tasbih_stats_v2', JSON.stringify(_statsCache));
+                        localStorage.setItem('azkar_stats_v2', JSON.stringify(_statsCache));
                     }
                     // Restore special
                     if (data.completedSpecial) completedSpecial = data.completedSpecial;
@@ -13339,13 +13451,14 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             const navEl = document.querySelector(`[data-tab="${tab}"]`);
             if (navEl) navEl.classList.add('active');
-            // Stealth mode: deactivate when leaving counter screens, activate on tasbih
+            // Stealth mode: deactivate when leaving counter screens, activate on azkar
             try {
                 document.dispatchEvent(new CustomEvent('_screenChanged', { detail: 'screen-' + tab }));
                 if (typeof window._stealthTryActivate === 'function') window._stealthTryActivate('screen-' + tab);
             } catch(e) {}
             // Рендерим раздел только если он «грязный» (первый вход или данные изменились)
             if (tab === 'stats'        && _dirty.stats)    { renderStats();       _dirty.stats = false; }
+            if (tab === 'stats') { try { updateDhikrOverallProgress(); } catch(e) {} }
             if (tab === 'favorites'    && _dirty.favorites) { renderFavorites();   _dirty.favorites = false; }
             if (tab === 'dua'          && _dirty.dua)       { renderDuas();        _dirty.dua = false; }
             if (tab === 'names'        && _dirty.names)     { renderNames();       _dirty.names = false; }
@@ -13359,8 +13472,8 @@
             // Show checklist FAB only on checklist tab
             const checklistFab = document.getElementById('checklistAddFab');
             if (checklistFab) checklistFab.style.display = (tab === 'checklist') ? '' : 'none';
-            // Switch pip mode: tasbih tab → main, any other tab doesn't change pip mode
-            if (tab === 'tasbih') {
+            // Switch pip mode: azkar tab → main, any other tab doesn't change pip mode
+            if (tab === 'azkar') {
                 pipMode = 'main';
                 updatePipCounter();
             }
@@ -13536,17 +13649,18 @@
         }
 
         function loadData() {
-            const s = localStorage.getItem('tasbih_settings');
+            const s = localStorage.getItem('azkar_settings');
             if (s) Object.assign(settings, JSON.parse(s));
-            count = parseInt(localStorage.getItem('tasbih_count') || '0');
-            const g = localStorage.getItem('tasbih_goal');
+            count = parseInt(localStorage.getItem('azkar_count') || '0');
+            const g = localStorage.getItem('azkar_goal');
             if (g) { const pg = parseInt(g); isUnlimited = (pg === UNLIMITED_GOAL); goal = isUnlimited ? 33 : pg; }
+            else { goal = 100; }
             // Точка отсчёта кольца для стандартных целей. Зажимаем в [0, count],
             // чтобы устаревшее/битое значение не сломало позицию шарика.
-            goalBaseline = parseInt(localStorage.getItem('tasbih_goal_baseline') || '0');
+            goalBaseline = parseInt(localStorage.getItem('azkar_goal_baseline') || '0');
             if (isNaN(goalBaseline) || goalBaseline < 0 || goalBaseline > count) goalBaseline = 0;
-            customGoal = parseInt(localStorage.getItem('tasbih_custom_goal') || '0');
-            duas = JSON.parse(localStorage.getItem('tasbih_duas') || '[]');
+            customGoal = parseInt(localStorage.getItem('azkar_custom_goal') || '0');
+            duas = JSON.parse(localStorage.getItem('azkar_duas') || '[]');
             loadDuaFolders();
             loadSpecialFolders();
             currentLang = settings.language || 'ru';
@@ -13558,30 +13672,31 @@
                 document.documentElement.classList.remove('no-transition');
             }));
             applyLanguage(currentLang);
-            _statsCache = JSON.parse(localStorage.getItem('tasbih_stats_v2') || '{}');
-            completedSpecial = JSON.parse(localStorage.getItem('tasbih_special_completed') || '{}');
-            specialProgress = JSON.parse(localStorage.getItem('tasbih_special_progress') || '{}');
+            _statsCache = JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}');
+            completedSpecial = JSON.parse(localStorage.getItem('azkar_special_completed') || '{}');
+            specialProgress = JSON.parse(localStorage.getItem('azkar_special_progress') || '{}');
+            loadDhikrTotals();
             // Сбрасываем completedSpecial и specialProgress прошлых дней сразу при загрузке.
             pruneCompletedSpecial();
             loadCustomSpecialDhikrs();
-            lastActiveSpecialId = localStorage.getItem('tasbih_last_special_id') || null;
+            lastActiveSpecialId = localStorage.getItem('azkar_last_special_id') || null;
             // Restore vibration defaults if not set
-            if (settings.vibration === undefined) settings.vibration = true;
+            if (settings.vibration === undefined) settings.vibration = false;
             if (settings.vibrationLevel === undefined) settings.vibrationLevel = 3;
-            if (settings.clickSoundVolume === undefined) settings.clickSoundVolume = 5;
-            if (settings.goalSoundVolume === undefined) settings.goalSoundVolume = 5;
+            if (settings.clickSoundVolume === undefined) settings.clickSoundVolume = 10;
+            if (settings.goalSoundVolume === undefined) settings.goalSoundVolume = 10;
             if (settings.autoExtend === undefined) settings.autoExtend = false;
             if (settings.autoAdvance === undefined) settings.autoAdvance = false;
             if (settings.stealthMode === undefined) settings.stealthMode = false;
             if (settings.reminder === undefined) settings.reminder = false;
-            if (settings.hadithEnabled === undefined) settings.hadithEnabled = true;
+            if (settings.hadithEnabled === undefined) settings.hadithEnabled = false;
             if (settings.hadithFreq === undefined) settings.hadithFreq = 'medium';
             updateSettingsUI();
             updateHadithUI();
             if (settings.hadithEnabled) scheduleHadith();            // Wake Lock — disabled for battery savings
             // Restore PiP counter
             updatePipCounter();
-            document.getElementById('customGoalNum').innerText = formatGoalShort(customGoal || 999);
+            document.getElementById('customGoalNum').innerText = formatGoalShort(customGoal || 1000);
             document.querySelectorAll('.goal-chip').forEach(c => c.classList.remove('active'));
             if (isUnlimited) document.getElementById('customGoalChip').classList.add('active');
             else if (goal === 33) document.querySelector('[data-goal="33"]').classList.add('active');
@@ -14063,7 +14178,7 @@
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space') {
                 const activeId = document.querySelector('.screen.active')?.id;
-                if (activeId === 'screen-tasbih') { e.preventDefault(); increment(); }
+                if (activeId === 'screen-azkar') { e.preventDefault(); increment(); }
                 else if (activeId === 'screen-special-counter') { e.preventDefault(); incrementSpecial(); }
             }
         });
@@ -14098,11 +14213,11 @@
         // the full local snapshot ready to upload — so moving from "local only" to
         // "local + database" is a small, contained change with no data loss.
         const APP_DATA_KEYS = [
-            'tasbih_count', 'tasbih_goal', 'tasbih_goal_baseline', 'tasbih_custom_goal',
-            'tasbih_duas', 'tasbih_dua_folders', 'azkar_checklist_lists_v5', 'azkar_checklist_v4', 'tasbih_stats_v2',
-            'tasbih_special_completed', 'tasbih_special_progress', 'tasbih_custom_special_dhikrs',
-            'tasbih_special_deleted_defaults', 'tasbih_last_special_id', 'tasbih_settings',
-            'tasbih_special_history', 'tasbih_task_history'
+            'azkar_count', 'azkar_goal', 'azkar_goal_baseline', 'azkar_custom_goal',
+            'azkar_duas', 'azkar_dua_folders', 'azkar_checklist_lists_v5', 'azkar_checklist_v4', 'azkar_stats_v2',
+            'azkar_special_completed', 'azkar_special_progress', 'azkar_custom_special_dhikrs',
+            'azkar_special_deleted_defaults', 'azkar_last_special_id', 'azkar_settings',
+            'azkar_special_history', 'azkar_task_history', 'azkar_dhikr_totals'
         ];
 
         const AppStorage = {
@@ -14150,8 +14265,8 @@
         (function _purgeAccountRemnants() {
             try {
                 if (localStorage.getItem('azkar_local_only_v1')) return;
-                ['azkar_account', 'azkar_avatar', 'azkar_device_id', 'tasbih_data_owner',
-                 'tasbih_cloud_updatedAt', 'azkar_sync_migrated_v40'].forEach(k => {
+                ['azkar_account', 'azkar_avatar', 'azkar_device_id', 'azkar_data_owner',
+                 'azkar_cloud_updatedAt', 'azkar_sync_migrated_v40'].forEach(k => {
                     try { localStorage.removeItem(k); } catch (e) {}
                 });
                 Object.keys(localStorage).forEach(k => {
@@ -15650,6 +15765,230 @@
             });
         }
 
+        // ===== DHIKR PROGRESS STATS =====
+        // Показывает НАКОПЛЕННЫЙ (lifetime) счётчик по каждому зикру —
+        // без дневного сброса и без понятия "% выполнения цели". Просто
+        // честная сумма "сколько раз нажато" по каждому зикру и в целом.
+
+        // Обновляет верхний показатель в screen-stats — общая сумма всех
+        // засчитанных нажатий (основной зикр + все специальные), без сброса.
+        function updateDhikrOverallProgress() {
+            let grandTotal = 0;
+            Object.keys(dhikrTotals).forEach(k => { grandTotal += (dhikrTotals[k] || 0); });
+            const pctEl = document.getElementById('dhikrOverallPercent');
+            if (pctEl) pctEl.textContent = formatBigNumber(grandTotal);
+        }
+
+        // Компактное форматирование больших чисел (1 234 567 → читаемо с пробелами)
+        function formatBigNumber(n) {
+            n = Math.max(0, Math.floor(n || 0));
+            return n.toLocaleString('ru-RU').replace(/,/g, ' ');
+        }
+
+        function _computeDhikrStats() {
+            const mainTotal = dhikrTotals['main'] || 0;
+
+            // Папки специальных зикров
+            const inFolderIds = new Set();
+            specialFolders.forEach(folder => folder.dhikrIds.forEach(id => inFolderIds.add(id)));
+
+            const folders = specialFolders.map(folder => {
+                const dhikrs = folder.dhikrIds
+                    .map(id => specialDhikrs.find(d => d.id === id))
+                    .filter(Boolean);
+                const folderTotal = dhikrs.reduce((sum, d) => sum + (dhikrTotals[d.id] || 0), 0);
+                return {
+                    name: folder.name,
+                    total: folderTotal,
+                    dhikrs: dhikrs.map(d => ({
+                        name: getSpecialName(d),
+                        total: dhikrTotals[d.id] || 0
+                    })).sort((a, b) => b.total - a.total)
+                };
+            });
+
+            // Зикры вне папок
+            const unfoldered = specialDhikrs
+                .filter(d => !inFolderIds.has(d.id))
+                .map(d => ({
+                    name: getSpecialName(d),
+                    total: dhikrTotals[d.id] || 0
+                }))
+                .sort((a, b) => b.total - a.total);
+
+            const specTotal = specialDhikrs.reduce((sum, d) => sum + (dhikrTotals[d.id] || 0), 0);
+            const grandTotal = mainTotal + specTotal;
+
+            return {
+                main: { total: mainTotal },
+                folders, unfoldered,
+                specTotal, grandTotal
+            };
+        }
+
+        function openDhikrStats() {
+            const body = document.getElementById('dhikrStatsBody');
+            const overlay = document.getElementById('dhikrStatsOverlay');
+            if (!body || !overlay) return;
+
+            const sheet = overlay.querySelector('.modal-sheet');
+            if (sheet) { sheet.style.transition = ''; sheet.style.transform = ''; sheet.scrollTop = 0; }
+            overlay.style.background = '';
+            overlay.style.opacity = '';
+            _initDhikrStatsSheetDrag();
+
+            const titleEl = document.getElementById('dhikrStatsTitle');
+            if (titleEl) titleEl.textContent = t('dhikrStatsTitle');
+            const subEl = document.getElementById('dhikrStatsSubtitle');
+            if (subEl) subEl.textContent = t('dhikrStatsSubtitle');
+            const closeBtn = document.getElementById('dhikrStatsCloseBtn');
+            if (closeBtn) closeBtn.textContent = t('clStatsClose');
+
+            const s = _computeDhikrStats();
+
+            const folderIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;stroke:var(--gold);flex-shrink:0;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>';
+            const dhikrIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;stroke:var(--gold);flex-shrink:0;opacity:0.85;"><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="10" opacity=".35"/></svg>';
+            const mainIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;stroke:var(--gold);flex-shrink:0;"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" opacity=".5"/></svg>';
+
+            let html = '';
+
+            // Сводка сверху: кольцо с общим числом, поделённое на два цвета —
+            // доля основного зикра (основной акцент темы) и доля специальных
+            // зикров (светлый акцент той же темы). Кольцо всегда полностью
+            // заполнено целиком (без серого "пустого" участка).
+            const DC = 2 * Math.PI * 52;
+            const mainLen = s.grandTotal > 0 ? DC * (s.main.total / s.grandTotal) : DC;
+            const specialLen = DC - mainLen;
+            html += '<div class="clstat-overall">' +
+                '<div class="clstat-ring">' +
+                    '<svg class="clstat-ring-svg" viewBox="0 0 120 120">' +
+                        '<circle class="clstat-ring-track" cx="60" cy="60" r="52" fill="none" stroke-width="10"/>' +
+                        '<circle class="clstat-ring-fill-main" cx="60" cy="60" r="52" fill="none" stroke-width="10" stroke-linecap="round" stroke-dasharray="' + mainLen.toFixed(2) + ' ' + (DC - mainLen).toFixed(2) + '" stroke-dashoffset="0" transform="rotate(-90 60 60)"/>' +
+                        (specialLen > 0.01 ? '<circle class="clstat-ring-fill-special" cx="60" cy="60" r="52" fill="none" stroke-width="10" stroke-linecap="round" stroke-dasharray="' + specialLen.toFixed(2) + ' ' + (DC - specialLen).toFixed(2) + '" stroke-dashoffset="-' + mainLen.toFixed(2) + '" transform="rotate(-90 60 60)"/>' : '') +
+                    '</svg>' +
+                    '<div class="clstat-ring-pct" style="font-size:1.1rem;line-height:1.1;text-align:center;">' + formatBigNumber(s.grandTotal) + '</div>' +
+                '</div>' +
+                '<div class="clstat-overall-info">' +
+                    '<div class="clstat-overall-line"><span class="lbl">' + escHtml(t('dhikrStatsMainDhikr')) + '</span><span class="val">' + formatBigNumber(s.main.total) + '</span></div>' +
+                    '<div class="clstat-overall-line"><span class="lbl">' + escHtml(t('dhikrStatsSpecialLabel')) + '</span><span class="val">' + formatBigNumber(s.specTotal) + '</span></div>' +
+                '</div>' +
+            '</div>';
+
+            // Папки специальных зикров — сумма по папке + список зикров с их суммами
+            if (s.folders.length > 0) {
+                html += '<div class="clstat-section-title">' + escHtml(t('dhikrStatsFoldersTitle')) + '</div>';
+                s.folders.forEach(fd => {
+                    html += '<div class="clstat-folder">' +
+                        '<div class="clstat-folder-head">' +
+                            '<div class="clstat-folder-name">' + folderIcon + '<span>' + escHtml(fd.name) + '</span></div>' +
+                            '<div class="clstat-folder-pct">' + formatBigNumber(fd.total) + '</div>' +
+                        '</div>';
+
+                    fd.dhikrs.forEach(dh => {
+                        html += '<div class="clstat-subrow">' +
+                            '<div class="clstat-subrow-head">' +
+                                '<span class="nm">' + dhikrIcon + '<span>' + escHtml(dh.name) + '</span></span>' +
+                                '<span class="ct">' + formatBigNumber(dh.total) + '</span>' +
+                            '</div>' +
+                        '</div>';
+                    });
+
+                    html += '</div>';
+                });
+            }
+
+            // Зикры вне папок — каждый со своей накопленной суммой
+            if (s.unfoldered.length > 0) {
+                html += '<div class="clstat-section-title">' + escHtml(t('dhikrStatsSpecialDhikrs')) + '</div>';
+                s.unfoldered.forEach(dh => {
+                    html += '<div class="clstat-folder">' +
+                        '<div class="clstat-folder-head">' +
+                            '<div class="clstat-folder-name">' + dhikrIcon + '<span>' + escHtml(dh.name) + '</span></div>' +
+                            '<div class="clstat-folder-pct">' + formatBigNumber(dh.total) + '</div>' +
+                        '</div>' +
+                    '</div>';
+                });
+            }
+
+            if (s.folders.length === 0 && s.unfoldered.length === 0 && s.main.total === 0) {
+                body.innerHTML = '<div class="clstat-empty">' + escHtml(t('dhikrStatsNoDhikrs')) + '</div>';
+            } else {
+                body.innerHTML = html;
+            }
+
+            overlay.classList.add('show');
+        }
+
+        function closeDhikrStats() {
+            const overlay = document.getElementById('dhikrStatsOverlay');
+            if (overlay) overlay.classList.remove('show');
+        }
+
+        function _initDhikrStatsSheetDrag() {
+            const overlay = document.getElementById('dhikrStatsOverlay');
+            if (!overlay) return;
+            const sheet = overlay.querySelector('.modal-sheet');
+            if (!sheet || sheet._dragInit) return;
+            sheet._dragInit = true;
+            let startY = 0, startX = 0, dy = 0, dragging = false, decided = false, active = false;
+
+            sheet.addEventListener('touchstart', e => {
+                if (e.touches.length !== 1) return;
+                startY = e.touches[0].clientY;
+                startX = e.touches[0].clientX;
+                dy = 0; dragging = true; decided = false; active = false;
+                sheet.style.transition = 'none';
+            }, { passive: true });
+
+            sheet.addEventListener('touchmove', e => {
+                if (!dragging) return;
+                const ddy = e.touches[0].clientY - startY;
+                const ddx = e.touches[0].clientX - startX;
+                if (!decided) {
+                    if (Math.abs(ddy) < 6 && Math.abs(ddx) < 6) return;
+                    decided = true;
+                    active = (ddy > 0 && Math.abs(ddy) > Math.abs(ddx) && sheet.scrollTop <= 0);
+                    if (!active) sheet.style.transition = '';
+                }
+                if (!active) return;
+                dy = Math.max(0, ddy);
+                e.preventDefault();
+                sheet.style.transform = 'translateY(' + dy + 'px) translateZ(0)';
+                const prog = Math.min(1, dy / 320);
+                overlay.style.background = 'rgba(0,0,0,' + (0.72 * (1 - prog * 0.55)).toFixed(3) + ')';
+            }, { passive: false });
+
+            function endDrag() {
+                if (!dragging) return;
+                dragging = false;
+                if (!active) { sheet.style.transition = ''; sheet.style.transform = ''; return; }
+                active = false;
+                if (dy > 110) {
+                    sheet.style.transition = 'transform 0.26s cubic-bezier(0.3,0,0.4,1)';
+                    sheet.style.transform = 'translateY(100%) translateZ(0)';
+                    overlay.style.transition = 'opacity 0.26s ease';
+                    overlay.style.opacity = '0';
+                    setTimeout(() => {
+                        closeDhikrStats();
+                        sheet.style.transition = ''; sheet.style.transform = '';
+                        overlay.style.transition = ''; overlay.style.opacity = '';
+                        overlay.style.background = '';
+                    }, 260);
+                } else {
+                    sheet.style.transition = 'transform 0.26s cubic-bezier(0.2,0.9,0.4,1)';
+                    sheet.style.transform = 'translateY(0) translateZ(0)';
+                    overlay.style.background = '';
+                    setTimeout(() => { sheet.style.transition = ''; sheet.style.transform = ''; }, 280);
+                }
+            }
+            sheet.addEventListener('touchend', endDrag);
+            sheet.addEventListener('touchcancel', () => {
+                dragging = false; active = false;
+                sheet.style.transition = ''; sheet.style.transform = '';
+                overlay.style.background = '';
+            });
+        }
+
         function closeOpenChecklistFolders() {
             document.querySelectorAll('#checklistFolders .cl-folder.acc-open').forEach(f => f.classList.remove('acc-open'));
         }
@@ -16286,9 +16625,9 @@
             let _currentMethod = 'mwl';
             let _methodAuto = true;
             try {
-                const saved = localStorage.getItem('tasbih_prayer_method');
+                const saved = localStorage.getItem('azkar_prayer_method');
                 if (saved && PRAYER_METHODS[saved]) _currentMethod = saved;
-                if (localStorage.getItem('tasbih_prayer_method_auto') === 'false') _methodAuto = false;
+                if (localStorage.getItem('azkar_prayer_method_auto') === 'false') _methodAuto = false;
             } catch(e) {}
 
             function _getParams() {
@@ -16526,7 +16865,7 @@
             // Hydrate from localStorage on startup so prayer times work even
             // before geolocation responds (or if user later denies).
             try {
-                const saved = JSON.parse(localStorage.getItem('tasbih_geoloc') || 'null');
+                const saved = JSON.parse(localStorage.getItem('azkar_geoloc') || 'null');
                 if (saved && typeof saved.lat === 'number' && typeof saved.lng === 'number') {
                     uLat = saved.lat; uLng = saved.lng;
                 }
@@ -16757,11 +17096,11 @@
 
             function setLocation(lat, lng) {
                 uLat = lat; uLng = lng; _cached = null; _cacheKey = '';
-                try { localStorage.setItem('tasbih_geoloc', JSON.stringify({ lat, lng, ts: Date.now() })); } catch(e) {}
+                try { localStorage.setItem('azkar_geoloc', JSON.stringify({ lat, lng, ts: Date.now() })); } catch(e) {}
                 // Auto mode: keep the calculation method matched to the location.
                 if (_methodAuto) {
                     _currentMethod = methodForCoords(lat, lng);
-                    try { localStorage.setItem('tasbih_prayer_method', _currentMethod); } catch(e) {}
+                    try { localStorage.setItem('azkar_prayer_method', _currentMethod); } catch(e) {}
                     if (typeof refreshMethodLabels === 'function') refreshMethodLabels();
                 }
                 tick();
@@ -16827,8 +17166,8 @@
             // ---- Prayer calculation-method picker (global functions) ----
             function _persistMethod() {
                 try {
-                    localStorage.setItem('tasbih_prayer_method', _currentMethod);
-                    localStorage.setItem('tasbih_prayer_method_auto', _methodAuto ? 'true' : 'false');
+                    localStorage.setItem('azkar_prayer_method', _currentMethod);
+                    localStorage.setItem('azkar_prayer_method_auto', _methodAuto ? 'true' : 'false');
                 } catch(e) {}
             }
 
@@ -17062,7 +17401,7 @@
         // understand why we need location. Honors a stored "user said no" flag
         // so we don't pester them on every visit.
         (function initGeoPermissionFlow() {
-            const KEY = 'tasbih_geo_perm_decided_v1';
+            const KEY = 'azkar_geo_perm_decided_v1';
 
             function loc() { return (window.PrayerTimes && window.PrayerTimes.L && window.PrayerTimes.L()) || null; }
             function applyLangToOverlay() {
@@ -17202,15 +17541,15 @@
             const HOLD_MS    = 2000;
 
             // Which counter screen initiated this stealth session:
-            // 'tasbih' | 'special' — set at activate(), used for display + increment
-            let _targetCounter = 'tasbih';
+            // 'azkar' | 'special' — set at activate(), used for display + increment
+            let _targetCounter = 'azkar';
 
             function updateCountDisplay() {
                 // Always show the counter that was active when stealth was triggered,
                 // regardless of which screen the user navigated to afterwards.
                 let val = 0;
                 if (_targetCounter === 'special') val = specialCount;
-                else val = count; // 'tasbih' is the default
+                else val = count; // 'azkar' is the default
                 elCount.textContent = val;
             }
 
@@ -17280,7 +17619,7 @@
                 hideAchievement();
 
                 _active = true;
-                _targetCounter = (screenId === 'screen-special-counter') ? 'special' : 'tasbih';
+                _targetCounter = (screenId === 'screen-special-counter') ? 'special' : 'azkar';
                 overlay.classList.remove('counting');
                 overlay.classList.add('active');
                 elCountdown.classList.remove('hidden');
@@ -17318,10 +17657,10 @@
                 clearInterval(_holdInterval);
             }
 
-            // Called from switchTab / startSpecialDhikr / switchToTasbih etc.
+            // Called from switchTab / startSpecialDhikr / switchToAzkar etc.
             window._stealthTryActivate = function(screenId) {
                 if (!settings.stealthMode) return;
-                if (screenId === 'screen-tasbih' || screenId === 'screen-special-counter') {
+                if (screenId === 'screen-azkar' || screenId === 'screen-special-counter') {
                     activate(screenId);
                 } else {
                     deactivate();
@@ -17438,12 +17777,12 @@
             });
 
             // Navigation handler:
-            // • counter screen (tasbih / special) → restart countdown for that screen
+            // • counter screen (azkar / special) → restart countdown for that screen
             // • any other screen → fully deactivate
             document.addEventListener('_screenChanged', function(e) {
                 if (!settings.stealthMode) return;
                 const id = e.detail;
-                if (id === 'screen-tasbih' || id === 'screen-special-counter') {
+                if (id === 'screen-azkar' || id === 'screen-special-counter') {
                     activate(id);
                 } else {
                     deactivate();
@@ -17552,22 +17891,22 @@
                         typeof AppStorage !== 'undefined' && AppStorage.importAll) {
                         AppStorage.importAll(data.snapshot);
                         try {
-                            const ss = localStorage.getItem('tasbih_settings');
+                            const ss = localStorage.getItem('azkar_settings');
                             if (ss) Object.assign(settings, JSON.parse(ss));
                             currentLang = settings.language || 'ru';
-                            count = parseInt(localStorage.getItem('tasbih_count') || '0');
-                            const gg = localStorage.getItem('tasbih_goal');
+                            count = parseInt(localStorage.getItem('azkar_count') || '0');
+                            const gg = localStorage.getItem('azkar_goal');
                             if (gg) { const pg = parseInt(gg); isUnlimited = (pg === UNLIMITED_GOAL); goal = isUnlimited ? 33 : pg; }
-                            goalBaseline = parseInt(localStorage.getItem('tasbih_goal_baseline') || '0');
+                            goalBaseline = parseInt(localStorage.getItem('azkar_goal_baseline') || '0');
                             if (isNaN(goalBaseline) || goalBaseline < 0 || goalBaseline > count) goalBaseline = 0;
-                            customGoal = parseInt(localStorage.getItem('tasbih_custom_goal') || '0');
-                            duas = JSON.parse(localStorage.getItem('tasbih_duas') || '[]');
+                            customGoal = parseInt(localStorage.getItem('azkar_custom_goal') || '0');
+                            duas = JSON.parse(localStorage.getItem('azkar_duas') || '[]');
                             if (typeof loadDuaFolders === 'function') loadDuaFolders();
-                            _statsCache = JSON.parse(localStorage.getItem('tasbih_stats_v2') || '{}');
-                            completedSpecial = JSON.parse(localStorage.getItem('tasbih_special_completed') || '{}');
-                            specialProgress = JSON.parse(localStorage.getItem('tasbih_special_progress') || '{}');
+                            _statsCache = JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}');
+                            completedSpecial = JSON.parse(localStorage.getItem('azkar_special_completed') || '{}');
+                            specialProgress = JSON.parse(localStorage.getItem('azkar_special_progress') || '{}');
                             if (typeof loadCustomSpecialDhikrs === 'function') loadCustomSpecialDhikrs();
-                            lastActiveSpecialId = localStorage.getItem('tasbih_last_special_id') || null;
+                            lastActiveSpecialId = localStorage.getItem('azkar_last_special_id') || null;
                         } catch(e1) {}
                         try { if (typeof loadChecklist === 'function') loadChecklist(); } catch(e4) {}
                         if (typeof applyTheme === 'function') applyTheme(settings.theme || 'dark');
@@ -17583,20 +17922,20 @@
 
                     // ===== Совместимость со старыми бэкапами (без snapshot) =====
                     if (data.settings) { Object.assign(settings, data.settings); if (data.settings.language) currentLang = data.settings.language; }
-                    if (data.count !== undefined) { count = data.count; localStorage.setItem('tasbih_count', String(count)); }
-                    if (data.goal !== undefined) { goal = data.goal; isUnlimited = (goal >= 999999999); localStorage.setItem('tasbih_goal', String(data.goal)); }
-                    goalBaseline = 0; localStorage.setItem('tasbih_goal_baseline', '0');
-                    if (data.customGoal !== undefined) { customGoal = data.customGoal; localStorage.setItem('tasbih_custom_goal', String(customGoal)); }
-                    if (data.duas) { duas = data.duas; localStorage.setItem('tasbih_duas', JSON.stringify(duas)); }
-                    if (data.completedSpecial) { completedSpecial = data.completedSpecial; localStorage.setItem('tasbih_special_completed', JSON.stringify(completedSpecial)); }
-                    if (data.specialProgress) { specialProgress = data.specialProgress; localStorage.setItem('tasbih_special_progress', JSON.stringify(specialProgress)); }
+                    if (data.count !== undefined) { count = data.count; localStorage.setItem('azkar_count', String(count)); }
+                    if (data.goal !== undefined) { goal = data.goal; isUnlimited = (goal >= 999999999); localStorage.setItem('azkar_goal', String(data.goal)); }
+                    goalBaseline = 0; localStorage.setItem('azkar_goal_baseline', '0');
+                    if (data.customGoal !== undefined) { customGoal = data.customGoal; localStorage.setItem('azkar_custom_goal', String(customGoal)); }
+                    if (data.duas) { duas = data.duas; localStorage.setItem('azkar_duas', JSON.stringify(duas)); }
+                    if (data.completedSpecial) { completedSpecial = data.completedSpecial; localStorage.setItem('azkar_special_completed', JSON.stringify(completedSpecial)); }
+                    if (data.specialProgress) { specialProgress = data.specialProgress; localStorage.setItem('azkar_special_progress', JSON.stringify(specialProgress)); }
                     if (Array.isArray(data.specialDhikrs) && data.specialDhikrs.length > 0) {
                         specialDhikrs = data.specialDhikrs;
                         if (typeof saveSpecialDhikrsToStorage === 'function') saveSpecialDhikrsToStorage();
                     }
                     if (data.stats && typeof data.stats === 'object') {
                         _statsCache = data.stats;
-                        localStorage.setItem('tasbih_stats_v2', JSON.stringify(_statsCache));
+                        localStorage.setItem('azkar_stats_v2', JSON.stringify(_statsCache));
                     }
                     if (typeof flushSave === 'function') flushSave();
                     if (typeof markDataChanged === 'function') markDataChanged();
@@ -17707,7 +18046,7 @@
                 goal: isUnlimited ? 999999999 : goal,
                 customGoal: customGoal,
                 duas: duas,
-                stats: JSON.parse(localStorage.getItem('tasbih_stats_v2') || '{}'),
+                stats: JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}'),
                 completedSpecial: completedSpecial,
                 specialProgress: specialProgress,
                 specialDhikrs: specialDhikrs
@@ -17807,55 +18146,6 @@
         document.addEventListener('mousedown', unlockAudioCtx, true);
     </script>
         <script>
-        if ('serviceWorker' in navigator) {
-        // When a new service worker takes control, reload ONCE so the new version
-        // is shown immediately — no manual cache-clearing ("Не обновилось" fix).
-        let _swRefreshing = false;
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-            if (_swRefreshing) return;
-            _swRefreshing = true;
-            window.location.reload();
-        });
-        window.addEventListener('load', async () => {
-            try {
-            const reg = await navigator.serviceWorker.register('sw.js', {
-                scope: './',
-                updateViaCache: 'none'   // always fetch a fresh sw.js so new versions are detected instantly
-            });
-            // Proactively check for an update on every launch.
-            try { reg.update(); } catch (e) {}
-            // If a new worker is already waiting, ask it to activate now.
-            if (reg.waiting) { try { reg.waiting.postMessage({ type: 'SKIP_WAITING' }); } catch (e) {} }
-            reg.addEventListener('updatefound', () => {
-                const nw = reg.installing;
-                if (!nw) return;
-                nw.addEventListener('statechange', () => {
-                    if (nw.state === 'installed' && navigator.serviceWorker.controller) {
-                        try { nw.postMessage({ type: 'SKIP_WAITING' }); } catch (e) {}
-                    }
-                });
-            });
-            console.log('PWA ready');
-
-            // ===== PERIODIC BACKGROUND SYNC для фаджр-бэкапа (Android) =====
-            try {
-                if ('periodicSync' in reg) {
-                    const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
-                    if (status.state === 'granted') {
-                        await reg.periodicSync.register('fajr-backup', {
-                            minInterval: 12 * 60 * 60 * 1000 // каждые 12 часов минимум
-                        });
-                        console.log('[BackgroundSync] fajr-backup registered');
-                    }
-                }
-            } catch(e) { console.log('[BackgroundSync] not supported:', e); }
-            } catch (error) {
-            console.log('SW error:', error);
-            }
-        });
-        }
-        </script>
-        <script>
         // Реальный свайп — баннер следует за пальцем, при отпускании улетает или возвращается
         window.addEventListener('load', function() {
             let _sx = 0, _sy = 0, _dx = 0, _dy = 0, _dragging = false;
@@ -17922,66 +18212,6 @@
                     setTimeout(function() { banner.style.transition = ''; }, 320);
                 }
             }, { passive: true });
-        });
-        </script>
-        <script>
-        // ===== ФАДЖР-БЭКАП ЧЕРЕЗ SW (когда приложение закрыто) =====
-        // При открытии приложения — сообщаем SW актуальное время фаджра
-        window.addEventListener('load', async function() {
-            if (!('serviceWorker' in navigator)) return;
-            try {
-                const reg = await navigator.serviceWorker.ready;
-                if (!reg || !reg.active) return;
-                // Вычисляем время фаджра
-                const getFajrMs = function() {
-                    try {
-                        const fajrH = (window.PrayerTimes && typeof window.PrayerTimes.getFajrHours === 'function')
-                            ? window.PrayerTimes.getFajrHours() : null;
-                        const now = new Date();
-                        const base = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                        if (fajrH !== null && !isNaN(fajrH)) {
-                            return base.getTime() + Math.floor(fajrH)*3600000 + Math.round((fajrH%1)*60)*60000;
-                        }
-                        return base.getTime() + 4 * 3600000;
-                    } catch(e) { return null; }
-                };
-                const fajrMs = getFajrMs();
-                if (fajrMs) {
-                    reg.active.postMessage({
-                        type: 'SCHEDULE_FAJR_BACKUP',
-                        fajrMs: fajrMs,
-                        today: new Date().toISOString().slice(0, 10)
-                    });
-                }
-                // Слушаем ответ от SW — если SW сделал бэкап в фоне, получаем данные
-                navigator.serviceWorker.addEventListener('message', function(e) {
-                    if (e.data && e.data.type === 'SHOW_HADITH') {
-                        // SW попросил показать хадис в открытом приложении (баннер)
-                        if (e.data.text && typeof showHadithBanner === 'function') {
-                            const lang = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : 'ru';
-                            _hadithCurrent = { text: { [lang]: e.data.text }, source: {} };
-                            showHadithBanner(_hadithCurrent);
-                        }
-                        return;
-                    }
-                    if (e.data && e.data.type === 'FAJR_BACKUP_DATA') {
-                        // SW прислал сигнал что нужен бэкап — сохраняем в IndexedDB
-                        const today = e.data.today;
-                        if (localStorage.getItem('azkar_backup_last_fajr_date') !== today) {
-                            if (typeof window.saveBackupToIDB === 'function') {
-                                const now = new Date();
-                                const pad = n => String(n).padStart(2,'0');
-                                const label = now.getFullYear() + '.' + pad(now.getMonth()+1) + '.' + pad(now.getDate())
-                                    + '  ' + pad(now.getHours()) + ':' + pad(now.getMinutes());
-                                window.saveBackupToIDB(label, function() {
-                                    localStorage.setItem('azkar_backup_last_fajr_date', today);
-                                    console.log('[Backup] SW-triggered fajr backup saved:', today);
-                                });
-                            }
-                        }
-                    }
-                });
-            } catch(e) {}
         });
         </script>
 </body>
