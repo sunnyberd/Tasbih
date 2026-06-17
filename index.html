@@ -18239,11 +18239,45 @@
         });
         </script>
         <script>
+            // ── ТИХОЕ АВТО-ОБНОВЛЕНИЕ ──────────────────────────────────────────
+            // Регистрируем Service Worker и периодически проверяем обновления.
+            // Никаких всплывашек: новая версия скачивается в фоне и применяется
+            // при следующем открытии приложения (навигация — network-first).
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
                     navigator.serviceWorker.register('./sw.js')
-                        .then(function(reg) { console.log('[SW] Registered:', reg.scope); })
+                        .then(function(reg) {
+                            console.log('[SW] Registered:', reg.scope);
+
+                            // Тихо проверяем обновление SW сразу и далее периодически.
+                            try { reg.update(); } catch (e) {}
+                            setInterval(function() {
+                                try { reg.update(); } catch (e) {}
+                            }, 60 * 60 * 1000); // раз в час, пока вкладка открыта
+
+                            // Когда найден новый SW — даём ему активироваться тихо.
+                            reg.addEventListener('updatefound', function() {
+                                var nw = reg.installing;
+                                if (!nw) return;
+                                nw.addEventListener('statechange', function() {
+                                    if (nw.state === 'installed') {
+                                        // Просто молча активируем — UI не трогаем,
+                                        // свежий код подхватится при следующем запуске.
+                                        try { nw.postMessage({ type: 'SKIP_WAITING' }); } catch (e) {}
+                                    }
+                                });
+                            });
+                        })
                         .catch(function(err) { console.error('[SW] Error:', err); });
+
+                    // При возврате на вкладку/приложение — тихо проверяем обновление.
+                    document.addEventListener('visibilitychange', function() {
+                        if (document.visibilityState === 'visible') {
+                            navigator.serviceWorker.getRegistration()
+                                .then(function(reg) { if (reg) { try { reg.update(); } catch (e) {} } })
+                                .catch(function() {});
+                        }
+                    });
                 });
             }
         </script>

@@ -1,10 +1,24 @@
 /**
  * Azkar PWA — Service Worker
- * Стратегия: Cache-First для статики, Network-First для Google Fonts
- * При офлайне → отдаёт закешированный контент
+ *
+ * СТРАТЕГИЯ ТИХОГО АВТО-ОБНОВЛЕНИЯ:
+ *  - Навигация (index.html — вся логика приложения внутри него) → Network-First.
+ *    Онлайн-пользователи всегда получают свежий код при следующем открытии,
+ *    БЕЗ всплывашек и без необходимости вручную менять версию кэша.
+ *    Офлайн → отдаётся последняя сохранённая версия.
+ *  - Локальные .js/.json (hadiths.js, manifest.json) → Stale-While-Revalidate:
+ *    мгновенно из кэша + фоновое обновление к следующему запуску.
+ *  - Иконки и Google Fonts → Cache-First (практически не меняются).
+ *
+ *  Новый SW активируется немедленно (skipWaiting + clients.claim) и тихо
+ *  удаляет устаревшие кэши. Пользователь ничего не замечает — просто всегда
+ *  работает с актуальной версией.
  */
 
-const CACHE_NAME = 'azkar-v1';
+// При каждом релизе можно (но НЕ обязательно) бампать версию — навигация
+// и так network-first. Версия гарантирует полную чистку устаревших кэшей.
+const CACHE_VERSION = 'v2';
+const CACHE_NAME = `azkar-${CACHE_VERSION}`;
 const OFFLINE_URL = './index.html';
 
 // Файлы, которые кешируем сразу при установке
@@ -27,6 +41,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(PRECACHE_ASSETS))
+      // Немедленно становимся активным SW, не дожидаясь закрытия вкладок
       .then(() => self.skipWaiting())
   );
 });
@@ -62,17 +77,72 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Запросы к внешним API (Aladhan и др.) — Network-First, без кеша
+  // Запросы к внешним API (Aladhan и др.) — Network-Only, без кеша
   if (url.hostname !== self.location.hostname && !CACHEABLE_ORIGINS.some(o => request.url.startsWith(o))) {
     event.respondWith(networkOnly(request));
     return;
   }
 
-  // Локальные файлы — Cache-First с фолбэком на сеть
+  // ── Главный документ приложения (навигация) → Network-First ──
+  // Гарантирует, что после обновления кода ВСЕ онлайн-пользователи
+  // получают свежую версию при следующем открытии. Тихо, без всплывашек.
+  if (request.mode === 'navigate' || url.pathname.endsWith('/') || url.pathname.endsWith('index.html')) {
+    event.respondWith(networkFirst(request));
+    return;
+  }
+
+  // ── Локальные JS/JSON (hadiths.js, manifest.json) → Stale-While-Revalidate ──
+  if (url.pathname.endsWith('.js') || url.pathname.endsWith('.json')) {
+    event.respondWith(staleWhileRevalidate(request));
+    return;
+  }
+
+  // Остальная локальная статика (иконки и т.п.) — Cache-First
   event.respondWith(cacheFirst(request));
 });
 
 // ─── СТРАТЕГИИ ────────────────────────────────────────────────────────────────
+
+/**
+ * Network-First: всегда пробуем сеть (свежая версия), кэш — только офлайн-фолбэк.
+ * Обновляет кэш свежим ответом, чтобы офлайн была доступна последняя версия.
+ */
+async function networkFirst(request) {
+  const cache = await caches.open(CACHE_NAME);
+  try {
+    const response = await fetch(request);
+    if (response && response.status === 200) {
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch (err) {
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    const fallback = await cache.match(OFFLINE_URL);
+    if (fallback) return fallback;
+    throw err;
+  }
+}
+
+/**
+ * Stale-While-Revalidate: мгновенно отдаём из кэша, в фоне качаем свежее
+ * и обновляем кэш к следующему запуску.
+ */
+async function staleWhileRevalidate(request) {
+  const cache = await caches.open(CACHE_NAME);
+  const cached = await cache.match(request);
+
+  const networkFetch = fetch(request)
+    .then(response => {
+      if (response && response.status === 200) {
+        cache.put(request, response.clone());
+      }
+      return response;
+    })
+    .catch(() => null);
+
+  return cached || (await networkFetch) || fetch(request);
+}
 
 /**
  * Cache-First: берём из кеша, если нет — качаем и кешируем
