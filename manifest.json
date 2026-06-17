@@ -1,42 +1,29 @@
 {
-  "name": "Azkar",
+  "name": "Azkar — Исламский молитвослов",
   "short_name": "Azkar",
-  "description": "Электронные чётки для зикра с подсчётом, целями, хадисами и напоминаниями.",
-  "lang": "ru",
-  "dir": "ltr",
-  "start_url": "./?source=pwa",
+  "description": "Тасбих, дуа, 99 имён Аллаха, время намаза и азкары на 10+ языках",
+  "start_url": "./index.html",
   "scope": "./",
-  "id": "azkar-app",
   "display": "standalone",
-  "display_override": ["standalone", "fullscreen"],
   "orientation": "portrait",
   "background_color": "#0a0a0a",
   "theme_color": "#0a0a0a",
-  "categories": ["lifestyle", "utilities"],
+  "lang": "ru",
+  "dir": "ltr",
+  "categories": ["lifestyle", "utilities", "education"],
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "icon-512.png",
+      "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
-  ]
+  ],
+  "prefer_related_applications": false
 }
