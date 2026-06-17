@@ -1,0 +1,36 @@
+<!--
+  Merge these entries into android/app/src/main/AndroidManifest.xml
+
+  1) The two <uses-permission> lines go at the top, inside <manifest> but
+     OUTSIDE <application>.
+  2) The <service> goes INSIDE the existing <application> ... </application>.
+
+  Do NOT add a second <manifest>/<application> — only copy the lines below
+  into your existing ones.
+-->
+
+<!-- ===== permissions (inside <manifest>, outside <application>) ===== -->
+
+<!-- Required to draw the counter on top of other apps. -->
+<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+<!-- Foreground service so the overlay survives when the app is backgrounded.
+     FOREGROUND_SERVICE_SPECIAL_USE is needed on Android 14 (API 34+).
+     Remove both of these if you use the no-foreground-service variant
+     (see the comment block in OverlayCounterService.kt). -->
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
+
+<!-- ===== service (inside <application> ... </application>) ===== -->
+
+<service
+    android:name=".OverlayCounterService"
+    android:exported="false"
+    android:foregroundServiceType="specialUse">
+    <!-- Required by Google Play for the "specialUse" FGS type on Android 14+.
+         Replace the value with your real justification before publishing. -->
+    <property
+        android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+        android:value="Persistent floating dhikr counter requested by the user" />
+</service>
