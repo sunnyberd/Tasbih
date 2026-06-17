@@ -453,6 +453,33 @@
             display: none;
         }
         #stealthOverlay.counting #stealthHint { display: block; }
+        /* Пре-подсказка выхода ВО ВРЕМЯ отсчёта (до затемнения экрана):
+           яркий текст цвета текущей темы, в области между кольцом счётчика
+           и нижним навбаром (зикр/дуа/избранное/статистика/настройки). */
+        #stealthPreHint {
+            position: fixed;
+            left: 50%;
+            bottom: calc(var(--nav-h) + var(--safe-b) + 22px);
+            transform: translateX(-50%) translateZ(0);
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.05rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            color: var(--gold);
+            text-shadow: 0 0 14px var(--gold-glow);
+            white-space: nowrap;
+            text-align: center;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.35s ease;
+            display: none;
+            z-index: 100000;
+        }
+        /* Видна только во время отсчёта: overlay активен, но счёт ещё не начался. */
+        #stealthOverlay.active:not(.counting) #stealthPreHint {
+            display: block;
+            opacity: 1;
+        }
         /* Hold-to-exit progress ring — всегда отображается в counting, заполняется при зажатии */
         #stealthHoldRing {
             position: absolute;
@@ -5532,6 +5559,7 @@
         </div>
         <svg id="stealthHoldRing" viewBox="0 0 44 44"><circle cx="22" cy="22" r="19" id="stealthHoldCircle"/></svg>
         <div id="stealthHint"></div>
+        <div id="stealthPreHint"></div>
     </div>
 
     <!-- PiP Floating Counter Button (draggable, always-on-top) -->
@@ -5707,7 +5735,7 @@
                 toastTaskAdded: "Задача «{name}» добавлена",
                 toastFolderDeleted: "Папка удалена", toastSubfolderDeleted: "Подпапка удалена", toastTaskDeleted: "Задача удалена",
                 addTaskBtn: "Добавить задачу",
-                labelTimer: "Секундомер зикра", labelAutoAdvance: "Автопереход зикра", labelStealth: "Тёмный режим зикра", stealthHint: "удержите 2 сек для выхода",
+                labelTimer: "Секундомер зикра", labelAutoAdvance: "Автопереход зикра", labelStealth: "Тёмный режим зикра", stealthHint: "удержите для выхода",
                 labelHadith: "Хадисы", hadithLabel: "Хадис", hadithCloseHint: "Нажмите в любом месте, чтобы закрыть", hadithTestBtn: "Тест — показать хадис",
                 newListTitle: "Новый список", renameListTitle: "Переименовать список", listNamePlaceholder: "Название списка", deleteListTitle: "Удалить список?", deleteListSub: "Список и все задачи внутри будут удалены безвозвратно", toastListCreated: "Список «{name}» создан", toastListRenamed: "Список переименован", toastListDeleted: "Список удалён", titleEditList: "Переименовать список", titleDeleteList: "Удалить список", counterTaskToggle: "Задача-счётчик", counterTargetPlaceholder: "Сколько раз (напр. 342)", counterLeftLabel: "осталось",
                 badgeAuto: "Авто", madeWith: "сделано с",
@@ -5830,7 +5858,7 @@
                 toastTaskAdded: "Task \"{name}\" added",
                 toastFolderDeleted: "Folder deleted", toastSubfolderDeleted: "Subfolder deleted", toastTaskDeleted: "Task deleted",
                 addTaskBtn: "Add task",
-                labelTimer: "Zikr stopwatch", labelAutoAdvance: "Auto-advance dhikr", labelStealth: "Dark dhikr mode", stealthHint: "hold 2 sec to exit",
+                labelTimer: "Zikr stopwatch", labelAutoAdvance: "Auto-advance dhikr", labelStealth: "Dark dhikr mode", stealthHint: "hold to exit",
                 labelHadith: "Hadiths", hadithLabel: "Hadith", hadithCloseHint: "Tap anywhere to close", hadithTestBtn: "Test — show a hadith",
                 newListTitle: "New list", renameListTitle: "Rename list", listNamePlaceholder: "List name", deleteListTitle: "Delete list?", deleteListSub: "The list and all tasks inside it will be permanently deleted", toastListCreated: "List «{name}» created", toastListRenamed: "List renamed", toastListDeleted: "List deleted", titleEditList: "Rename list", titleDeleteList: "Delete list", counterTaskToggle: "Counter task", counterTargetPlaceholder: "How many times (e.g. 342)", counterLeftLabel: "left",
                 badgeAuto: "Auto", madeWith: "made with",
@@ -5953,7 +5981,7 @@
                 toastTaskAdded: "«{name}» vazifasi qo'shildi",
                 toastFolderDeleted: "Papka o'chirildi", toastSubfolderDeleted: "Ichki papka o'chirildi", toastTaskDeleted: "Vazifa o'chirildi",
                 addTaskBtn: "Vazifa qo'shish",
-                labelTimer: "Zikr sekundomeri", labelAutoAdvance: "Zikrni avtomatik o'tkazish", labelStealth: "Zikr qorong'u rejimi", stealthHint: "chiqish uchun 2 soniya ushlab turing",
+                labelTimer: "Zikr sekundomeri", labelAutoAdvance: "Zikrni avtomatik o'tkazish", labelStealth: "Zikr qorong'u rejimi", stealthHint: "chiqish uchun ushlab turing",
                 labelHadith: "Hadislar", hadithLabel: "Hadis", hadithCloseHint: "Yopish uchun istalgan joyni bosing", hadithTestBtn: "Sinov — hadisni ko'rsatish",
                 newListTitle: "Yangi ro'yxat", renameListTitle: "Ro'yxatni qayta nomlash", listNamePlaceholder: "Ro'yxat nomi", deleteListTitle: "Ro'yxat o'chirilsinmi?", deleteListSub: "Ro'yxat va undagi barcha vazifalar butunlay o'chiriladi", toastListCreated: "«{name}» ro'yxati yaratildi", toastListRenamed: "Ro'yxat qayta nomlandi", toastListDeleted: "Ro'yxat o'chirildi", titleEditList: "Ro'yxatni qayta nomlash", titleDeleteList: "Ro'yxatni o'chirish", counterTaskToggle: "Hisoblagich-vazifa", counterTargetPlaceholder: "Necha marta (masalan, 342)", counterLeftLabel: "qoldi",
                 badgeAuto: "Avto", madeWith: "mehr bilan",
@@ -6076,7 +6104,7 @@
                 toastTaskAdded: "Aufgabe \u201e{name}\u201c hinzugefügt",
                 toastFolderDeleted: "Ordner gelöscht", toastSubfolderDeleted: "Unterordner gelöscht", toastTaskDeleted: "Aufgabe gelöscht",
                 addTaskBtn: "Aufgabe hinzufügen",
-                labelTimer: "Dhikr-Stoppuhr", labelAutoAdvance: "Dhikr automatisch wechseln", labelStealth: "Dunkler Dhikr-Modus", stealthHint: "2 Sek. halten zum Beenden",
+                labelTimer: "Dhikr-Stoppuhr", labelAutoAdvance: "Dhikr automatisch wechseln", labelStealth: "Dunkler Dhikr-Modus", stealthHint: "halten zum Beenden",
                 labelHadith: "Hadithe", hadithLabel: "Hadith", hadithCloseHint: "Tippe irgendwohin, um zu schließen", hadithTestBtn: "Test — Hadith anzeigen",
                 newListTitle: "Neue Liste", renameListTitle: "Liste umbenennen", listNamePlaceholder: "Listenname", deleteListTitle: "Liste löschen?", deleteListSub: "Die Liste und alle darin enthaltenen Aufgaben werden endgültig gelöscht", toastListCreated: "Liste „{name}“ erstellt", toastListRenamed: "Liste umbenannt", toastListDeleted: "Liste gelöscht", titleEditList: "Liste umbenennen", titleDeleteList: "Liste löschen", counterTaskToggle: "Zähler-Aufgabe", counterTargetPlaceholder: "Wie oft (z. B. 342)", counterLeftLabel: "übrig",
                 badgeAuto: "Auto", madeWith: "gemacht mit",
@@ -6199,7 +6227,7 @@
                 toastTaskAdded: "Tarea «{name}» añadida",
                 toastFolderDeleted: "Carpeta eliminada", toastSubfolderDeleted: "Subcarpeta eliminada", toastTaskDeleted: "Tarea eliminada",
                 addTaskBtn: "Añadir tarea",
-                labelTimer: "Cronómetro del dhikr", labelAutoAdvance: "Avance automático de dhikr", labelStealth: "Modo dhikr oscuro", stealthHint: "mantén 2 seg para salir",
+                labelTimer: "Cronómetro del dhikr", labelAutoAdvance: "Avance automático de dhikr", labelStealth: "Modo dhikr oscuro", stealthHint: "mantén para salir",
                 labelHadith: "Hadices", hadithLabel: "Hadiz", hadithCloseHint: "Toca en cualquier lugar para cerrar", hadithTestBtn: "Prueba — mostrar un hadiz",
                 newListTitle: "Nueva lista", renameListTitle: "Renombrar lista", listNamePlaceholder: "Nombre de la lista", deleteListTitle: "¿Eliminar lista?", deleteListSub: "La lista y todas sus tareas se eliminarán permanentemente", toastListCreated: "Lista «{name}» creada", toastListRenamed: "Lista renombrada", toastListDeleted: "Lista eliminada", titleEditList: "Renombrar lista", titleDeleteList: "Eliminar lista", counterTaskToggle: "Tarea contador", counterTargetPlaceholder: "Cuántas veces (p. ej. 342)", counterLeftLabel: "restantes",
                 badgeAuto: "Auto", madeWith: "hecho con",
@@ -6322,7 +6350,7 @@
                 toastTaskAdded: "Tâche « {name} » ajoutée",
                 toastFolderDeleted: "Dossier supprimé", toastSubfolderDeleted: "Sous-dossier supprimé", toastTaskDeleted: "Tâche supprimée",
                 addTaskBtn: "Ajouter une tâche",
-                labelTimer: "Chronomètre du dhikr", labelAutoAdvance: "Avance automatique dhikr", labelStealth: "Mode dhikr sombre", stealthHint: "maintenir 2 sec pour quitter",
+                labelTimer: "Chronomètre du dhikr", labelAutoAdvance: "Avance automatique dhikr", labelStealth: "Mode dhikr sombre", stealthHint: "maintenir pour quitter",
                 labelHadith: "Hadiths", hadithLabel: "Hadith", hadithCloseHint: "Touchez n'importe où pour fermer", hadithTestBtn: "Test — afficher un hadith",
                 newListTitle: "Nouvelle liste", renameListTitle: "Renommer la liste", listNamePlaceholder: "Nom de la liste", deleteListTitle: "Supprimer la liste ?", deleteListSub: "La liste et toutes ses tâches seront supprimées définitivement", toastListCreated: "Liste « {name} » créée", toastListRenamed: "Liste renommée", toastListDeleted: "Liste supprimée", titleEditList: "Renommer la liste", titleDeleteList: "Supprimer la liste", counterTaskToggle: "Tâche compteur", counterTargetPlaceholder: "Combien de fois (ex. 342)", counterLeftLabel: "restant",
                 badgeAuto: "Auto", madeWith: "fait avec",
@@ -6445,7 +6473,7 @@
                 toastTaskAdded: "Attività «{name}» aggiunta",
                 toastFolderDeleted: "Cartella eliminata", toastSubfolderDeleted: "Sottocartella eliminata", toastTaskDeleted: "Attività eliminata",
                 addTaskBtn: "Aggiungi attività",
-                labelTimer: "Cronometro del dhikr", labelAutoAdvance: "Avanzamento automatico dhikr", labelStealth: "Modalità dhikr scuro", stealthHint: "tieni 2 sec per uscire",
+                labelTimer: "Cronometro del dhikr", labelAutoAdvance: "Avanzamento automatico dhikr", labelStealth: "Modalità dhikr scuro", stealthHint: "tieni premuto per uscire",
                 labelHadith: "Hadith", hadithLabel: "Hadith", hadithCloseHint: "Tocca ovunque per chiudere", hadithTestBtn: "Prova — mostra un hadith",
                 newListTitle: "Nuova lista", renameListTitle: "Rinomina lista", listNamePlaceholder: "Nome della lista", deleteListTitle: "Eliminare la lista?", deleteListSub: "La lista e tutte le sue attività saranno eliminate definitivamente", toastListCreated: "Lista «{name}» creata", toastListRenamed: "Lista rinominata", toastListDeleted: "Lista eliminata", titleEditList: "Rinomina lista", titleDeleteList: "Elimina lista", counterTaskToggle: "Attività contatore", counterTargetPlaceholder: "Quante volte (es. 342)", counterLeftLabel: "rimaste",
                 badgeAuto: "Auto", madeWith: "fatto con",
@@ -6568,7 +6596,7 @@
                 toastTaskAdded: "タスク「{name}」を追加しました",
                 toastFolderDeleted: "フォルダを削除しました", toastSubfolderDeleted: "サブフォルダを削除しました", toastTaskDeleted: "タスクを削除しました",
                 addTaskBtn: "タスクを追加",
-                labelTimer: "ズィクル・ストップウォッチ", labelAutoAdvance: "ズィクル自動進行", labelStealth: "ダークズィクルモード", stealthHint: "2秒長押しで終了",
+                labelTimer: "ズィクル・ストップウォッチ", labelAutoAdvance: "ズィクル自動進行", labelStealth: "ダークズィクルモード", stealthHint: "長押しで終了",
                 labelHadith: "ハディース", hadithLabel: "ハディース", hadithCloseHint: "どこかをタップして閉じる", hadithTestBtn: "テスト — ハディースを表示",
                 newListTitle: "新しいリスト", renameListTitle: "リスト名を変更", listNamePlaceholder: "リスト名", deleteListTitle: "リストを削除しますか？", deleteListSub: "リストと中のすべてのタスクが完全に削除されます", toastListCreated: "リスト「{name}」を作成しました", toastListRenamed: "リスト名を変更しました", toastListDeleted: "リストを削除しました", titleEditList: "リスト名を変更", titleDeleteList: "リストを削除", counterTaskToggle: "カウンタータスク", counterTargetPlaceholder: "回数（例：342）", counterLeftLabel: "残り",
                 badgeAuto: "自動", madeWith: "心を込めて",
@@ -6691,7 +6719,7 @@
                 toastTaskAdded: "할 일 «{name}» 추가됨",
                 toastFolderDeleted: "폴더가 삭제되었습니다", toastSubfolderDeleted: "하위 폴더가 삭제되었습니다", toastTaskDeleted: "할 일이 삭제되었습니다",
                 addTaskBtn: "할 일 추가",
-                labelTimer: "지크르 스톱워치", labelAutoAdvance: "지크르 자동 전환", labelStealth: "다크 지크르 모드", stealthHint: "2초 유지하여 종료",
+                labelTimer: "지크르 스톱워치", labelAutoAdvance: "지크르 자동 전환", labelStealth: "다크 지크르 모드", stealthHint: "길게 눌러 종료",
                 labelHadith: "하디스", hadithLabel: "하디스", hadithCloseHint: "아무 곳이나 눌러 닫기", hadithTestBtn: "테스트 — 하디스 표시",
                 newListTitle: "새 목록", renameListTitle: "목록 이름 변경", listNamePlaceholder: "목록 이름", deleteListTitle: "목록을 삭제하시겠습니까?", deleteListSub: "목록과 그 안의 모든 할 일이 영구적으로 삭제됩니다", toastListCreated: "목록 «{name}» 생성됨", toastListRenamed: "목록 이름이 변경되었습니다", toastListDeleted: "목록이 삭제되었습니다", titleEditList: "목록 이름 변경", titleDeleteList: "목록 삭제", counterTaskToggle: "카운터 할 일", counterTargetPlaceholder: "몇 번 (예: 342)", counterLeftLabel: "남음",
                 badgeAuto: "자동", madeWith: "사랑을 담아",
@@ -6814,7 +6842,7 @@
                 toastTaskAdded: "任务「{name}」已添加",
                 toastFolderDeleted: "文件夹已删除", toastSubfolderDeleted: "子文件夹已删除", toastTaskDeleted: "任务已删除",
                 addTaskBtn: "添加任务",
-                labelTimer: "迪克尔计时器", labelAutoAdvance: "迪克尔自动切换", labelStealth: "暗黑迪克尔模式", stealthHint: "长按2秒退出",
+                labelTimer: "迪克尔计时器", labelAutoAdvance: "迪克尔自动切换", labelStealth: "暗黑迪克尔模式", stealthHint: "长按退出",
                 labelHadith: "圣训", hadithLabel: "圣训", hadithCloseHint: "点击任意处关闭", hadithTestBtn: "测试 — 显示圣训",
                 newListTitle: "新建列表", renameListTitle: "重命名列表", listNamePlaceholder: "列表名称", deleteListTitle: "删除列表？", deleteListSub: "该列表及其中的所有任务将被永久删除", toastListCreated: "已创建列表「{name}」", toastListRenamed: "列表已重命名", toastListDeleted: "列表已删除", titleEditList: "重命名列表", titleDeleteList: "删除列表", counterTaskToggle: "计数任务", counterTargetPlaceholder: "多少次（例如 342）", counterLeftLabel: "剩余",
                 badgeAuto: "自动", madeWith: "用爱打造",
@@ -7026,7 +7054,7 @@
             labelTimer: "Zikir kronometresi",
             labelAutoAdvance: "Zikri otomatik ilerlet",
             labelStealth: "Karanlık zikir modu",
-            stealthHint: "çıkmak için 2 sn basılı tut",
+            stealthHint: "çıkmak için basılı tut",
             labelHadith: "Hadisler",
             hadithLabel: "Hadis",
             hadithCloseHint: "Kapatmak için herhangi bir yere dokun",
@@ -7253,7 +7281,7 @@
             labelTimer: "ज़िक्र स्टॉपवॉच",
             labelAutoAdvance: "ज़िक्र स्वतः आगे बढ़ाएँ",
             labelStealth: "डार्क ज़िक्र मोड",
-            stealthHint: "बाहर निकलने के लिए 2 सेकंड दबाएँ",
+            stealthHint: "बाहर निकलने के लिए दबाए रखें",
             labelHadith: "हदीसें",
             hadithLabel: "हदीस",
             hadithCloseHint: "बंद करने के लिए कहीं भी टैप करें",
@@ -7480,7 +7508,7 @@
             labelTimer: "Jam randik zikir",
             labelAutoAdvance: "Maju zikir automatik",
             labelStealth: "Mod zikir gelap",
-            stealthHint: "tahan 2 saat untuk keluar",
+            stealthHint: "tahan untuk keluar",
             labelHadith: "Hadis",
             hadithLabel: "Hadis",
             hadithCloseHint: "Ketik di mana-mana untuk tutup",
@@ -7707,7 +7735,7 @@
             labelTimer: "Stopwatch zikir",
             labelAutoAdvance: "Lanjut zikir otomatis",
             labelStealth: "Mode zikir gelap",
-            stealthHint: "tahan 2 detik untuk keluar",
+            stealthHint: "tahan untuk keluar",
             labelHadith: "Hadis",
             hadithLabel: "Hadis",
             hadithCloseHint: "Ketuk di mana saja untuk menutup",
@@ -7934,7 +7962,7 @@
             labelTimer: "นาฬิกาจับเวลาซิกร์",
             labelAutoAdvance: "เลื่อนซิกร์อัตโนมัติ",
             labelStealth: "โหมดซิกร์มืด",
-            stealthHint: "กดค้าง 2 วินาทีเพื่อออก",
+            stealthHint: "กดค้างเพื่อออก",
             labelHadith: "หะดีษ",
             hadithLabel: "หะดีษ",
             hadithCloseHint: "แตะที่ใดก็ได้เพื่อปิด",
@@ -17563,6 +17591,7 @@
             const elAchievementName = document.getElementById('stealthAchievementName');
             const elAchievementSub = document.getElementById('stealthAchievementSub');
             const elHint     = document.getElementById('stealthHint');
+            const elPreHint  = document.getElementById('stealthPreHint');
             const elRingCircle = document.getElementById('stealthHoldCircle');
             const RING_FULL  = 120; // stroke-dasharray
 
@@ -17658,6 +17687,15 @@
                 _targetCounter = (screenId === 'screen-special-counter') ? 'special' : 'azkar';
                 overlay.classList.remove('counting');
                 overlay.classList.add('active');
+                // Пре-подсказка выхода видна уже во время отсчёта (до затемнения),
+                // ярким текстом цвета темы между кольцом счётчика и навбаром.
+                if (elPreHint) elPreHint.textContent = (typeof t === 'function' && t('stealthHint')) || 'удержите для выхода';
+                // Прогреваем AudioContext, пока есть пользовательский жест входа в
+                // тёмный режим — чтобы звук достижения надёжно сработал и в нём.
+                try {
+                    const _ac = (typeof getAudioCtx === 'function') ? getAudioCtx() : null;
+                    if (_ac && _ac.state === 'suspended') _ac.resume();
+                } catch (e) {}
                 elCountdown.classList.remove('hidden');
                 let n = 3;
                 elCountdown.textContent = n;
@@ -17671,7 +17709,7 @@
                         elCountdown.classList.add('hidden');
                         overlay.classList.add('counting');
                         updateCountDisplay();
-                        elHint.textContent = (typeof t === 'function' && t('stealthHint')) || 'удержите 2 сек для выхода';
+                        elHint.textContent = (typeof t === 'function' && t('stealthHint')) || 'удержите для выхода';
                         acquireWakeLock();
                     }
                 }, 1000);
