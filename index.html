@@ -2091,6 +2091,10 @@
             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
             line-height: 1.3;
         }
+        .special-card-text {
+            font-size: clamp(0.9rem, 3.5vw, 1rem); color: var(--text); line-height: 1.3;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
         .special-card-desc {
             font-size: clamp(0.73rem, 2.8vw, 0.8rem); color: var(--text-muted); line-height: 1.35;
             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
@@ -4939,6 +4943,7 @@
             <input id="specialFolderNameInput" class="special-form-input" type="text" placeholder="Название папки" maxlength="50" style="display:none;" onkeydown="if(event.key==='Enter')saveSpecialDhikr()">
             <div id="specialDhikrFields" style="display:none;flex-direction:column;gap:12px;">
                 <input id="specialFormName" class="special-form-input" type="text" placeholder="Название" style="user-select:text;-webkit-user-select:text;">
+                <textarea id="specialFormText" class="special-form-textarea" placeholder="Текст" style="user-select:text;-webkit-user-select:text;"></textarea>
                 <textarea id="specialFormDesc" class="special-form-textarea" placeholder="Описание" style="user-select:text;-webkit-user-select:text;"></textarea>
                 <input id="specialFormGoal" class="special-form-input special-form-goal-full" type="number" min="1" max="10000" placeholder="100">
             </div>
@@ -5683,6 +5688,7 @@
                 specialFormLabelDesc: "Описание / награда",
                 specialFormLabelGoal: "Цель (раз):",
                 specialFormPlaceholderName: "Название",
+                specialFormPlaceholderText: "Текст",
                 specialFormPlaceholderDesc: "Описание",
                 toastSpecialEmptyName: "Введите название",
                 customGoalModalTitle: "⚡ Своя цель",
@@ -5807,6 +5813,7 @@
                 specialFormLabelDesc: "Description / reward",
                 specialFormLabelGoal: "Goal (times):",
                 specialFormPlaceholderName: "Name",
+                specialFormPlaceholderText: "Text",
                 specialFormPlaceholderDesc: "Description",
                 toastSpecialEmptyName: "Enter a name",
                 customGoalModalTitle: "⚡ Custom Goal",
@@ -5930,6 +5937,7 @@
                 specialFormLabelDesc: "Tavsif / mukofot",
                 specialFormLabelGoal: "Maqsad (marta):",
                 specialFormPlaceholderName: "Nom",
+                specialFormPlaceholderText: "Matn",
                 specialFormPlaceholderDesc: "Tavsif",
                 toastSpecialEmptyName: "Nom kiriting",
                 customGoalModalTitle: "⚡ O'z maqsad",
@@ -6053,6 +6061,7 @@
                 specialFormLabelDesc: "Beschreibung / Belohnung",
                 specialFormLabelGoal: "Ziel (Mal):",
                 specialFormPlaceholderName: "Name",
+                specialFormPlaceholderText: "Text",
                 specialFormPlaceholderDesc: "Beschreibung",
                 toastSpecialEmptyName: "Namen eingeben",
                 customGoalModalTitle: "⚡ Eigenes Ziel",
@@ -6176,6 +6185,7 @@
                 specialFormLabelDesc: "Descripción / recompensa",
                 specialFormLabelGoal: "Meta (veces):",
                 specialFormPlaceholderName: "Nombre",
+                specialFormPlaceholderText: "Texto",
                 specialFormPlaceholderDesc: "Descripción",
                 toastSpecialEmptyName: "Introduce un nombre",
                 customGoalModalTitle: "⚡ Meta propia",
@@ -6299,6 +6309,7 @@
                 specialFormLabelDesc: "Description / récompense",
                 specialFormLabelGoal: "Objectif (fois) :",
                 specialFormPlaceholderName: "Nom",
+                specialFormPlaceholderText: "Texte",
                 specialFormPlaceholderDesc: "Description",
                 toastSpecialEmptyName: "Saisissez un nom",
                 customGoalModalTitle: "⚡ Objectif perso",
@@ -6422,6 +6433,7 @@
                 specialFormLabelDesc: "Descrizione / ricompensa",
                 specialFormLabelGoal: "Obiettivo (volte):",
                 specialFormPlaceholderName: "Nome",
+                specialFormPlaceholderText: "Testo",
                 specialFormPlaceholderDesc: "Descrizione",
                 toastSpecialEmptyName: "Inserisci un nome",
                 customGoalModalTitle: "⚡ Obiettivo personale",
@@ -6545,6 +6557,7 @@
                 specialFormLabelDesc: "説明 / 報奨",
                 specialFormLabelGoal: "目標（回）：",
                 specialFormPlaceholderName: "名前",
+                specialFormPlaceholderText: "テキスト",
                 specialFormPlaceholderDesc: "説明",
                 toastSpecialEmptyName: "名前を入力してください",
                 customGoalModalTitle: "⚡ カスタム目標",
@@ -6668,6 +6681,7 @@
                 specialFormLabelDesc: "설명 / 보상",
                 specialFormLabelGoal: "목표 (회):",
                 specialFormPlaceholderName: "이름",
+                specialFormPlaceholderText: "텍스트",
                 specialFormPlaceholderDesc: "설명",
                 toastSpecialEmptyName: "이름을 입력하세요",
                 customGoalModalTitle: "⚡ 사용자 목표",
@@ -6791,6 +6805,7 @@
                 specialFormLabelDesc: "描述 / 奖励",
                 specialFormLabelGoal: "目标（次）：",
                 specialFormPlaceholderName: "名称",
+                specialFormPlaceholderText: "文本",
                 specialFormPlaceholderDesc: "描述",
                 toastSpecialEmptyName: "请输入名称",
                 customGoalModalTitle: "⚡ 自定义目标",
@@ -6955,6 +6970,7 @@
             specialFormLabelDesc: "Açıklama / ödül",
             specialFormLabelGoal: "Hedef (kez):",
             specialFormPlaceholderName: "Ad",
+            specialFormPlaceholderText: "Metin",
             specialFormPlaceholderDesc: "Açıklama",
             toastSpecialEmptyName: "Bir ad girin",
             customGoalModalTitle: "⚡ Özel Hedef",
@@ -7182,6 +7198,7 @@
             specialFormLabelDesc: "विवरण / इनाम",
             specialFormLabelGoal: "लक्ष्य (बार):",
             specialFormPlaceholderName: "नाम",
+            specialFormPlaceholderText: "पाठ",
             specialFormPlaceholderDesc: "विवरण",
             toastSpecialEmptyName: "एक नाम दर्ज करें",
             customGoalModalTitle: "⚡ कस्टम लक्ष्य",
@@ -7409,6 +7426,7 @@
             specialFormLabelDesc: "Penerangan / ganjaran",
             specialFormLabelGoal: "Sasaran (kali):",
             specialFormPlaceholderName: "Nama",
+            specialFormPlaceholderText: "Teks",
             specialFormPlaceholderDesc: "Penerangan",
             toastSpecialEmptyName: "Masukkan nama",
             customGoalModalTitle: "⚡ Sasaran Tersuai",
@@ -7636,6 +7654,7 @@
             specialFormLabelDesc: "Deskripsi / pahala",
             specialFormLabelGoal: "Target (kali):",
             specialFormPlaceholderName: "Nama",
+            specialFormPlaceholderText: "Teks",
             specialFormPlaceholderDesc: "Deskripsi",
             toastSpecialEmptyName: "Masukkan nama",
             customGoalModalTitle: "⚡ Target Khusus",
@@ -7863,6 +7882,7 @@
             specialFormLabelDesc: "คำอธิบาย / ผลบุญ",
             specialFormLabelGoal: "เป้าหมาย (ครั้ง):",
             specialFormPlaceholderName: "ชื่อ",
+            specialFormPlaceholderText: "ข้อความ",
             specialFormPlaceholderDesc: "คำอธิบาย",
             toastSpecialEmptyName: "กรอกชื่อ",
             customGoalModalTitle: "⚡ เป้าหมายกำหนดเอง",
@@ -8850,6 +8870,11 @@
             const k = 'desc' + currentLang.charAt(0).toUpperCase() + currentLang.slice(1);
             return d[k] || d.descEn || d.descRu || d.descCustom || '';
         }
+        function getSpecialText(d) {
+            // Текст зикра (язык-нейтральный). Для дефолтных зикров используем
+            // арабский текст как запасной вариант, если своего text нет.
+            return d.text || d.arabic || '';
+        }
         function toggleSpecialEditMode() {
             isSpecialEditMode = !isSpecialEditMode;
             const btn = document.getElementById('specialEditToggle');
@@ -8859,6 +8884,7 @@
         function openSpecialAddModal() {
             document.getElementById('specialFormEditId').value = '';
             document.getElementById('specialFormName').value = '';
+            document.getElementById('specialFormText').value = '';
             document.getElementById('specialFormDesc').value = '';
             document.getElementById('specialFormGoal').value = '100';
             document.getElementById('specialModalTitle').innerText = t('specialModalTitleNew');
@@ -8877,6 +8903,7 @@
         function openSpecialAddInFolder(folderIdx) {
             document.getElementById('specialFormEditId').value = '';
             document.getElementById('specialFormName').value = '';
+            document.getElementById('specialFormText').value = '';
             document.getElementById('specialFormDesc').value = '';
             document.getElementById('specialFormGoal').value = '100';
             document.getElementById('specialModalTitle').innerText = t('specialModalTitleNew');
@@ -8895,6 +8922,7 @@
             const d = specialDhikrs.find(x => x.id === id); if (!d) return;
             document.getElementById('specialFormEditId').value = id;
             document.getElementById('specialFormName').value = getSpecialName(d);
+            document.getElementById('specialFormText').value = getSpecialText(d);
             document.getElementById('specialFormDesc').value = getSpecialDesc(d);
             document.getElementById('specialFormGoal').value = d.goal || 100;
             document.getElementById('specialModalTitle').innerText = t('specialModalTitleEdit');
@@ -9019,6 +9047,7 @@
             }
             const name = document.getElementById('specialFormName').value.trim();
             if (!name) { showToast(t('toastSpecialEmptyName')); return; }
+            const text = document.getElementById('specialFormText').value.trim();
             const desc = document.getElementById('specialFormDesc').value.trim();
             const goal = Math.max(1, parseInt(document.getElementById('specialFormGoal').value) || 100);
             if (editId) {
@@ -9026,10 +9055,11 @@
                 if (d) {
                     _fillAllSpecialLangs(d, 'name', name);
                     _fillAllSpecialLangs(d, 'desc', desc);
+                    d.text = text;
                     d.goal = goal; d.isCustom = true;
                 }
             } else {
-                const newDhikr = { id: 'custom_' + Date.now(), arabic: '', translit: '', isCustom: true, goal };
+                const newDhikr = { id: 'custom_' + Date.now(), arabic: '', translit: '', text, isCustom: true, goal };
                 _fillAllSpecialLangs(newDhikr, 'name', name);
                 _fillAllSpecialLangs(newDhikr, 'desc', desc);
                 specialDhikrs.push(newDhikr);
@@ -9380,6 +9410,8 @@
             if (_dfTrans) _dfTrans.placeholder = t('placeholderTrans');
             const spName = document.getElementById('specialFormName');
             if (spName) spName.placeholder = t('specialFormPlaceholderName');
+            const spText = document.getElementById('specialFormText');
+            if (spText) spText.placeholder = t('specialFormPlaceholderText');
             const spDesc = document.getElementById('specialFormDesc');
             if (spDesc) spDesc.placeholder = t('specialFormPlaceholderDesc');
             // Custom goal modal
@@ -10170,11 +10202,13 @@
             const done = completedSpecial[dhikr.id] === today;
             card.className = 'special-card editable' + (done ? ' completed' : '');
             const name = getSpecialName(dhikr);
+            const text = getSpecialText(dhikr);
             const desc = getSpecialDesc(dhikr);
             card.innerHTML = `
                 <div class="special-drag-handle" title="Перетащить"><svg viewBox="0 0 24 24"><circle cx="9" cy="5" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="9" cy="19" r="1.2" fill="currentColor"/><circle cx="15" cy="5" r="1.2" fill="currentColor"/><circle cx="15" cy="12" r="1.2" fill="currentColor"/><circle cx="15" cy="19" r="1.2" fill="currentColor"/></svg></div>
                 <div class="special-card-body">
                     <div class="special-card-name">${name}</div>
+                    ${text ? `<div class="special-card-text">${text}</div>` : ''}
                     ${desc ? `<div class="special-card-desc">${desc}</div>` : ''}
                 </div>
                 <div class="special-card-controls">
@@ -10322,10 +10356,12 @@
         function openSpecialDetail(dhikr) {
             const card = document.getElementById('specialDetailCard');
             const name = getSpecialName(dhikr);
+            const text = getSpecialText(dhikr);
             const desc = getSpecialDesc(dhikr);
             card.innerHTML = `
                 <div style="font-weight:700;margin-bottom:8px;font-size:1.15rem;background:linear-gradient(135deg,var(--grad-start),var(--grad-mid) 60%,var(--grad-end));-webkit-background-clip:text;background-clip:text;color:transparent;">${name}</div>
-                <div style="font-size:0.88rem;color:var(--text-muted);margin-bottom:18px;line-height:1.45;">${desc}</div>
+                ${text ? `<div style="font-size:1rem;color:var(--text);margin-bottom:${desc ? '12px' : '18px'};line-height:1.6;white-space:pre-wrap;word-break:break-word;">${text}</div>` : ''}
+                ${desc ? `<div style="font-size:0.88rem;color:var(--text-muted);margin-bottom:18px;line-height:1.45;white-space:pre-wrap;word-break:break-word;">${desc}</div>` : ''}
                 <button class="special-start-btn" onclick="startSpecialDhikr('${dhikr.id}')">${t('specialStartBtn')}</button>
             `;
             document.getElementById('specialDetailOverlay').classList.add('show');
@@ -12165,13 +12201,30 @@
             document.getElementById('duaModal').classList.add('show');
         }
         function editDua(id) {
+            // Единый стиль: редактирование дуа использует ту же модалку (cl-modal),
+            // что и добавление — как в специальных зикрах (одна форма на add/edit).
             const d = duas.find(i => i.id === id); if (!d) return;
-            document.getElementById('duaEditId').value = id;
-            document.getElementById('duaText').value = d.text;
-            document.getElementById('duaName').value = d.name || '';
-            document.getElementById('duaTrans').value = d.translation || '';
-            document.getElementById('modalTitle').innerText = t('modalTitleEdit');
-            document.getElementById('duaModal').classList.add('show');
+            _duaFolderEditId = id;
+            _duaFolderSelected = 'none';
+            const wrap = document.getElementById('duaFolderSelectWrap');
+            const title = document.getElementById('duaFolderModalTitle');
+            const confirmBtn = document.getElementById('duaFolderConfirmBtn');
+            const cancelBtn = document.getElementById('duaFolderCancelBtn');
+            const input = document.getElementById('duaFolderInput');
+            const dName = document.getElementById('duaFolderDuaName');
+            const dText = document.getElementById('duaFolderDuaText');
+            const dTrans = document.getElementById('duaFolderDuaTrans');
+            if (input) input.value = '';
+            if (dName) { dName.value = d.name || ''; dName.placeholder = t('placeholderDuaName'); }
+            if (dText) { dText.value = d.text || ''; dText.placeholder = t('placeholderDua'); }
+            if (dTrans) { dTrans.value = d.translation || ''; dTrans.placeholder = t('placeholderTrans'); }
+            // Папка не выбирается при редактировании — скрываем селектор
+            if (wrap) wrap.style.display = 'none';
+            _toggleDuaFolderFields('none');
+            if (title) title.textContent = t('modalTitleEdit');
+            if (confirmBtn) confirmBtn.textContent = t('btnSaveDua');
+            if (cancelBtn) cancelBtn.textContent = t('addFolderCancel');
+            document.getElementById('duaFolderOverlay').classList.add('show');
         }
         function saveDua() {
             const text = document.getElementById('duaText').value.trim();
@@ -12269,6 +12322,9 @@
                             </div>
                         </div>
                         <div class="cl-folder-right">
+                            <button class="cl-folder-add-sub" onclick="event.stopPropagation();openDuaAddInFolder(${f})" title="${escAttr(t('modalTitleNew'))}">
+                                <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                            </button>
                             <button class="cl-folder-edit" onclick="event.stopPropagation();renameDuaFolder(${f})" title="${escAttr(t('titleRenameFolder'))}">
                                 <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                             </button>
@@ -12625,6 +12681,7 @@
 
         // ---- Dua Folder Modal ----
         let _duaFolderSelected = null; // null = new folder, number = index of existing folder (to add dua)
+        let _duaFolderEditId = null;   // when set — модалка работает в режиме редактирования дуа
 
         function openDuaFolderModal() {
             const input = document.getElementById('duaFolderInput');
@@ -12633,6 +12690,7 @@
             const confirmBtn = document.getElementById('duaFolderConfirmBtn');
             const cancelBtn = document.getElementById('duaFolderCancelBtn');
             _duaFolderSelected = null;
+            _duaFolderEditId = null;
             if (input) input.value = '';
             // Reset the dua fields
             const dName = document.getElementById('duaFolderDuaName');
@@ -12647,11 +12705,39 @@
             if (cancelBtn) cancelBtn.textContent = t('addFolderCancel');
             // Default view = create folder → show folder name input, hide dua fields
             _toggleDuaFolderFields(null);
-            // Dropdown always shown: «Новая папка» / «Без папки» / existing folders
+            // Dropdown shown: «Новая папка» / «Без папки» (existing folders убраны)
             wrap.style.display = '';
             _buildDuaFolderDropdown();
             _updateDuaFolderSelectBtn(null);
             document.getElementById('duaFolderOverlay').classList.add('show');
+        }
+
+        // Добавить дуа прямо в конкретную папку (кнопка «+» в заголовке папки).
+        // Селектор папки скрыт — папка уже выбрана, показываем только поля дуа.
+        function openDuaAddInFolder(folderIdx) {
+            if (!duaFolders[folderIdx]) return;
+            _duaFolderSelected = folderIdx;
+            _duaFolderEditId = null;
+            const wrap = document.getElementById('duaFolderSelectWrap');
+            const title = document.getElementById('duaFolderModalTitle');
+            const confirmBtn = document.getElementById('duaFolderConfirmBtn');
+            const cancelBtn = document.getElementById('duaFolderCancelBtn');
+            const input = document.getElementById('duaFolderInput');
+            const dName = document.getElementById('duaFolderDuaName');
+            const dText = document.getElementById('duaFolderDuaText');
+            const dTrans = document.getElementById('duaFolderDuaTrans');
+            if (input) input.value = '';
+            if (dName) { dName.value = ''; dName.placeholder = t('placeholderDuaName'); }
+            if (dText) { dText.value = ''; dText.placeholder = t('placeholderDua'); }
+            if (dTrans) { dTrans.value = ''; dTrans.placeholder = t('placeholderTrans'); }
+            // Папка уже выбрана — скрываем выбор папки, показываем поля дуа
+            if (wrap) wrap.style.display = 'none';
+            _toggleDuaFolderFields(folderIdx);
+            if (title) title.textContent = duaFolders[folderIdx].name;
+            if (confirmBtn) confirmBtn.textContent = t('btnAdd');
+            if (cancelBtn) cancelBtn.textContent = t('addFolderCancel');
+            document.getElementById('duaFolderOverlay').classList.add('show');
+            setTimeout(() => { if (dName) dName.focus(); }, 120);
         }
 
         // Show the folder-name input (for «Новая папка») or the dua fields
@@ -12682,15 +12768,8 @@
             noneOpt.innerHTML = '<span class="fo-icon">📄</span><span class="fo-name">' + escHtml(t('noFolderOption')) + '</span><svg class="fo-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
             noneOpt.onclick = (e) => { e.stopPropagation(); _selectDuaFolderOption('none'); };
             dd.appendChild(noneOpt);
-            // 3) existing folders
-            duaFolders.forEach((folder, i) => {
-                const opt = document.createElement('div');
-                opt.className = 'cl-folder-option';
-                opt.dataset.idx = i;
-                opt.innerHTML = '<span class="fo-icon">📁</span><span class="fo-name">' + escHtml(folder.name) + '</span><svg class="fo-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
-                opt.onclick = (e) => { e.stopPropagation(); _selectDuaFolderOption(i); };
-                dd.appendChild(opt);
-            });
+            // (Существующие папки убраны — дуа добавляется в папку через кнопку «+»
+            //  в заголовке самой папки, как в специальных зикрах и задачах.)
         }
 
         function _selectDuaFolderOption(idx) {
@@ -12762,6 +12841,7 @@
 
         function closeDuaFolderModal() {
             document.getElementById('duaFolderOverlay').classList.remove('show');
+            _duaFolderEditId = null;
             const btn = document.getElementById('duaFolderSelectBtn');
             const dd = document.getElementById('duaFolderDropdown');
             if (btn) btn.classList.remove('open');
@@ -12776,6 +12856,18 @@
             const duaName = dNameEl ? dNameEl.value.trim() : '';
             const duaText = dTextEl ? dTextEl.value.trim() : '';
             const duaTrans = dTransEl ? dTransEl.value.trim() : '';
+
+            if (_duaFolderEditId) {
+                // Режим редактирования существующего дуа
+                if (!duaText) { showToast(t('toastEnterText')); if (dTextEl) dTextEl.focus(); return; }
+                const dua = duas.find(d => d.id === _duaFolderEditId);
+                if (dua) { dua.text = duaText; dua.name = duaName; dua.translation = duaTrans; }
+                _duaFolderEditId = null;
+                saveDataDebounced(); markDirty('dua','favorites'); renderDuaFolders(); renderDuas(); _dirty.dua = false; renderFavorites(); _dirty.favorites = false;
+                closeDuaFolderModal();
+                showToast(t('toastSaved'));
+                return;
+            }
 
             if (_duaFolderSelected === 'none') {
                 // Create a dua WITHOUT any folder (goes to the unfoldered page)
