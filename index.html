@@ -1565,7 +1565,7 @@
             overflow-x: auto; overflow-y: hidden;
             scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
             scrollbar-width: none; -ms-overflow-style: none;
-            touch-action: pan-x;
+            touch-action: pan-x pan-y;
         }
         .card-pager::-webkit-scrollbar { display: none; width: 0; height: 0; }
         .card-page {
@@ -1585,6 +1585,38 @@
             transition: background 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
         }
         .card-dot.active { background: var(--gold); opacity: 1; transform: scale(1.2); }
+
+        /* ===== DETAIL CARD (пред-стартовая карточка): 2 страницы со свайпом ===== */
+        .detail-pager { width: 100%; }
+        .detail-single { width: 100%; }
+        .detail-page {
+            justify-content: flex-start; align-items: center;
+            max-height: 58vh; overflow-y: auto; overflow-x: hidden;
+            padding: 2px 2px 4px; gap: 0;
+            -webkit-overflow-scrolling: touch;
+        }
+        .detail-page::-webkit-scrollbar { width: 0; display: none; }
+        .detail-title {
+            width: 100%;
+            font-weight: 700; margin-bottom: 8px; font-size: 1.15rem;
+            background: linear-gradient(135deg, var(--grad-start), var(--grad-mid) 60%, var(--grad-end));
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        .detail-text {
+            width: 100%;
+            font-size: 1rem; color: var(--text); margin-bottom: 14px;
+            line-height: 1.6; white-space: pre-wrap; word-break: break-word;
+        }
+        .detail-more-label {
+            width: 100%;
+            font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+            color: var(--gold); margin-bottom: 8px; opacity: 0.85;
+        }
+        .detail-desc {
+            width: 100%;
+            font-size: 0.9rem; color: var(--text-muted); line-height: 1.55;
+            white-space: pre-wrap; word-break: break-word;
+        }
 
         .dua-actions {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -5716,6 +5748,7 @@
                 specialFormLabelGoal: "Цель (раз):",
                 specialFormPlaceholderName: "Название",
                 specialFormPlaceholderText: "Текст",
+                detailMoreLabel: "Подробнее",
                 specialFormPlaceholderDesc: "Описание",
                 toastSpecialEmptyName: "Введите название",
                 customGoalModalTitle: "⚡ Своя цель",
@@ -5841,6 +5874,7 @@
                 specialFormLabelGoal: "Goal (times):",
                 specialFormPlaceholderName: "Name",
                 specialFormPlaceholderText: "Text",
+                detailMoreLabel: "Details",
                 specialFormPlaceholderDesc: "Description",
                 toastSpecialEmptyName: "Enter a name",
                 customGoalModalTitle: "⚡ Custom Goal",
@@ -5965,6 +5999,7 @@
                 specialFormLabelGoal: "Maqsad (marta):",
                 specialFormPlaceholderName: "Nom",
                 specialFormPlaceholderText: "Matn",
+                detailMoreLabel: "Batafsil",
                 specialFormPlaceholderDesc: "Tavsif",
                 toastSpecialEmptyName: "Nom kiriting",
                 customGoalModalTitle: "⚡ O'z maqsad",
@@ -6089,6 +6124,7 @@
                 specialFormLabelGoal: "Ziel (Mal):",
                 specialFormPlaceholderName: "Name",
                 specialFormPlaceholderText: "Text",
+                detailMoreLabel: "Mehr",
                 specialFormPlaceholderDesc: "Beschreibung",
                 toastSpecialEmptyName: "Namen eingeben",
                 customGoalModalTitle: "⚡ Eigenes Ziel",
@@ -6213,6 +6249,7 @@
                 specialFormLabelGoal: "Meta (veces):",
                 specialFormPlaceholderName: "Nombre",
                 specialFormPlaceholderText: "Texto",
+                detailMoreLabel: "Detalles",
                 specialFormPlaceholderDesc: "Descripción",
                 toastSpecialEmptyName: "Introduce un nombre",
                 customGoalModalTitle: "⚡ Meta propia",
@@ -6337,6 +6374,7 @@
                 specialFormLabelGoal: "Objectif (fois) :",
                 specialFormPlaceholderName: "Nom",
                 specialFormPlaceholderText: "Texte",
+                detailMoreLabel: "Détails",
                 specialFormPlaceholderDesc: "Description",
                 toastSpecialEmptyName: "Saisissez un nom",
                 customGoalModalTitle: "⚡ Objectif perso",
@@ -6461,6 +6499,7 @@
                 specialFormLabelGoal: "Obiettivo (volte):",
                 specialFormPlaceholderName: "Nome",
                 specialFormPlaceholderText: "Testo",
+                detailMoreLabel: "Dettagli",
                 specialFormPlaceholderDesc: "Descrizione",
                 toastSpecialEmptyName: "Inserisci un nome",
                 customGoalModalTitle: "⚡ Obiettivo personale",
@@ -6585,6 +6624,7 @@
                 specialFormLabelGoal: "目標（回）：",
                 specialFormPlaceholderName: "名前",
                 specialFormPlaceholderText: "テキスト",
+                detailMoreLabel: "詳細",
                 specialFormPlaceholderDesc: "説明",
                 toastSpecialEmptyName: "名前を入力してください",
                 customGoalModalTitle: "⚡ カスタム目標",
@@ -6709,6 +6749,7 @@
                 specialFormLabelGoal: "목표 (회):",
                 specialFormPlaceholderName: "이름",
                 specialFormPlaceholderText: "텍스트",
+                detailMoreLabel: "자세히",
                 specialFormPlaceholderDesc: "설명",
                 toastSpecialEmptyName: "이름을 입력하세요",
                 customGoalModalTitle: "⚡ 사용자 목표",
@@ -6833,6 +6874,7 @@
                 specialFormLabelGoal: "目标（次）：",
                 specialFormPlaceholderName: "名称",
                 specialFormPlaceholderText: "文本",
+                detailMoreLabel: "详情",
                 specialFormPlaceholderDesc: "描述",
                 toastSpecialEmptyName: "请输入名称",
                 customGoalModalTitle: "⚡ 自定义目标",
@@ -6998,6 +7040,7 @@
             specialFormLabelGoal: "Hedef (kez):",
             specialFormPlaceholderName: "Ad",
             specialFormPlaceholderText: "Metin",
+            detailMoreLabel: "Ayrıntılar",
             specialFormPlaceholderDesc: "Açıklama",
             toastSpecialEmptyName: "Bir ad girin",
             customGoalModalTitle: "⚡ Özel Hedef",
@@ -7226,6 +7269,7 @@
             specialFormLabelGoal: "लक्ष्य (बार):",
             specialFormPlaceholderName: "नाम",
             specialFormPlaceholderText: "पाठ",
+            detailMoreLabel: "विवरण",
             specialFormPlaceholderDesc: "विवरण",
             toastSpecialEmptyName: "एक नाम दर्ज करें",
             customGoalModalTitle: "⚡ कस्टम लक्ष्य",
@@ -7454,6 +7498,7 @@
             specialFormLabelGoal: "Sasaran (kali):",
             specialFormPlaceholderName: "Nama",
             specialFormPlaceholderText: "Teks",
+            detailMoreLabel: "Butiran",
             specialFormPlaceholderDesc: "Penerangan",
             toastSpecialEmptyName: "Masukkan nama",
             customGoalModalTitle: "⚡ Sasaran Tersuai",
@@ -7682,6 +7727,7 @@
             specialFormLabelGoal: "Target (kali):",
             specialFormPlaceholderName: "Nama",
             specialFormPlaceholderText: "Teks",
+            detailMoreLabel: "Detail",
             specialFormPlaceholderDesc: "Deskripsi",
             toastSpecialEmptyName: "Masukkan nama",
             customGoalModalTitle: "⚡ Target Khusus",
@@ -7910,6 +7956,7 @@
             specialFormLabelGoal: "เป้าหมาย (ครั้ง):",
             specialFormPlaceholderName: "ชื่อ",
             specialFormPlaceholderText: "ข้อความ",
+            detailMoreLabel: "รายละเอียด",
             specialFormPlaceholderDesc: "คำอธิบาย",
             toastSpecialEmptyName: "กรอกชื่อ",
             customGoalModalTitle: "⚡ เป้าหมายกำหนดเอง",
@@ -8898,9 +8945,9 @@
             return d[k] || d.descEn || d.descRu || d.descCustom || '';
         }
         function getSpecialText(d) {
-            // Текст зикра (язык-нейтральный). Для дефолтных зикров используем
-            // арабский текст как запасной вариант, если своего text нет.
-            return d.text || d.arabic || '';
+            // Текст зикра в читаемом виде (транслитерация), без арабской вязи.
+            // Для пользовательских зикров — введённый текст; арабский никогда не показываем.
+            return d.text || d.translit || '';
         }
         function toggleSpecialEditMode() {
             isSpecialEditMode = !isSpecialEditMode;
@@ -10231,18 +10278,12 @@
             const name = getSpecialName(dhikr);
             const text = getSpecialText(dhikr);
             const desc = getSpecialDesc(dhikr);
-            const pageOne = `<div class="special-card-name">${name}</div>${text ? `<div class="special-card-text">${text}</div>` : ''}`;
-            const bodyInner = desc
-                ? `<div class="card-pager">
-                        <div class="card-page">${pageOne}</div>
-                        <div class="card-page card-page-desc"><div class="special-card-desc">${desc}</div></div>
-                    </div>
-                    <div class="card-dots"><span class="card-dot active"></span><span class="card-dot"></span></div>`
-                : pageOne;
             card.innerHTML = `
                 <div class="special-drag-handle" title="Перетащить"><svg viewBox="0 0 24 24"><circle cx="9" cy="5" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="9" cy="19" r="1.2" fill="currentColor"/><circle cx="15" cy="5" r="1.2" fill="currentColor"/><circle cx="15" cy="12" r="1.2" fill="currentColor"/><circle cx="15" cy="19" r="1.2" fill="currentColor"/></svg></div>
                 <div class="special-card-body">
-                    ${bodyInner}
+                    <div class="special-card-name">${name}</div>
+                    ${text ? `<div class="special-card-text">${text}</div>` : ''}
+                    ${desc ? `<div class="special-card-desc">${desc}</div>` : ''}
                 </div>
                 <div class="special-card-controls">
                     <button class="special-action-btn" data-id="${dhikr.id}" data-action="edit" title="${escAttr(t('titleEdit'))}">
@@ -10263,8 +10304,6 @@
                 }
                 if (!e.target.closest('.special-drag-handle')) openSpecialDetail(dhikr);
             });
-            const spPager = card.querySelector('.card-pager');
-            if (spPager) _wireCardPager(spPager, card.querySelector('.card-dots'));
             if (typeof index === 'number') initSpecialDrag(card, index);
             return card;
         }
@@ -10393,12 +10432,16 @@
             const name = getSpecialName(dhikr);
             const text = getSpecialText(dhikr);
             const desc = getSpecialDesc(dhikr);
-            card.innerHTML = `
-                <div style="font-weight:700;margin-bottom:8px;font-size:1.15rem;background:linear-gradient(135deg,var(--grad-start),var(--grad-mid) 60%,var(--grad-end));-webkit-background-clip:text;background-clip:text;color:transparent;">${name}</div>
-                ${text ? `<div style="font-size:1rem;color:var(--text);margin-bottom:${desc ? '12px' : '18px'};line-height:1.6;white-space:pre-wrap;word-break:break-word;">${text}</div>` : ''}
-                ${desc ? `<div style="font-size:0.88rem;color:var(--text-muted);margin-bottom:18px;line-height:1.45;white-space:pre-wrap;word-break:break-word;">${desc}</div>` : ''}
-                <button class="special-start-btn" onclick="startSpecialDhikr('${dhikr.id}')">${t('specialStartBtn')}</button>
-            `;
+            // Страница 1 — как обычно: название, текст, кнопка «Начать»
+            const page1 = `
+                <div class="detail-title">${name}</div>
+                ${text ? `<div class="detail-text">${text}</div>` : ''}
+                <button class="special-start-btn" onclick="startSpecialDhikr('${dhikr.id}')">${t('specialStartBtn')}</button>`;
+            // Страница 2 — «Подробнее»: описание хадиса (без кнопки «Начать»)
+            const page2 = desc ? `
+                <div class="detail-more-label">${t('detailMoreLabel')}</div>
+                <div class="detail-desc">${desc}</div>` : '';
+            _renderDetailPager(card, [page1, page2]);
             document.getElementById('specialDetailOverlay').classList.add('show');
         }
 
@@ -11815,36 +11858,34 @@
             });
         }
 
-        // Строит контент дуа-карточки: страница 1 (название + текст), страница 2 (описание).
-        // Если описания нет — отображает контент без пейджера и точек.
+        // Контент дуа-карточки в списке: название, текст, описание — обычным стеком (без свайпа).
         function _appendDuaPagedContent(card, d) {
-            const makeName = () => {
-                if (!d.name) return null;
-                const el = document.createElement('div'); el.className = 'dua-name'; el.textContent = d.name; return el;
-            };
-            const makeText = () => {
-                const el = document.createElement('div'); el.className = 'dua-text'; el.textContent = d.text; return el;
-            };
-            if (!d.translation) {
-                const n = makeName(); if (n) card.appendChild(n);
-                card.appendChild(makeText());
+            if (d.name) {
+                const nameDiv = document.createElement('div'); nameDiv.className = 'dua-name'; nameDiv.textContent = d.name;
+                card.appendChild(nameDiv);
+            }
+            const textDiv = document.createElement('div'); textDiv.className = 'dua-text'; textDiv.textContent = d.text;
+            card.appendChild(textDiv);
+            if (d.translation) {
+                const transDiv = document.createElement('div'); transDiv.className = 'dua-translation'; transDiv.textContent = d.translation;
+                card.appendChild(transDiv);
+            }
+        }
+
+        // Рендерит детальную (пред-стартовую) карточку с двумя страницами (свайп в сторону):
+        // страница 1 — основная (как обычно), страница 2 — «Подробнее». Точки внизу:
+        // активная — цвет темы, неактивная — серая. Если страница 2 пустая — одна страница без точек.
+        function _renderDetailPager(cardEl, pages) {
+            const valid = pages.filter(p => p && p.trim());
+            if (valid.length <= 1) {
+                cardEl.innerHTML = `<div class="detail-single">${valid[0] || ''}</div>`;
                 return;
             }
-            const pager = document.createElement('div'); pager.className = 'card-pager';
-            const p1 = document.createElement('div'); p1.className = 'card-page';
-            const n = makeName(); if (n) p1.appendChild(n);
-            p1.appendChild(makeText());
-            const p2 = document.createElement('div'); p2.className = 'card-page card-page-desc';
-            const trans = document.createElement('div'); trans.className = 'dua-translation'; trans.textContent = d.translation;
-            p2.appendChild(trans);
-            pager.appendChild(p1); pager.appendChild(p2);
-            card.appendChild(pager);
-            const dots = document.createElement('div'); dots.className = 'card-dots';
-            const d0 = document.createElement('span'); d0.className = 'card-dot active';
-            const d1 = document.createElement('span'); d1.className = 'card-dot';
-            dots.appendChild(d0); dots.appendChild(d1);
-            card.appendChild(dots);
-            _wireCardPager(pager, dots);
+            const pagesHtml = valid.map(p => `<div class="card-page detail-page">${p}</div>`).join('');
+            const dotsHtml = valid.map((_, i) => `<span class="card-dot${i === 0 ? ' active' : ''}"></span>`).join('');
+            cardEl.innerHTML = `<div class="card-pager detail-pager">${pagesHtml}</div><div class="card-dots">${dotsHtml}</div>`;
+            const pager = cardEl.querySelector('.card-pager');
+            _wireCardPager(pager, cardEl.querySelector('.card-dots'));
         }
 
         function renderDuas() {
@@ -12331,11 +12372,15 @@
             const name = d.name || '';
             const text = d.text || '';
             const trans = d.translation || '';
-            card.innerHTML = `
-                ${name ? `<div style="font-weight:700;margin-bottom:8px;font-size:1.15rem;background:linear-gradient(135deg,var(--grad-start),var(--grad-mid) 60%,var(--grad-end));-webkit-background-clip:text;background-clip:text;color:transparent;">${name}</div>` : ''}
-                <div style="font-size:1rem;color:var(--text);margin-bottom:${trans ? '12px' : '0'};line-height:1.6;white-space:pre-wrap;word-break:break-word;">${text}</div>
-                ${trans ? `<div style="font-size:0.88rem;color:var(--text-muted);line-height:1.45;white-space:pre-wrap;word-break:break-word;">${trans}</div>` : ''}
-            `;
+            // Страница 1 — как обычно: название и текст дуа
+            const page1 = `
+                ${name ? `<div class="detail-title">${name}</div>` : ''}
+                <div class="detail-text">${text}</div>`;
+            // Страница 2 — «Подробнее»: описание/перевод
+            const page2 = trans ? `
+                <div class="detail-more-label">${t('detailMoreLabel')}</div>
+                <div class="detail-desc">${trans}</div>` : '';
+            _renderDetailPager(card, [page1, page2]);
             document.getElementById('duaDetailOverlay').classList.add('show');
         }
         function closeDuaDetail() { document.getElementById('duaDetailOverlay').classList.remove('show'); }
