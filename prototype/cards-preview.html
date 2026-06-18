@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover, maximum-scale=1.0">
+<title>Azkar — прототип карточек (превью)</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===== Тема из приложения (тёмная) ===== */
+:root{
+  --gold:#d4af37; --gold-light:#ffed4e; --gold-dark:#b8960c; --gold-glow:rgba(212,175,55,0.35);
+  --bg:#0a0a0a; --surface:rgba(17,17,17,0.96); --surface-light:rgba(26,26,26,0.9);
+  --border:rgba(212,175,55,0.2); --border-hover:rgba(212,175,55,0.45);
+  --text:#fff; --text-muted:rgba(255,255,255,0.78); --text-dim:rgba(255,255,255,0.45);
+  --danger:#ff6b6b; --success:#4ade80;
+  --grad-start:#FFF3C7; --grad-mid:#d4af37; --grad-end:#C9A227;
+  --accent-glow:rgba(212,175,55,0.35);
+  --shadow-sm:0 2px 8px rgba(0,0,0,0.4); --shadow-md:0 8px 24px rgba(0,0,0,0.5); --shadow-lg:0 12px 32px -12px rgba(0,0,0,0.6);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:'Montserrat',sans-serif;
+  padding:18px 14px 60px; max-width:480px; margin:0 auto;
+  background-image:radial-gradient(ellipse at 50% 0%, rgba(212,175,55,0.08) 0%, transparent 60%);
+  min-height:100vh;
+}
+.preview-banner{
+  border:1px dashed var(--border-hover); border-radius:18px; padding:12px 14px; margin-bottom:22px;
+  background:var(--surface-light); color:var(--text-muted); font-size:0.8rem; line-height:1.5; text-align:center;
+}
+.preview-banner b{color:var(--gold);}
+.section-h{
+  font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.7rem; letter-spacing:0.14em;
+  text-transform:uppercase; color:var(--gold); opacity:0.9; margin:26px 6px 12px;
+}
+.hint{font-size:0.72rem; color:var(--text-dim); margin:0 6px 12px; line-height:1.5;}
+.hint b{color:var(--gold-light);}
+
+/* ===== Папка (folder) ===== */
+.folder{
+  background:var(--surface); border:1px solid var(--gold); border-radius:30px;
+  box-shadow:var(--shadow-sm); padding:14px 14px 16px; margin-bottom:18px;
+}
+.folder-head{display:flex; align-items:center; gap:10px; padding:2px 4px 12px;}
+.folder-ic{font-size:1.2rem;}
+.folder-name{
+  font-family:'Cormorant Garamond',serif; font-weight:700; font-size:1.25rem;
+  background:linear-gradient(135deg,var(--grad-start),var(--grad-mid) 60%,var(--grad-end));
+  -webkit-background-clip:text; background-clip:text; color:transparent; flex:1;
+}
+.folder-count{font-size:0.74rem; color:var(--text-dim); background:var(--surface-light); border:1px solid var(--border); border-radius:10px; padding:2px 9px;}
+.folder-cards{display:flex; flex-direction:column; gap:12px;}
+
+/* ── Кнопка «Добавить дуа» ВНУТРИ папки (новое расположение) ── */
+.add-in-folder{
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  width:100%; margin-top:12px; padding:13px;
+  border-radius:24px; border:1.5px dashed var(--border-hover);
+  background:transparent; color:var(--gold);
+  font-family:'Montserrat',sans-serif; font-size:0.85rem; font-weight:600; cursor:pointer;
+  transition:background 0.15s, border-color 0.15s, transform 0.1s;
+}
+.add-in-folder:active{transform:scale(0.97); background:var(--accent-glow);}
+.add-in-folder svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.4;}
+
+/* ===== Swipeable карточка (общая) ===== */
+.swipe-card{
+  position:relative; overflow:hidden; border-radius:32px;
+  background:var(--surface); box-shadow:var(--shadow-sm);
+  touch-action:pan-y;
+}
+.swipe-card.dua{border:1px solid var(--gold); min-height:132px;}
+.swipe-card.special{border:1px solid var(--border); min-height:104px;}
+.swipe-track{display:flex; width:200%; transition:transform 0.32s cubic-bezier(0.2,0.9,0.4,1); will-change:transform;}
+.swipe-track.dragging{transition:none;}
+.swipe-page{width:50%; flex:0 0 50%; padding:15px 20px 26px; display:flex; flex-direction:column; gap:7px; justify-content:center;}
+
+/* Page 1 — основная (дуа) */
+.dua-name{font-weight:600; font-size:1rem; line-height:1.3; padding-right:64px;
+  background:linear-gradient(135deg,var(--grad-start),var(--grad-mid) 60%,var(--grad-end));
+  -webkit-background-clip:text; background-clip:text; color:transparent;}
+.dua-text{font-size:1rem; color:var(--text); line-height:1.35; padding-right:64px;
+  font-family:'Cormorant Garamond',serif;}
+.dua-arabic{font-family:'Amiri',serif; font-size:1.3rem; color:var(--gold); text-align:right; line-height:1.5; direction:rtl;}
+
+/* Page 2 — описание */
+.page-desc{background:linear-gradient(160deg, rgba(212,175,55,0.05), transparent);}
+.page-label{
+  font-size:0.62rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase;
+  color:var(--gold); opacity:0.85; margin-bottom:2px;
+}
+.desc-text{font-size:0.9rem; color:var(--text-muted); line-height:1.5;
+  font-family:'Cormorant Garamond',serif; max-height:96px; overflow:auto; padding-right:6px;}
+
+/* Special page 1 */
+.special-name{font-weight:600; font-size:1rem; line-height:1.3;
+  background:linear-gradient(135deg,var(--grad-start),var(--grad-mid) 60%,var(--grad-end));
+  -webkit-background-clip:text; background-clip:text; color:transparent; padding-right:54px;}
+.special-text{font-size:0.95rem; color:var(--text); line-height:1.35; font-family:'Cormorant Garamond',serif; padding-right:54px;}
+.special-goal{font-size:0.72rem; color:var(--text-dim);}
+
+/* Точки-индикатор страниц (внутри карточки) */
+.dots{position:absolute; left:0; right:0; bottom:9px; display:flex; gap:6px; justify-content:center; pointer-events:none;}
+.dot{width:6px; height:6px; border-radius:50%; background:var(--text-dim); opacity:0.45; transition:all 0.25s;}
+.dot.active{background:var(--gold); opacity:1; width:18px; border-radius:4px;}
+
+/* Кнопки действий (поверх, справа) */
+.card-actions{position:absolute; right:16px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:9px; z-index:3;}
+.act-btn{width:30px; height:30px; border-radius:50%; border:1px solid var(--border);
+  background:var(--surface-light); color:var(--gold); display:flex; align-items:center; justify-content:center; cursor:pointer;}
+.act-btn svg{width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2;}
+.act-btn:active{transform:scale(0.88); background:var(--accent-glow);}
+.act-btn.fav.on{color:var(--gold); border-color:var(--gold); background:var(--accent-glow);}
+.act-btn.fav.on svg{fill:currentColor; stroke:none;}
+.act-btn.del{color:var(--danger); border-color:rgba(255,107,107,0.25);}
+.swipe-hint{position:absolute; right:14px; bottom:8px; font-size:0.6rem; color:var(--text-dim); opacity:0.7; pointer-events:none;}
+
+/* ===== Форма создания (мокап) ===== */
+.form-card{
+  background:var(--surface); border:1px solid var(--border-hover); border-radius:30px;
+  padding:22px 20px; box-shadow:var(--shadow-lg); margin-bottom:18px;
+  display:flex; flex-direction:column; gap:13px;
+}
+.form-title{
+  font-family:'Cormorant Garamond',serif; font-size:1.5rem; font-weight:600; text-align:center; margin-bottom:4px;
+  background:linear-gradient(135deg,var(--grad-start),var(--gold));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.f-input,.f-textarea{
+  width:100%; background:var(--surface-light); border:1.5px solid var(--border);
+  border-radius:14px; padding:12px 15px; color:var(--text); font-size:0.95rem;
+  font-family:'Cormorant Garamond',serif; outline:none; resize:none;
+  -webkit-user-select:text; user-select:text;
+  transition:border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.f-textarea{min-height:72px;}
+.f-input:focus,.f-textarea:focus{border-color:var(--gold); background:var(--accent-glow); box-shadow:0 0 12px var(--accent-glow);}
+.f-input::placeholder,.f-textarea::placeholder{color:var(--text-dim);}
+.f-label{font-size:0.62rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold); opacity:0.8; margin:2px 4px -6px;}
+.f-tag{font-size:0.64rem; color:var(--success); margin:-4px 4px 0;}
+.form-actions{display:flex; gap:10px; margin-top:8px;}
+.btn{flex:1; padding:12px; border-radius:30px; font-weight:600; font-size:0.9rem; cursor:pointer; border:1px solid;}
+.btn-cancel{background:transparent; border-color:rgba(128,128,128,0.25); color:var(--text-muted);}
+.btn-save{background:linear-gradient(145deg,var(--accent-glow),var(--surface)); border-color:var(--gold); color:var(--gold);}
+.btn:active{transform:scale(0.96);}
+.foot{margin-top:34px; text-align:center; color:var(--text-dim); font-size:0.72rem; line-height:1.6;}
+</style>
+</head>
+<body>
+
+<div class="preview-banner">
+  <b>Прототип — превью, это НЕ приложение.</b><br>
+  Свайпни карточку влево (или нажми на точки) — внизу появится <b>2-я страница «Описание»</b> прямо внутри карточки.
+</div>
+
+<!-- ============ A. ДУА: папка с кнопкой добавления внутри ============ -->
+<div class="section-h">1 · Дуа — папка с кнопкой «Добавить» внутри</div>
+<div class="hint">Кнопку добавления убрали из общего верха — теперь <b>«+ Добавить дуа» внутри каждой папки</b>.</div>
+
+<div class="folder">
+  <div class="folder-head">
+    <span class="folder-ic">📁</span>
+    <span class="folder-name">Утренние азкары</span>
+    <span class="folder-count">2 дуа</span>
+  </div>
+  <div class="folder-cards" id="duaFolderCards"></div>
+  <button class="add-in-folder" onclick="alert('Откроется форма создания дуа для этой папки')">
+    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Добавить дуа
+  </button>
+</div>
+
+<div class="folder">
+  <div class="folder-head">
+    <span class="folder-ic">📁</span>
+    <span class="folder-name">Вечерние азкары</span>
+    <span class="folder-count">1 дуа</span>
+  </div>
+  <div class="folder-cards" id="duaFolderCards2"></div>
+  <button class="add-in-folder" onclick="alert('Откроется форма создания дуа для этой папки')">
+    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Добавить дуа
+  </button>
+</div>
+
+<!-- ============ B. СПЕЦ-ЗИКРЫ: карточки с текстом + описанием ============ -->
+<div class="section-h">2 · Спец-зикры — название + текст + описание</div>
+<div class="hint">Теперь в карточке есть <b>текст зикра</b>, а на 2-й странице — <b>описание/награда</b> (свайп влево).</div>
+<div class="folder-cards" id="specialCards" style="margin-bottom:6px;"></div>
+
+<!-- ============ C. Форма создания ДУА ============ -->
+<div class="section-h">3 · Форма создания дуа</div>
+<div class="form-card">
+  <div class="form-title">Новое дуа</div>
+  <div class="f-label">Название</div>
+  <input class="f-input" placeholder="Например: Дуа при пробуждении">
+  <div class="f-label">Текст дуа</div>
+  <textarea class="f-textarea" placeholder="Текст дуа (можно на арабском)"></textarea>
+  <div class="f-label">Описание</div>
+  <textarea class="f-textarea" placeholder="Перевод, смысл, награда, источник…"></textarea>
+  <div class="f-tag">↑ «Описание» оформлено единым стилем, как везде</div>
+  <div class="form-actions">
+    <button class="btn btn-cancel">Отмена</button>
+    <button class="btn btn-save">Сохранить</button>
+  </div>
+</div>
+
+<!-- ============ D. Форма создания СПЕЦ-ЗИКРА ============ -->
+<div class="section-h">4 · Форма создания спец-зикра</div>
+<div class="form-card">
+  <div class="form-title">Новый зикр</div>
+  <div class="f-label">Название</div>
+  <input class="f-input" placeholder="Например: СубханаЛлах">
+  <div class="f-label">Текст</div>
+  <textarea class="f-textarea" placeholder="Текст зикра"></textarea>
+  <div class="f-label">Описание / награда</div>
+  <textarea class="f-textarea" placeholder="Смысл, достоинство, источник…"></textarea>
+  <div class="f-label">Цель (раз)</div>
+  <input class="f-input" style="text-align:center;" value="33">
+  <div class="form-actions">
+    <button class="btn btn-cancel">Отмена</button>
+    <button class="btn btn-save">Сохранить</button>
+  </div>
+</div>
+
+<div class="foot">
+  Это превью для согласования. Если нравится — перенесу в само приложение<br>аккуратно, без поломки существующего.
+</div>
+
+<script>
+/* ---- Данные для примера ---- */
+const duasA = [
+  { name:'Дуа при пробуждении', text:'الْحَمْدُ لِلَّهِ الَّذِي أَحْيَانَا', fav:true,
+    desc:'«Хвала Аллаху, Который оживил нас после того, как умертвил, и к Нему — Воскрешение». Читается сразу после пробуждения. (аль-Бухари, 6324)' },
+  { name:'Дуа входа в дом', text:'بِسْمِ اللهِ وَلَجْنَا', fav:false,
+    desc:'Поминание Аллаха при входе в дом отдаляет шайтана от жилища и ужина. (Муслим, 2018)' },
+];
+const duasB = [
+  { name:'Аят аль-Курси', text:'اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ', fav:true,
+    desc:'Кто прочитает Аят аль-Курси вечером — будет под защитой до утра. Величайший аят Корана. (аль-Бухари)' },
+];
+const specials = [
+  { name:'СубханаЛлах', text:'سُبْحَانَ اللَّهِ', goal:33,
+    desc:'«Преславен Аллах». Произнесение 33 раза после намаза — из числа поминаний, за которые прощаются грехи. (Муслим, 597)' },
+  { name:'АльхамдулиЛлях', text:'الْحَمْدُ لِلَّهِ', goal:33,
+    desc:'«Хвала Аллаху». Заполняет Весы благими делами в День Суда. (Муслим, 223)' },
+];
+
+/* ---- Рендер карточки дуа (2 страницы) ---- */
+function duaCard(d){
+  return `
+  <div class="swipe-card dua">
+    <div class="swipe-track">
+      <div class="swipe-page">
+        <div class="dua-name">${d.name}</div>
+        <div class="dua-arabic">${d.text}</div>
+      </div>
+      <div class="swipe-page page-desc">
+        <div class="page-label">Описание</div>
+        <div class="desc-text">${d.desc}</div>
+      </div>
+    </div>
+    <div class="card-actions">
+      <div class="act-btn fav ${d.fav?'on':''}"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+      <div class="act-btn"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+      <div class="act-btn del"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></div>
+    </div>
+    <div class="dots"><span class="dot active"></span><span class="dot"></span></div>
+  </div>`;
+}
+
+/* ---- Рендер карточки спец-зикра (2 страницы) ---- */
+function specialCard(s){
+  return `
+  <div class="swipe-card special">
+    <div class="swipe-track">
+      <div class="swipe-page">
+        <div class="special-name">${s.name}</div>
+        <div class="special-text">${s.text}</div>
+        <div class="special-goal">Цель: ${s.goal} раз</div>
+      </div>
+      <div class="swipe-page page-desc">
+        <div class="page-label">Описание</div>
+        <div class="desc-text">${s.desc}</div>
+      </div>
+    </div>
+    <div class="card-actions">
+      <div class="act-btn"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+      <div class="act-btn del"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></div>
+    </div>
+    <div class="dots"><span class="dot active"></span><span class="dot"></span></div>
+  </div>`;
+}
+
+document.getElementById('duaFolderCards').innerHTML  = duasA.map(duaCard).join('');
+document.getElementById('duaFolderCards2').innerHTML = duasB.map(duaCard).join('');
+document.getElementById('specialCards').innerHTML    = specials.map(specialCard).join('');
+
+/* ---- Логика свайпа страниц внутри карточки ---- */
+document.querySelectorAll('.swipe-card').forEach(card=>{
+  const track = card.querySelector('.swipe-track');
+  const dots  = card.querySelectorAll('.dot');
+  let page = 0;                 // 0 = основная, 1 = описание
+  let startX=0, startY=0, dx=0, dragging=false, decided=false, horizontal=false;
+
+  function setPage(p){
+    page = Math.max(0, Math.min(1, p));
+    track.style.transform = `translateX(${page*-50}%)`;
+    dots.forEach((d,i)=>d.classList.toggle('active', i===page));
+  }
+
+  // Точки-кликом
+  dots.forEach((d,i)=>d.addEventListener('click', ()=>setPage(i)));
+
+  function down(x,y){ startX=x; startY=y; dx=0; dragging=true; decided=false; horizontal=false; track.classList.add('dragging'); }
+  function move(x,y){
+    if(!dragging) return;
+    const mx=x-startX, my=y-startY;
+    if(!decided){
+      if(Math.abs(mx)>8 || Math.abs(my)>8){ decided=true; horizontal=Math.abs(mx)>Math.abs(my); }
+    }
+    if(!horizontal) return;
+    dx=mx;
+    const base=page*-50;
+    const pct=base + (dx / card.offsetWidth)*100;
+    track.style.transform = `translateX(${Math.max(-50,Math.min(0,pct))}%)`;
+  }
+  function up(){
+    if(!dragging) return;
+    dragging=false; track.classList.remove('dragging');
+    if(horizontal && Math.abs(dx)>card.offsetWidth*0.18){
+      setPage(dx<0 ? page+1 : page-1);
+    } else setPage(page);
+  }
+
+  // touch
+  card.addEventListener('touchstart',e=>down(e.touches[0].clientX,e.touches[0].clientY),{passive:true});
+  card.addEventListener('touchmove', e=>move(e.touches[0].clientX,e.touches[0].clientY),{passive:true});
+  card.addEventListener('touchend', up);
+  // mouse (для десктопа)
+  card.addEventListener('mousedown',e=>{down(e.clientX,e.clientY);});
+  window.addEventListener('mousemove',e=>move(e.clientX,e.clientY));
+  window.addEventListener('mouseup', up);
+
+  // клик по кнопкам действий не свайпает
+  card.querySelectorAll('.act-btn').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation(); b.classList.toggle('on');}));
+});
+</script>
+</body>
+</html>
