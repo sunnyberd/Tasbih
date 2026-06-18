@@ -1559,6 +1559,33 @@
         #favList .dua-text { padding-right: 22px; }
         #favList .dua-translation { padding-right: 22px; }
 
+        /* ===== CARD PAGER (свайп карточки: страница 1 — название/текст, страница 2 — описание) ===== */
+        .card-pager {
+            display: flex; flex-direction: row; width: 100%; min-width: 0;
+            overflow-x: auto; overflow-y: hidden;
+            scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; -ms-overflow-style: none;
+            touch-action: pan-x;
+        }
+        .card-pager::-webkit-scrollbar { display: none; width: 0; height: 0; }
+        .card-page {
+            flex: 0 0 100%; width: 100%; min-width: 100%; max-width: 100%;
+            scroll-snap-align: start; scroll-snap-stop: always;
+            display: flex; flex-direction: column; justify-content: center; gap: 6px;
+        }
+        .card-page-desc { justify-content: center; }
+        .card-dots {
+            display: flex; align-items: center; justify-content: center; gap: 7px;
+            margin-top: 8px;
+        }
+        .card-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--text-dim); opacity: 0.45;
+            cursor: pointer; flex-shrink: 0;
+            transition: background 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+        }
+        .card-dot.active { background: var(--gold); opacity: 1; transform: scale(1.2); }
+
         .dua-actions {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             gap: 10px; flex-shrink: 0; position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
@@ -10204,12 +10231,18 @@
             const name = getSpecialName(dhikr);
             const text = getSpecialText(dhikr);
             const desc = getSpecialDesc(dhikr);
+            const pageOne = `<div class="special-card-name">${name}</div>${text ? `<div class="special-card-text">${text}</div>` : ''}`;
+            const bodyInner = desc
+                ? `<div class="card-pager">
+                        <div class="card-page">${pageOne}</div>
+                        <div class="card-page card-page-desc"><div class="special-card-desc">${desc}</div></div>
+                    </div>
+                    <div class="card-dots"><span class="card-dot active"></span><span class="card-dot"></span></div>`
+                : pageOne;
             card.innerHTML = `
                 <div class="special-drag-handle" title="Перетащить"><svg viewBox="0 0 24 24"><circle cx="9" cy="5" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="9" cy="19" r="1.2" fill="currentColor"/><circle cx="15" cy="5" r="1.2" fill="currentColor"/><circle cx="15" cy="12" r="1.2" fill="currentColor"/><circle cx="15" cy="19" r="1.2" fill="currentColor"/></svg></div>
                 <div class="special-card-body">
-                    <div class="special-card-name">${name}</div>
-                    ${text ? `<div class="special-card-text">${text}</div>` : ''}
-                    ${desc ? `<div class="special-card-desc">${desc}</div>` : ''}
+                    ${bodyInner}
                 </div>
                 <div class="special-card-controls">
                     <button class="special-action-btn" data-id="${dhikr.id}" data-action="edit" title="${escAttr(t('titleEdit'))}">
@@ -10230,6 +10263,8 @@
                 }
                 if (!e.target.closest('.special-drag-handle')) openSpecialDetail(dhikr);
             });
+            const spPager = card.querySelector('.card-pager');
+            if (spPager) _wireCardPager(spPager, card.querySelector('.card-dots'));
             if (typeof index === 'number') initSpecialDrag(card, index);
             return card;
         }
@@ -11755,6 +11790,63 @@
             if (!duaSearchQuery) return unfoldered;
             return unfoldered.filter(d => d.text.toLowerCase().includes(duaSearchQuery) || (d.translation && d.translation.toLowerCase().includes(duaSearchQuery)) || (d.name && d.name.toLowerCase().includes(duaSearchQuery)));
         }
+        // ===== Card pager (свайп карточек) =====
+        // Активная точка подсвечивается цветом темы, неактивная — серая.
+        function _wireCardPager(pager, dots) {
+            if (!pager || !dots) return;
+            const dotEls = dots.querySelectorAll('.card-dot');
+            let raf = null;
+            const update = () => {
+                raf = null;
+                const w = Math.max(1, pager.clientWidth);
+                const idx = Math.round(pager.scrollLeft / w);
+                dotEls.forEach((d, i) => d.classList.toggle('active', i === idx));
+            };
+            pager.addEventListener('scroll', () => {
+                if (raf) return;
+                raf = requestAnimationFrame(update);
+            }, { passive: true });
+            // Клик по точке — переход на страницу (удобно на десктопе)
+            dotEls.forEach((dot, i) => {
+                dot.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    pager.scrollTo({ left: i * pager.clientWidth, behavior: 'smooth' });
+                });
+            });
+        }
+
+        // Строит контент дуа-карточки: страница 1 (название + текст), страница 2 (описание).
+        // Если описания нет — отображает контент без пейджера и точек.
+        function _appendDuaPagedContent(card, d) {
+            const makeName = () => {
+                if (!d.name) return null;
+                const el = document.createElement('div'); el.className = 'dua-name'; el.textContent = d.name; return el;
+            };
+            const makeText = () => {
+                const el = document.createElement('div'); el.className = 'dua-text'; el.textContent = d.text; return el;
+            };
+            if (!d.translation) {
+                const n = makeName(); if (n) card.appendChild(n);
+                card.appendChild(makeText());
+                return;
+            }
+            const pager = document.createElement('div'); pager.className = 'card-pager';
+            const p1 = document.createElement('div'); p1.className = 'card-page';
+            const n = makeName(); if (n) p1.appendChild(n);
+            p1.appendChild(makeText());
+            const p2 = document.createElement('div'); p2.className = 'card-page card-page-desc';
+            const trans = document.createElement('div'); trans.className = 'dua-translation'; trans.textContent = d.translation;
+            p2.appendChild(trans);
+            pager.appendChild(p1); pager.appendChild(p2);
+            card.appendChild(pager);
+            const dots = document.createElement('div'); dots.className = 'card-dots';
+            const d0 = document.createElement('span'); d0.className = 'card-dot active';
+            const d1 = document.createElement('span'); d1.className = 'card-dot';
+            dots.appendChild(d0); dots.appendChild(d1);
+            card.appendChild(dots);
+            _wireCardPager(pager, dots);
+        }
+
         function renderDuas() {
             let container = document.getElementById('duaList');
             // One-time desktop drop zone: drop a folder dua onto empty list area → unfolder
@@ -11866,17 +11958,7 @@
                 actions.appendChild(favBtn); actions.appendChild(editBtn); actions.appendChild(delBtn);
                 card.appendChild(actions);
 
-                if (d.name) {
-                    const nameDiv = document.createElement('div'); nameDiv.className = 'dua-name'; nameDiv.textContent = d.name;
-                    card.appendChild(nameDiv);
-                }
-                const textDiv = document.createElement('div'); textDiv.className = 'dua-text'; textDiv.textContent = d.text;
-                card.appendChild(textDiv);
-
-                if (d.translation) {
-                    const transDiv = document.createElement('div'); transDiv.className = 'dua-translation'; transDiv.textContent = d.translation;
-                    card.appendChild(transDiv);
-                }
+                _appendDuaPagedContent(card, d);
 
                 card.addEventListener('click', function(e) {
                     if (!e.target.closest('.dua-action-btn') && !e.target.closest('.drag-handle')) openDuaDetail(d);
@@ -11944,16 +12026,7 @@
                 // padding-right compensation: no action buttons, restore text padding
                 card.style.paddingRight = '20px';
 
-                if (d.name) {
-                    const nameDiv = document.createElement('div'); nameDiv.className = 'dua-name'; nameDiv.textContent = d.name;
-                    card.appendChild(nameDiv);
-                }
-                const textDiv = document.createElement('div'); textDiv.className = 'dua-text'; textDiv.textContent = d.text;
-                card.appendChild(textDiv);
-                if (d.translation) {
-                    const transDiv = document.createElement('div'); transDiv.className = 'dua-translation'; transDiv.textContent = d.translation;
-                    card.appendChild(transDiv);
-                }
+                _appendDuaPagedContent(card, d);
                 card.addEventListener('click', function(e) {
                     if (!e.target.closest('.drag-handle')) openDuaDetail(d);
                 });
@@ -12472,16 +12545,7 @@
             actions.appendChild(favBtn); actions.appendChild(editBtn); actions.appendChild(delBtn);
             card.appendChild(actions);
 
-            if (d.name) {
-                const nameDiv = document.createElement('div'); nameDiv.className = 'dua-name'; nameDiv.textContent = d.name;
-                card.appendChild(nameDiv);
-            }
-            const textDiv = document.createElement('div'); textDiv.className = 'dua-text'; textDiv.textContent = d.text;
-            card.appendChild(textDiv);
-            if (d.translation) {
-                const transDiv = document.createElement('div'); transDiv.className = 'dua-translation'; transDiv.textContent = d.translation;
-                card.appendChild(transDiv);
-            }
+            _appendDuaPagedContent(card, d);
             card.addEventListener('click', function(e) {
                 if (!e.target.closest('.dua-action-btn') && !e.target.closest('.drag-handle')) openDuaDetail(d);
             });
