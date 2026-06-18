@@ -5004,6 +5004,7 @@
                 <input id="specialFormName" class="special-form-input" type="text" placeholder="Название" style="user-select:text;-webkit-user-select:text;">
                 <textarea id="specialFormText" class="special-form-textarea" placeholder="Текст" style="user-select:text;-webkit-user-select:text;"></textarea>
                 <textarea id="specialFormDesc" class="special-form-textarea" placeholder="Описание" style="user-select:text;-webkit-user-select:text;"></textarea>
+                <textarea id="specialFormDetail" class="special-form-textarea" placeholder="Подробнее" style="user-select:text;-webkit-user-select:text;"></textarea>
                 <input id="specialFormGoal" class="special-form-input special-form-goal-full" type="number" min="1" max="10000" placeholder="100">
             </div>
             <input type="hidden" id="specialFormEditId">
@@ -5526,6 +5527,7 @@
                 <input class="cl-modal-input" id="duaFolderDuaName" type="text" placeholder="Название дуа" maxlength="100" style="user-select:text;-webkit-user-select:text;">
                 <textarea class="cl-modal-input" id="duaFolderDuaText" placeholder="Текст дуа" rows="3" style="resize:none;user-select:text;-webkit-user-select:text;"></textarea>
                 <textarea class="cl-modal-input" id="duaFolderDuaTrans" placeholder="Описание" rows="2" style="resize:none;user-select:text;-webkit-user-select:text;"></textarea>
+                <textarea class="cl-modal-input" id="duaFolderDuaDetail" placeholder="Подробнее" rows="3" style="resize:none;user-select:text;-webkit-user-select:text;"></textarea>
             </div>
             <div class="cl-modal-actions">
                 <button class="cl-modal-btn cl-modal-cancel" id="duaFolderCancelBtn" onclick="closeDuaFolderModal()">Отмена</button>
@@ -8944,6 +8946,11 @@
             const k = 'desc' + currentLang.charAt(0).toUpperCase() + currentLang.slice(1);
             return d[k] || d.descEn || d.descRu || d.descCustom || '';
         }
+        function getSpecialDetail(d) {
+            // «Подробнее» — расширенное описание (необязательное), по языкам.
+            const k = 'detail' + currentLang.charAt(0).toUpperCase() + currentLang.slice(1);
+            return d[k] || d.detailEn || d.detailRu || d.detailCustom || '';
+        }
         function getSpecialText(d) {
             // Текст зикра в читаемом виде (транслитерация), без арабской вязи.
             // Для пользовательских зикров — введённый текст; арабский никогда не показываем.
@@ -8960,6 +8967,7 @@
             document.getElementById('specialFormName').value = '';
             document.getElementById('specialFormText').value = '';
             document.getElementById('specialFormDesc').value = '';
+            document.getElementById('specialFormDetail').value = '';
             document.getElementById('specialFormGoal').value = '100';
             document.getElementById('specialModalTitle').innerText = t('specialModalTitleNew');
             const wrap = document.getElementById('specialFolderSelectWrap');
@@ -8979,6 +8987,7 @@
             document.getElementById('specialFormName').value = '';
             document.getElementById('specialFormText').value = '';
             document.getElementById('specialFormDesc').value = '';
+            document.getElementById('specialFormDetail').value = '';
             document.getElementById('specialFormGoal').value = '100';
             document.getElementById('specialModalTitle').innerText = t('specialModalTitleNew');
             const wrap = document.getElementById('specialFolderSelectWrap');
@@ -8998,6 +9007,7 @@
             document.getElementById('specialFormName').value = getSpecialName(d);
             document.getElementById('specialFormText').value = getSpecialText(d);
             document.getElementById('specialFormDesc').value = getSpecialDesc(d);
+            document.getElementById('specialFormDetail').value = getSpecialDetail(d);
             document.getElementById('specialFormGoal').value = d.goal || 100;
             document.getElementById('specialModalTitle').innerText = t('specialModalTitleEdit');
             const wrap = document.getElementById('specialFolderSelectWrap');
@@ -9123,12 +9133,14 @@
             if (!name) { showToast(t('toastSpecialEmptyName')); return; }
             const text = document.getElementById('specialFormText').value.trim();
             const desc = document.getElementById('specialFormDesc').value.trim();
+            const detail = document.getElementById('specialFormDetail').value.trim();
             const goal = Math.max(1, parseInt(document.getElementById('specialFormGoal').value) || 100);
             if (editId) {
                 const d = specialDhikrs.find(x => x.id === editId);
                 if (d) {
                     _fillAllSpecialLangs(d, 'name', name);
                     _fillAllSpecialLangs(d, 'desc', desc);
+                    _fillAllSpecialLangs(d, 'detail', detail);
                     d.text = text;
                     d.goal = goal; d.isCustom = true;
                 }
@@ -9136,6 +9148,7 @@
                 const newDhikr = { id: 'custom_' + Date.now(), arabic: '', translit: '', text, isCustom: true, goal };
                 _fillAllSpecialLangs(newDhikr, 'name', name);
                 _fillAllSpecialLangs(newDhikr, 'desc', desc);
+                _fillAllSpecialLangs(newDhikr, 'detail', detail);
                 specialDhikrs.push(newDhikr);
                 // Add to folder if a folder was selected
                 if (typeof _specialFolderSelected === 'number' && specialFolders[_specialFolderSelected]) {
@@ -9482,12 +9495,16 @@
             if (_dfText) _dfText.placeholder = t('placeholderDua');
             const _dfTrans = document.getElementById('duaFolderDuaTrans');
             if (_dfTrans) _dfTrans.placeholder = t('placeholderTrans');
+            const _dfDetail = document.getElementById('duaFolderDuaDetail');
+            if (_dfDetail) _dfDetail.placeholder = t('detailMoreLabel');
             const spName = document.getElementById('specialFormName');
             if (spName) spName.placeholder = t('specialFormPlaceholderName');
             const spText = document.getElementById('specialFormText');
             if (spText) spText.placeholder = t('specialFormPlaceholderText');
             const spDesc = document.getElementById('specialFormDesc');
             if (spDesc) spDesc.placeholder = t('specialFormPlaceholderDesc');
+            const spDetail = document.getElementById('specialFormDetail');
+            if (spDetail) spDetail.placeholder = t('detailMoreLabel');
             // Custom goal modal
             const cgTitle = document.getElementById('customGoalModalTitle');
             if (cgTitle) cgTitle.innerText = t('customGoalModalTitle');
@@ -10432,15 +10449,18 @@
             const name = getSpecialName(dhikr);
             const text = getSpecialText(dhikr);
             const desc = getSpecialDesc(dhikr);
-            // Страница 1 — как обычно: название, текст, кнопка «Начать»
+            const detail = getSpecialDetail(dhikr);
+            // Страница 1 — как обычно: название, текст, описание, кнопка «Начать»
             const page1 = `
                 <div class="detail-title">${name}</div>
                 ${text ? `<div class="detail-text">${text}</div>` : ''}
+                ${desc ? `<div class="detail-desc">${desc}</div>` : ''}
                 <button class="special-start-btn" onclick="startSpecialDhikr('${dhikr.id}')">${t('specialStartBtn')}</button>`;
-            // Страница 2 — «Подробнее»: описание хадиса (без кнопки «Начать»)
-            const page2 = desc ? `
+            // Страница 2 — «Подробнее»: расширенное описание (без кнопки «Начать»).
+            // Показывается только если оно заполнено.
+            const page2 = detail ? `
                 <div class="detail-more-label">${t('detailMoreLabel')}</div>
-                <div class="detail-desc">${desc}</div>` : '';
+                <div class="detail-desc">${detail}</div>` : '';
             _renderDetailPager(card, [page1, page2]);
             document.getElementById('specialDetailOverlay').classList.add('show');
         }
@@ -12328,10 +12348,12 @@
             const dName = document.getElementById('duaFolderDuaName');
             const dText = document.getElementById('duaFolderDuaText');
             const dTrans = document.getElementById('duaFolderDuaTrans');
+            const dDetail = document.getElementById('duaFolderDuaDetail');
             if (input) input.value = '';
             if (dName) { dName.value = d.name || ''; dName.placeholder = t('placeholderDuaName'); }
             if (dText) { dText.value = d.text || ''; dText.placeholder = t('placeholderDua'); }
             if (dTrans) { dTrans.value = d.translation || ''; dTrans.placeholder = t('placeholderTrans'); }
+            if (dDetail) { dDetail.value = d.detail || ''; dDetail.placeholder = t('detailMoreLabel'); }
             // Папка не выбирается при редактировании — скрываем селектор
             if (wrap) wrap.style.display = 'none';
             _toggleDuaFolderFields('none');
@@ -12372,14 +12394,16 @@
             const name = d.name || '';
             const text = d.text || '';
             const trans = d.translation || '';
-            // Страница 1 — как обычно: название и текст дуа
+            const detail = d.detail || '';
+            // Страница 1 — как обычно: название, текст и описание дуа
             const page1 = `
                 ${name ? `<div class="detail-title">${name}</div>` : ''}
-                <div class="detail-text">${text}</div>`;
-            // Страница 2 — «Подробнее»: описание/перевод
-            const page2 = trans ? `
+                <div class="detail-text">${text}</div>
+                ${trans ? `<div class="detail-desc">${trans}</div>` : ''}`;
+            // Страница 2 — «Подробнее»: расширенное описание (если заполнено)
+            const page2 = detail ? `
                 <div class="detail-more-label">${t('detailMoreLabel')}</div>
-                <div class="detail-desc">${trans}</div>` : '';
+                <div class="detail-desc">${detail}</div>` : '';
             _renderDetailPager(card, [page1, page2]);
             document.getElementById('duaDetailOverlay').classList.add('show');
         }
@@ -12805,9 +12829,11 @@
             const dName = document.getElementById('duaFolderDuaName');
             const dText = document.getElementById('duaFolderDuaText');
             const dTrans = document.getElementById('duaFolderDuaTrans');
+            const dDetail = document.getElementById('duaFolderDuaDetail');
             if (dName) { dName.value = ''; dName.placeholder = t('placeholderDuaName'); }
             if (dText) { dText.value = ''; dText.placeholder = t('placeholderDua'); }
             if (dTrans) { dTrans.value = ''; dTrans.placeholder = t('placeholderTrans'); }
+            if (dDetail) { dDetail.value = ''; dDetail.placeholder = t('detailMoreLabel'); }
             if (title) title.textContent = t('addFolderTitle');
             if (input) input.placeholder = t('placeholderFolderName');
             if (confirmBtn) confirmBtn.textContent = t('addFolderConfirm');
@@ -12835,10 +12861,12 @@
             const dName = document.getElementById('duaFolderDuaName');
             const dText = document.getElementById('duaFolderDuaText');
             const dTrans = document.getElementById('duaFolderDuaTrans');
+            const dDetail = document.getElementById('duaFolderDuaDetail');
             if (input) input.value = '';
             if (dName) { dName.value = ''; dName.placeholder = t('placeholderDuaName'); }
             if (dText) { dText.value = ''; dText.placeholder = t('placeholderDua'); }
             if (dTrans) { dTrans.value = ''; dTrans.placeholder = t('placeholderTrans'); }
+            if (dDetail) { dDetail.value = ''; dDetail.placeholder = t('detailMoreLabel'); }
             // Папка уже выбрана — скрываем выбор папки, показываем поля дуа
             if (wrap) wrap.style.display = 'none';
             _toggleDuaFolderFields(folderIdx);
@@ -12962,15 +12990,17 @@
             const dNameEl = document.getElementById('duaFolderDuaName');
             const dTextEl = document.getElementById('duaFolderDuaText');
             const dTransEl = document.getElementById('duaFolderDuaTrans');
+            const dDetailEl = document.getElementById('duaFolderDuaDetail');
             const duaName = dNameEl ? dNameEl.value.trim() : '';
             const duaText = dTextEl ? dTextEl.value.trim() : '';
             const duaTrans = dTransEl ? dTransEl.value.trim() : '';
+            const duaDetail = dDetailEl ? dDetailEl.value.trim() : '';
 
             if (_duaFolderEditId) {
                 // Режим редактирования существующего дуа
                 if (!duaText) { showToast(t('toastEnterText')); if (dTextEl) dTextEl.focus(); return; }
                 const dua = duas.find(d => d.id === _duaFolderEditId);
-                if (dua) { dua.text = duaText; dua.name = duaName; dua.translation = duaTrans; }
+                if (dua) { dua.text = duaText; dua.name = duaName; dua.translation = duaTrans; dua.detail = duaDetail; }
                 _duaFolderEditId = null;
                 saveDataDebounced(); markDirty('dua','favorites'); renderDuaFolders(); renderDuas(); _dirty.dua = false; renderFavorites(); _dirty.favorites = false;
                 closeDuaFolderModal();
@@ -12981,7 +13011,7 @@
             if (_duaFolderSelected === 'none') {
                 // Create a dua WITHOUT any folder (goes to the unfoldered page)
                 if (!duaText) { showToast(t('toastEnterText')); if (dTextEl) dTextEl.focus(); return; }
-                const newDua = { id: 'dua_' + Date.now(), text: duaText, name: duaName, translation: duaTrans, favorite: false, created: Date.now() };
+                const newDua = { id: 'dua_' + Date.now(), text: duaText, name: duaName, translation: duaTrans, detail: duaDetail, favorite: false, created: Date.now() };
                 duas.push(newDua);
                 saveDataDebounced();
                 renderDuaFolders();
@@ -12992,7 +13022,7 @@
                 // Add new dua to existing folder
                 if (!duaText) { showToast(t('toastEnterText')); if (dTextEl) dTextEl.focus(); return; }
                 const folderIdx = _duaFolderSelected;
-                const newDua = { id: 'dua_' + Date.now(), text: duaText, name: duaName, translation: duaTrans, favorite: false, created: Date.now() };
+                const newDua = { id: 'dua_' + Date.now(), text: duaText, name: duaName, translation: duaTrans, detail: duaDetail, favorite: false, created: Date.now() };
                 duas.push(newDua);
                 duaFolders[folderIdx].duaIds.push(newDua.id);
                 saveDataDebounced();
