@@ -10735,11 +10735,16 @@
                 specialProgress[currentSpecialId] = specialCount;
                 saveDataDebounced();
             }
+            isSpecialActive = false;
             specialCount = 0;
             currentSpecialId = null;
             // Нажата кнопка "Назад" — явно сбрасываем, свайп откроет список
             lastActiveSpecialId = null;
             localStorage.removeItem('azkar_last_special_id');
+            // Скрываем completionOverlay если он висел от спец зикра
+            const co = document.getElementById('completionOverlay');
+            if (co) { co.classList.remove('show'); co.onclick = closeCompletion; }
+            window._azkarMilestoneActive = false;
             updateSpecialDisplay();
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('screen-special-list').classList.add('active');
@@ -11011,6 +11016,20 @@
             } catch(e) {}
         }
         function switchToAzkar() {
+            // Уходим с экрана спец зикра — сохраняем прогресс и сбрасываем состояние,
+            // иначе isSpecialActive/currentSpecialId остаются «живыми» в памяти,
+            // completionOverlay может всплыть поверх главного экрана и заблокировать его.
+            if (currentSpecialId) {
+                specialProgress[currentSpecialId] = specialCount;
+                saveDataDebounced();
+            }
+            isSpecialActive = false;
+            currentSpecialId = null;
+            specialCount = 0;
+            // Скрываем completionOverlay если он был показан для спец зикра
+            const co = document.getElementById('completionOverlay');
+            if (co) { co.classList.remove('show'); co.onclick = closeCompletion; }
+            window._azkarMilestoneActive = false;
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('screen-azkar').classList.add('active');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -13774,6 +13793,18 @@
             if (checklistFab) checklistFab.style.display = (tab === 'checklist') ? '' : 'none';
             // Switch pip mode: azkar tab → main, any other tab doesn't change pip mode
             if (tab === 'azkar') {
+                // Уходим с экрана спец зикра через таб-навигацию — сохраняем прогресс
+                // и сбрасываем состояние, чтобы не было фантомного completionOverlay.
+                if (currentSpecialId) {
+                    specialProgress[currentSpecialId] = specialCount;
+                    saveDataDebounced();
+                }
+                isSpecialActive = false;
+                currentSpecialId = null;
+                specialCount = 0;
+                const _co = document.getElementById('completionOverlay');
+                if (_co) { _co.classList.remove('show'); _co.onclick = closeCompletion; }
+                window._azkarMilestoneActive = false;
                 pipMode = 'main';
                 updatePipCounter();
             }
