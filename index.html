@@ -13736,6 +13736,7 @@
                 grid.appendChild(sw);
             });
             document.getElementById('themePickerOverlay').classList.add('show');
+            _initSheetDrag(document.getElementById('themePickerOverlay'), document.querySelector('#themePickerOverlay .theme-picker-sheet'), closeThemePicker);
         }
 
         function closeThemePicker() {
@@ -13743,6 +13744,65 @@
         }
 
         // ===== SOUND PICKERS =====
+        // Reusable swipe-down-to-close for any bottom-sheet overlay
+        function _initSheetDrag(overlay, sheet, onClose) {
+            if (!overlay || !sheet || sheet._sheetDragInit) return;
+            sheet._sheetDragInit = true;
+            let startY = 0, startX = 0, dy = 0, dragging = false, decided = false, active = false;
+            sheet.addEventListener('touchstart', e => {
+                if (e.touches.length !== 1) return;
+                startY = e.touches[0].clientY;
+                startX = e.touches[0].clientX;
+                dy = 0; dragging = true; decided = false; active = false;
+                sheet.style.transition = 'none';
+            }, { passive: true });
+            sheet.addEventListener('touchmove', e => {
+                if (!dragging) return;
+                const ddy = e.touches[0].clientY - startY;
+                const ddx = e.touches[0].clientX - startX;
+                if (!decided) {
+                    if (Math.abs(ddy) < 6 && Math.abs(ddx) < 6) return;
+                    decided = true;
+                    active = ddy > 0 && Math.abs(ddy) > Math.abs(ddx);
+                    if (!active) sheet.style.transition = '';
+                }
+                if (!active) return;
+                dy = Math.max(0, ddy);
+                e.preventDefault();
+                sheet.style.transform = 'translateY(' + dy + 'px) translateZ(0)';
+                const prog = Math.min(1, dy / 320);
+                overlay.style.background = 'rgba(0,0,0,' + (0.6 * (1 - prog * 0.6)).toFixed(3) + ')';
+            }, { passive: false });
+            function endDrag() {
+                if (!dragging) return;
+                dragging = false;
+                if (!active) { sheet.style.transition = ''; sheet.style.transform = ''; return; }
+                active = false;
+                if (dy > 110) {
+                    sheet.style.transition = 'transform 0.26s cubic-bezier(0.3,0,0.4,1)';
+                    sheet.style.transform = 'translateY(100%) translateZ(0)';
+                    overlay.style.transition = 'opacity 0.26s ease';
+                    overlay.style.opacity = '0';
+                    setTimeout(() => {
+                        onClose();
+                        sheet.style.transition = ''; sheet.style.transform = '';
+                        overlay.style.transition = ''; overlay.style.opacity = '';
+                        overlay.style.background = '';
+                    }, 260);
+                } else {
+                    sheet.style.transition = 'transform 0.26s cubic-bezier(0.2,0.9,0.4,1)';
+                    sheet.style.transform = 'translateY(0) translateZ(0)';
+                    overlay.style.background = '';
+                    setTimeout(() => { sheet.style.transition = ''; sheet.style.transform = ''; }, 280);
+                }
+            }
+            sheet.addEventListener('touchend', endDrag);
+            sheet.addEventListener('touchcancel', () => {
+                dragging = false; active = false;
+                sheet.style.transition = ''; sheet.style.transform = '';
+                overlay.style.background = '';
+            });
+        }
         const CLICK_SOUNDS = [
             { id: 'default',  label: 'Капля',    emoji: '💧', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.type='sine'; o.frequency.value=1200; const vol=Math.pow(v/10,2)*0.8+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.08); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.08); }},
             { id: 'soft',     label: 'Мягкий',   emoji: '🫧', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.type='sine'; o.frequency.value=800; const vol=Math.pow(v/10,2)*0.6+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.15); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.15); }},
@@ -13842,6 +13902,7 @@
                 grid.appendChild(opt);
             });
             document.getElementById('clickSoundPickerOverlay').classList.add('show');
+            _initSheetDrag(document.getElementById('clickSoundPickerOverlay'), document.querySelector('#clickSoundPickerOverlay .sound-picker-sheet'), closeClickSoundPicker);
         }
         function closeClickSoundPicker() {
             document.getElementById('clickSoundPickerOverlay').classList.remove('show');
@@ -13869,6 +13930,7 @@
                 grid.appendChild(opt);
             });
             document.getElementById('goalSoundPickerOverlay').classList.add('show');
+            _initSheetDrag(document.getElementById('goalSoundPickerOverlay'), document.querySelector('#goalSoundPickerOverlay .sound-picker-sheet'), closeGoalSoundPicker);
         }
         function closeGoalSoundPicker() {
             document.getElementById('goalSoundPickerOverlay').classList.remove('show');
