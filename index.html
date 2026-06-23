@@ -16480,7 +16480,7 @@
                     dhikrs: dhikrs.map(d => ({
                         name: getSpecialName(d),
                         total: dhikrTotals[d.id] || 0
-                    })).sort((a, b) => b.total - a.total)
+                    }))
                 };
             });
 
@@ -16490,8 +16490,7 @@
                 .map(d => ({
                     name: getSpecialName(d),
                     total: dhikrTotals[d.id] || 0
-                }))
-                .sort((a, b) => b.total - a.total);
+                }));
 
             const specTotal = specialDhikrs.reduce((sum, d) => sum + (dhikrTotals[d.id] || 0), 0);
             const grandTotal = mainTotal + specTotal;
