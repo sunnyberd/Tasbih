@@ -1668,7 +1668,7 @@
         .stats-summary { display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(8px, 3vw, 12px); padding: 6px clamp(10px, 4vw, 16px); }
         .stat-card {
             background: var(--surface); border: 1px solid var(--gold);
-            border-radius: 28px; padding: clamp(12px, 4vw, 18px) 12px;
+            border-radius: 32px; padding: clamp(12px, 4vw, 18px) 12px;
             text-align: center; box-shadow: var(--shadow-sm);
             display: flex; flex-direction: column; align-items: center; gap: 6px;
             contain: layout style;
@@ -1766,7 +1766,7 @@
         /* hairline divider between adjacent rows, aligned past the icon badge */
         .set-row + .set-row::before {
             content: ""; position: absolute; top: 0; left: 62px; right: 0;
-            height: 1px; background: rgba(212, 175, 55, 0.13);
+            height: 1px; background: var(--border);
         }
         .set-badge {
             width: 34px; height: 34px; border-radius: 11px;
@@ -2985,6 +2985,83 @@
         }
         .theme-swatch.active .theme-swatch-label { color: var(--gold); }
 
+        /* ===== SOUND PICKER ===== */
+        .sound-picker-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: flex; align-items: flex-end; justify-content: center;
+            z-index: 4000;
+            visibility: hidden; opacity: 0;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+        }
+        .sound-picker-overlay.show { visibility: visible; opacity: 1; }
+        .sound-picker-sheet {
+            width: 100%; max-width: min(440px, 98vw);
+            background: var(--surface);
+            border-radius: 32px 32px 0 0;
+            border-top: 1px solid var(--border-hover);
+            padding: 20px 20px calc(20px + var(--safe-b));
+            transform: translateY(100%) translateZ(0);
+            transition: transform 0.28s cubic-bezier(0.2, 0.9, 0.4, 1);
+            will-change: transform;
+        }
+        .sound-picker-overlay.show .sound-picker-sheet {
+            transform: translateY(0) translateZ(0);
+        }
+        .sound-picker-handle {
+            width: 40px; height: 4px;
+            background: var(--border-hover);
+            border-radius: 4px; margin: 0 auto 16px;
+        }
+        .sound-picker-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.3rem; font-weight: 600;
+            background: linear-gradient(135deg, var(--grad-start), var(--grad-mid));
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            text-align: center; margin-bottom: 16px;
+        }
+        .sound-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px 6px;
+        }
+        .sound-option {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            cursor: pointer;
+            padding: 6px 2px;
+            border-radius: 16px;
+            transition: transform 0.12s ease, background 0.15s ease;
+            will-change: transform;
+        }
+        .sound-option:active { transform: scale(0.90) translateZ(0); }
+        .sound-option.active { background: var(--accent-glow); }
+        .sound-icon-circle {
+            width: 46px; height: 46px;
+            border-radius: 50%;
+            border: 2.5px solid transparent;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .sound-option.active .sound-icon-circle {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+        .sound-option-label {
+            font-size: 0.52rem; font-weight: 500;
+            color: var(--text-dim);
+            text-align: center; line-height: 1.2;
+            max-width: 56px;
+        }
+        .sound-option.active .sound-option-label { color: var(--gold); }
+        .sound-hold-hint {
+            font-size: 0.56rem; color: var(--text-dim);
+            text-align: center; margin-top: 4px;
+        }
+        .sound-option.active .sound-hold-hint { color: var(--gold); opacity: 0.7; }
+
         /* ================================================================
            RESPONSIVE SYSTEM — единый источник истины
            Принцип: CSS-переменные масштабируют ВСЁ.
@@ -3303,8 +3380,8 @@
         .checklist-overall-progress {
             margin: 0 16px 12px;
             background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 20px;
+            border: 1px solid var(--gold);
+            border-radius: 32px;
             padding: 14px 16px;
             box-shadow: var(--shadow-sm);
         }
@@ -3371,8 +3448,8 @@
         .clstat-overall {
             display: flex; align-items: center; gap: 18px;
             background: var(--surface-light);
-            border: 1px solid var(--border);
-            border-radius: 22px;
+            border: 1px solid var(--gold);
+            border-radius: 32px;
             padding: 18px;
             margin-bottom: 14px;
         }
@@ -3403,8 +3480,8 @@
         }
         .clstat-card {
             background: var(--surface-light);
-            border: 1px solid var(--border);
-            border-radius: 16px;
+            border: 1px solid var(--gold);
+            border-radius: 32px;
             padding: 12px 14px;
             display: flex; flex-direction: column; gap: 4px;
         }
@@ -3430,8 +3507,8 @@
         /* Per-folder block */
         .clstat-folder {
             background: var(--surface-light);
-            border: 1px solid var(--border);
-            border-radius: 18px;
+            border: 1px solid var(--gold);
+            border-radius: 32px;
             padding: 14px;
             margin-bottom: 10px;
         }
@@ -3458,7 +3535,13 @@
         .clstat-badge { font-size: 0.6rem; font-weight: 700; padding: 2px 7px; border-radius: 20px; border: 1px solid var(--gold); color: var(--gold); background: var(--accent-glow); flex-shrink: 0; line-height: 1.4; }
         .clstat-empty { text-align: center; color: var(--text-dim); padding: 36px 10px; font-size: 0.92rem; }
         .clstat-actions { margin-top: 14px; }
-        .clstat-actions .cl-modal-btn { width: 100%; }
+        .clstat-actions .cl-modal-btn {
+            width: 100%;
+            border-color: var(--gold);
+            color: var(--gold);
+            border-radius: 32px;
+        }
+        .clstat-actions .cl-modal-btn:active { background: var(--accent-glow); }
 
         .checklist-folders {
             display: flex; flex-direction: column; gap: 12px;
@@ -5201,9 +5284,11 @@
               <div class="set-group">
             <!-- Sound -->
             <div class="set-row set-row-col" id="goalSoundSettingItem">
-                <div class="set-row-main" onclick="toggleSetting('sound')">
+                <div class="set-row-main"
+                     onmousedown="startGoalSoundPress(event)" onmouseup="cancelGoalSoundPress()" onmouseleave="cancelGoalSoundPress()"
+                     ontouchstart="startGoalSoundPress(event)" ontouchend="cancelGoalSoundPress()" ontouchcancel="cancelGoalSoundPress()">
                     <span class="set-ic" id="soundIcon">🔔</span>
-                    <div class="set-row-lbl"><b id="labelSound">Звук при достижении</b></div>
+                    <div class="set-row-lbl"><b id="labelSound">Звук при достижении</b><small id="setGoalSoundHint">Удержите для выбора звука</small></div>
                     <div class="toggle-switch" id="soundToggle"></div>
                 </div>
                 <div id="goalSoundSliderBlock" style="display:none;">
@@ -5217,9 +5302,11 @@
             </div>
             <!-- Click Sound -->
             <div class="set-row set-row-col" id="clickSoundSettingItem">
-                <div class="set-row-main" onclick="toggleSetting('clickSound')">
+                <div class="set-row-main"
+                     onmousedown="startClickSoundPress(event)" onmouseup="cancelClickSoundPress()" onmouseleave="cancelClickSoundPress()"
+                     ontouchstart="startClickSoundPress(event)" ontouchend="cancelClickSoundPress()" ontouchcancel="cancelClickSoundPress()">
                     <span class="set-ic" id="clickSoundIcon">🔇</span>
-                    <div class="set-row-lbl"><b id="labelClickSound">Тихий щелчок при нажатии</b></div>
+                    <div class="set-row-lbl"><b id="labelClickSound">Тихий щелчок при нажатии</b><small id="setClickSoundHint">Удержите для выбора звука</small></div>
                     <div class="toggle-switch" id="clickSoundToggle"></div>
                 </div>
                 <div id="clickSoundSliderBlock" style="display:none;">
@@ -5393,6 +5480,24 @@
             <div class="theme-picker-handle"></div>
             <div class="theme-picker-title" id="themePickerTitle">Тёмные темы</div>
             <div class="theme-grid" id="themeGrid"></div>
+        </div>
+    </div>
+
+    <!-- Click Sound Picker -->
+    <div class="sound-picker-overlay" id="clickSoundPickerOverlay" onclick="closeClickSoundPicker()">
+        <div class="sound-picker-sheet" onclick="event.stopPropagation()">
+            <div class="sound-picker-handle"></div>
+            <div class="sound-picker-title" id="clickSoundPickerTitle">Звук нажатия</div>
+            <div class="sound-grid" id="clickSoundGrid"></div>
+        </div>
+    </div>
+
+    <!-- Goal Sound Picker -->
+    <div class="sound-picker-overlay" id="goalSoundPickerOverlay" onclick="closeGoalSoundPicker()">
+        <div class="sound-picker-sheet" onclick="event.stopPropagation()">
+            <div class="sound-picker-handle"></div>
+            <div class="sound-picker-title" id="goalSoundPickerTitle">Звук достижения</div>
+            <div class="sound-grid" id="goalSoundGrid"></div>
         </div>
     </div>
 
@@ -5712,6 +5817,8 @@
                 chartTitle: "Прогресс", timeChartTitle: "Любимое время для зикра",
                 titleSettings: "Настройки",
                 labelLang: "Язык", labelTheme: "Тема", labelSound: "Звук при достижении", labelClickSound: "Звук при нажатии",
+                soundHint: "Удержите для выбора звука",
+                soundPickerTap: "Звук нажатия", soundPickerGoal: "Звук достижения",
                 btnClearStats: "Очистить всё",
                 clearStatsTitle: "Очистить всё?", clearStatsSub: "Счётчик и вся статистика зикров будут удалены безвозвратно",
                 modalTitleNew: "Новое дуа", modalTitleEdit: "Редактировать дуа",
@@ -5838,6 +5945,8 @@
                 chartTitle: "Progress", timeChartTitle: "Favorite time for dhikr",
                 titleSettings: "Settings",
                 labelLang: "Language", labelTheme: "Theme", labelSound: "Sound on goal", labelClickSound: "Sound on tap",
+                soundHint: "Hold to select sound",
+                soundPickerTap: "Tap sound", soundPickerGoal: "Goal sound",
                 btnClearStats: "Clear everything",
                 clearStatsTitle: "Clear everything?", clearStatsSub: "Counter and all dhikr statistics will be permanently deleted",
                 modalTitleNew: "New dua", modalTitleEdit: "Edit dua",
@@ -5963,6 +6072,8 @@
                 chartTitle: "Progress", timeChartTitle: "Zikr uchun sevimli vaqt",
                 titleSettings: "Sozlamalar",
                 labelLang: "Til", labelTheme: "Mavzu", labelSound: "Ovoz (maqsadga yetganda)", labelClickSound: "Bosishda ovoz",
+                soundHint: "Ovozni tanlash uchun ushlab turing",
+                soundPickerTap: "Bosish ovozi", soundPickerGoal: "Maqsad ovozi",
                 btnClearStats: "Hammasini tozalash",
                 clearStatsTitle: "Hammasini tozalash?", clearStatsSub: "Hisoblagich va barcha zikr statistikasi butunlay o'chiriladi",
                 modalTitleNew: "Yangi duo", modalTitleEdit: "Duoni tahrirlash",
@@ -6088,6 +6199,8 @@
                 chartTitle: "Fortschritt", timeChartTitle: "Lieblingszeit für Dhikr",
                 titleSettings: "Einstellungen",
                 labelLang: "Sprache", labelTheme: "Design", labelSound: "Sound bei Ziel", labelClickSound: "Sound beim Tippen",
+                soundHint: "Halten zum Auswählen",
+                soundPickerTap: "Tipp-Sound", soundPickerGoal: "Ziel-Sound",
                 btnClearStats: "Alles löschen",
                 clearStatsTitle: "Alles löschen?", clearStatsSub: "Zähler und alle Dhikr-Daten werden dauerhaft gelöscht",
                 modalTitleNew: "Neues Dua", modalTitleEdit: "Dua bearbeiten",
@@ -6213,6 +6326,8 @@
                 chartTitle: "Progreso", timeChartTitle: "Hora favorita para el dhikr",
                 titleSettings: "Ajustes",
                 labelLang: "Idioma", labelTheme: "Tema", labelSound: "Sonido al alcanzar meta", labelClickSound: "Sonido al pulsar",
+                soundHint: "Mantener para seleccionar",
+                soundPickerTap: "Sonido al pulsar", soundPickerGoal: "Sonido al alcanzar meta",
                 btnClearStats: "Borrar todo",
                 clearStatsTitle: "¿Borrar todo?", clearStatsSub: "El contador y todos los datos del dhikr se eliminarán permanentemente",
                 modalTitleNew: "Nueva dua", modalTitleEdit: "Editar dua",
@@ -6338,6 +6453,8 @@
                 chartTitle: "Progrès", timeChartTitle: "Moment favori pour le dhikr",
                 titleSettings: "Paramètres",
                 labelLang: "Langue", labelTheme: "Thème", labelSound: "Son à l'objectif", labelClickSound: "Son au toucher",
+                soundHint: "Maintenir pour sélectionner",
+                soundPickerTap: "Son au toucher", soundPickerGoal: "Son à l'objectif",
                 btnClearStats: "Tout effacer",
                 clearStatsTitle: "Tout effacer ?", clearStatsSub: "Le compteur et toutes les données de dhikr seront supprimés définitivement",
                 modalTitleNew: "Nouveau dua", modalTitleEdit: "Modifier le dua",
@@ -6463,6 +6580,8 @@
                 chartTitle: "Progresso", timeChartTitle: "Ora preferita per il dhikr",
                 titleSettings: "Impostazioni",
                 labelLang: "Lingua", labelTheme: "Tema", labelSound: "Suono al raggiungimento", labelClickSound: "Suono al tocco",
+                soundHint: "Tieni premuto per selezionare",
+                soundPickerTap: "Suono al tocco", soundPickerGoal: "Suono al raggiungimento",
                 btnClearStats: "Cancella tutto",
                 clearStatsTitle: "Cancellare tutto?", clearStatsSub: "Il contatore e tutti i dati del dhikr verranno eliminati definitivamente",
                 modalTitleNew: "Nuovo dua", modalTitleEdit: "Modifica dua",
@@ -6588,6 +6707,8 @@
                 chartTitle: "進捗", timeChartTitle: "ズィクルのお気に入り時間",
                 titleSettings: "設定",
                 labelLang: "言語", labelTheme: "テーマ", labelSound: "目標達成時のサウンド", labelClickSound: "タップ音",
+                soundHint: "長押しでサウンドを選択",
+                soundPickerTap: "タップ音", soundPickerGoal: "目標達成時のサウンド",
                 btnClearStats: "すべて消去",
                 clearStatsTitle: "すべて消去しますか？", clearStatsSub: "カウンターとすべてのズィクルデータが完全に削除されます",
                 modalTitleNew: "新しいドゥア", modalTitleEdit: "ドゥアを編集",
@@ -6713,6 +6834,8 @@
                 chartTitle: "진행 상황", timeChartTitle: "지크르에 좋아하는 시간",
                 titleSettings: "설정",
                 labelLang: "언어", labelTheme: "테마", labelSound: "목표 달성 소리", labelClickSound: "탭 소리",
+                soundHint: "길게 눌러 사운드 선택",
+                soundPickerTap: "탭 소리", soundPickerGoal: "목표 달성 소리",
                 btnClearStats: "모두 삭제",
                 clearStatsTitle: "모두 삭제하시겠습니까?", clearStatsSub: "카운터와 모든 지크르 데이터가 영구적으로 삭제됩니다",
                 modalTitleNew: "새 두아", modalTitleEdit: "두아 편집",
@@ -6838,6 +6961,8 @@
                 chartTitle: "进度", timeChartTitle: "最喜欢的迪克尔时间",
                 titleSettings: "设置",
                 labelLang: "语言", labelTheme: "主题", labelSound: "达成目标时提示音", labelClickSound: "点击提示音",
+                soundHint: "长按选择声音",
+                soundPickerTap: "点击提示音", soundPickerGoal: "达成目标时提示音",
                 btnClearStats: "清除所有",
                 clearStatsTitle: "清除所有？", clearStatsSub: "计数器和所有迪克尔数据将被永久删除",
                 modalTitleNew: "新杜阿", modalTitleEdit: "编辑杜阿",
@@ -6977,6 +7102,8 @@
             labelTheme: "Tema",
             labelSound: "Hedefte ses",
             labelClickSound: "Dokunuşta ses",
+            soundHint: "Ses seçmek için basılı tutun",
+            soundPickerTap: "Dokunuşta ses", soundPickerGoal: "Hedefte ses",
             btnClearStats: "Her şeyi temizle",
             clearStatsTitle: "Her şeyi temizle?",
             clearStatsSub: "Sayaç ve tüm zikir verileri kalıcı olarak silinecek",
@@ -7206,6 +7333,8 @@
             labelTheme: "थीम",
             labelSound: "लक्ष्य पर ध्वनि",
             labelClickSound: "टैप पर ध्वनि",
+            soundHint: "ध्वनि चुनने के लिए दबाकर रखें",
+            soundPickerTap: "टैप पर ध्वनि", soundPickerGoal: "लक्ष्य पर ध्वनि",
             btnClearStats: "सब कुछ साफ़ करें",
             clearStatsTitle: "सब कुछ साफ़ करें?",
             clearStatsSub: "काउंटर और सभी ज़िक्र डेटा स्थायी रूप से हटा दिए जाएंगे",
@@ -7435,6 +7564,8 @@
             labelTheme: "Tema",
             labelSound: "Bunyi apabila sasaran dicapai",
             labelClickSound: "Bunyi ketika ketuk",
+            soundHint: "Tekan dan tahan untuk memilih bunyi",
+            soundPickerTap: "Bunyi ketika ketuk", soundPickerGoal: "Bunyi apabila sasaran dicapai",
             btnClearStats: "Kosongkan semua",
             clearStatsTitle: "Kosongkan semua?",
             clearStatsSub: "Pembilang dan semua data zikir akan dipadam secara kekal",
@@ -7664,6 +7795,8 @@
             labelTheme: "Tema",
             labelSound: "Suara saat target tercapai",
             labelClickSound: "Suara saat ketuk",
+            soundHint: "Tahan untuk memilih suara",
+            soundPickerTap: "Suara saat ketuk", soundPickerGoal: "Suara saat target tercapai",
             btnClearStats: "Hapus semua",
             clearStatsTitle: "Hapus semua?",
             clearStatsSub: "Penghitung dan semua data zikir akan dihapus permanen",
@@ -7893,6 +8026,8 @@
             labelTheme: "ธีม",
             labelSound: "เสียงเมื่อถึงเป้าหมาย",
             labelClickSound: "เสียงเมื่อแตะ",
+            soundHint: "กดค้างเพื่อเลือกเสียง",
+            soundPickerTap: "เสียงเมื่อแตะ", soundPickerGoal: "เสียงเมื่อถึงเป้าหมาย",
             btnClearStats: "ล้างทั้งหมด",
             clearStatsTitle: "ล้างทั้งหมดหรือไม่?",
             clearStatsSub: "ตัวนับและข้อมูลซิกร์ทั้งหมดจะถูกลบถาวร",
@@ -9400,6 +9535,8 @@
                 chartTitle: 'chartTitle', timeChartTitle: 'timeChartTitle', titleSettings: 'titleSettings',
                 labelLang: 'labelLang', labelTheme: 'labelTheme', labelSound: 'labelSound',
                 labelClickSound: 'labelClickSound',
+                soundHint: 'setClickSoundHint', soundHint2: 'setGoalSoundHint',
+                soundPickerTap: 'clickSoundPickerTitle', soundPickerGoal: 'goalSoundPickerTitle',
                 labelVibration: 'labelVibration', labelData: 'labelData',
                 btnExport: 'btnExport', btnImport: 'btnImport',
                 autoExportBadge: 'badgeAuto', madeWithText: 'madeWith',
@@ -9706,6 +9843,7 @@
         let lastSpecialIncrementTime = 0;
         // null = нет активного; string = id последнего запущенного зикра (сбрасывается только кнопкой "Назад" или завершением)
         let lastActiveSpecialId = null;
+        let _swipeSpecialId = null;
         // 'main' | 'special' — к какому счётчику привязана плавающая кнопка
         let pipMode = 'main';
 
@@ -9805,48 +9943,16 @@
         function playClickSound() {
             if (!settings.clickSound) return;
             try {
-                const ctx = getAudioCtx();
-                const resume = ctx.state === 'suspended' ? ctx.resume() : Promise.resolve();
-                resume.then(() => {
-                    const now = ctx.currentTime;
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.type = 'sine';
-                    osc.frequency.value = 1200;
-                    const v = settings.clickSoundVolume !== undefined ? settings.clickSoundVolume : 5;
-                    const gainVal = Math.pow(v / 10, 2) * 0.8 + 0.02;
-                    gain.gain.setValueAtTime(gainVal, now);
-                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
-                    osc.start(now);
-                    osc.stop(now + 0.08);
-                });
+                const v = settings.clickSoundVolume !== undefined ? settings.clickSoundVolume : 5;
+                _playClickSoundById(settings.clickSoundType || 'default', v);
             } catch (e) { console.warn('clickSound error', e); }
         }
 
         function playGoalSound() {
             if (!settings.sound) return;
             try {
-                const ctx = getAudioCtx();
-                const resume = ctx.state === 'suspended' ? ctx.resume() : Promise.resolve();
-                resume.then(() => {
-                    const now = ctx.currentTime;
-                    // Chord: root + fifth for a richer tone
-                    [880, 1320].forEach((freq, i) => {
-                        const osc = ctx.createOscillator();
-                        const gain = ctx.createGain();
-                        osc.connect(gain);
-                        gain.connect(ctx.destination);
-                        osc.frequency.value = freq;
-                        const v = settings.goalSoundVolume !== undefined ? settings.goalSoundVolume : 5;
-                        const gainVal = (Math.pow(v / 10, 2) * 0.9 + 0.02) / (i + 1);
-                        gain.gain.setValueAtTime(gainVal, now);
-                        gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
-                        osc.start(now);
-                        osc.stop(now + 1.2);
-                    });
-                });
+                const v = settings.goalSoundVolume !== undefined ? settings.goalSoundVolume : 5;
+                _playGoalSoundById(settings.goalSoundType || 'default', v);
             } catch (e) { console.warn('goalSound error', e); }
             showGoalNotification();
         }
@@ -10478,9 +10584,11 @@
             closeSpecialDetail();
             currentSpecialId = id;
             lastActiveSpecialId = id;
+            _swipeSpecialId = id;
             localStorage.setItem('azkar_last_special_id', id);
             specialCount = specialProgress[id] || 0;
             isSpecialActive = false;
+            _specialGoalShown = (specialCount >= (specialDhikrs.find(d => d.id === id)?.goal || 100));
             const dhikr = specialDhikrs.find(d => d.id === id);
             specialGoal = dhikr ? (dhikr.goal || 100) : 100;
             document.getElementById('specialCounterName').innerText = dhikr ? getSpecialName(dhikr) : '';
@@ -10488,6 +10596,8 @@
             document.getElementById('screen-special-counter').classList.add('active');
             const specialFab = document.getElementById('specialAddFab');
             if (specialFab) specialFab.style.display = 'none';
+            const duaFab = document.getElementById('duaAddFab');
+            if (duaFab) duaFab.style.display = 'none';
             pipMode = 'special';
             updatePipCounter();
             // Обновляем отображение цели
@@ -10532,21 +10642,15 @@
             }
         }
 
+        let _specialGoalShown = false;
         function incrementSpecial() {
-            if (isSpecialActive) return;
             const now = Date.now();
             if (now - lastSpecialIncrementTime < INCREMENT_DEBOUNCE) return;
             lastSpecialIncrementTime = now;
-            // Vibrate first — preserves user-activation on Chrome Android
-            // (see comment in increment()).
             vibrate();
             specialCount++;
             if (currentSpecialId) bumpDhikrTotal(currentSpecialId);
             _timerSpecial.onClick();
-            // Special dhikrs intentionally do NOT feed the main Statistics
-            // screen (azkar_stats_v2) — only the main dhikr counter does.
-            // Their totals still accumulate in dhikrTotals via bumpDhikrTotal()
-            // above, which keeps the "Прогресс зикров" modal unchanged.
             playClickSound();
             updateSpecialDisplay();
             requestAnimationFrame(() => {
@@ -10563,27 +10667,21 @@
                 ring.appendChild(plus);
                 setTimeout(() => plus.remove(), 550);
             });
-            if (specialCount === specialGoal) {
-                isSpecialActive = true;
+            if (specialCount === specialGoal && !_specialGoalShown) {
+                _specialGoalShown = true;
                 playGoalSound();
                 const dhikr = specialDhikrs.find(d => d.id === currentSpecialId);
                 const name = dhikr ? getSpecialName(dhikr) : '';
                 document.getElementById('specialAchieveTitle').innerText = t('completionTitle');
                 document.getElementById('specialAchieveName').innerText = name;
                 document.getElementById('specialAchieveSub').innerText = t('completionSub');
-                // Stealth mode ("кнопка поверх всего"): без карточки достижения —
-                // сразу переходим к следующему специальному зикру ("дальше едет").
                 if (typeof window._stealthIsActive === 'function' && window._stealthIsActive()) {
-                    // Отдельная вибрация перехода — отличается от тап-вибро,
-                    // чтобы автопереход на следующий зикр ощущался иначе.
                     vibrateAdvance();
                     onSpecialAchievementTap();
                     return;
                 }
-                // Обычный режим: всегда показываем компактную completionOverlay
-                // onclick динамически переключается в зависимости от autoAdvance
                 const co = document.getElementById('completionOverlay');
-                if (co) co.onclick = settings.autoAdvance ? onSpecialAchievementTap : closeCompletion;
+                if (co) co.onclick = () => { closeCompletion(); _specialGoalShown = false; };
                 document.getElementById('completionOverlay').classList.add('show');
             }
         }
@@ -10592,7 +10690,6 @@
             if (currentSpecialId) {
                 const today = _islamicDayKey();
                 completedSpecial[currentSpecialId] = today;
-                delete specialProgress[currentSpecialId];
                 saveDataDebounced();
                 markDirty('stats');
                 renderSpecialList(); _dirty.special = false;
@@ -10600,6 +10697,7 @@
                 
             }
             isSpecialActive = false;
+            _specialGoalShown = false;
             specialCount = 0;
             currentSpecialId = null;
             // Зикр завершён — сбрасываем, чтобы свайп открывал список
@@ -10637,7 +10735,6 @@
             if (currentSpecialId) {
                 const today = _islamicDayKey();
                 completedSpecial[currentSpecialId] = today;
-                delete specialProgress[currentSpecialId];
                 saveDataDebounced();
                 markDirty('stats');
                 renderSpecialList(); _dirty.special = false;
@@ -10645,6 +10742,7 @@
                 
             }
             isSpecialActive = false;
+            _specialGoalShown = false;
             const prevId = currentSpecialId;
             specialCount = 0;
             currentSpecialId = null;
@@ -10740,6 +10838,7 @@
             currentSpecialId = null;
             // Нажата кнопка "Назад" — явно сбрасываем, свайп откроет список
             lastActiveSpecialId = null;
+            _swipeSpecialId = null;
             localStorage.removeItem('azkar_last_special_id');
             // Скрываем completionOverlay если он висел от спец зикра
             const co = document.getElementById('completionOverlay');
@@ -10945,21 +11044,13 @@
             if (duaFab) duaFab.style.display = '';
         }
         function switchToSpecialList() {
-            // Если пользователь перешёл в другой раздел (не нажимал "Назад"),
-            // lastActiveSpecialId сохранён — сразу возвращаем его в счётчик
-            if (lastActiveSpecialId) {
-                const dhikr = specialDhikrs.find(d => d.id === lastActiveSpecialId);
+            // Свайп: используем _swipeSpecialId (не lastActiveSpecialId)
+            if (_swipeSpecialId) {
+                const dhikr = specialDhikrs.find(d => d.id === _swipeSpecialId);
                 if (dhikr) {
-                    const today = _islamicDayKey();
-                    const isCompleted = completedSpecial[lastActiveSpecialId] === today;
-                    if (!isCompleted) {
-                        startSpecialDhikrDirect(lastActiveSpecialId);
-                        return;
-                    }
+                    startSpecialDhikrDirect(_swipeSpecialId);
+                    return;
                 }
-                // Зикр завершён сегодня — сбрасываем
-                lastActiveSpecialId = null;
-                localStorage.removeItem('azkar_last_special_id');
             }
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('screen-special-list').classList.add('active');
@@ -10979,9 +11070,11 @@
         function startSpecialDhikrDirect(id) {
             currentSpecialId = id;
             lastActiveSpecialId = id;
+            _swipeSpecialId = id;
             localStorage.setItem('azkar_last_special_id', id);
             specialCount = specialProgress[id] || 0;
             isSpecialActive = false;
+            _specialGoalShown = (specialCount >= (specialDhikrs.find(d => d.id === id)?.goal || 100));
             const dhikr = specialDhikrs.find(d => d.id === id);
             specialGoal = dhikr ? dhikr.goal : 100;
             document.getElementById('specialCounterName').innerText = dhikr
@@ -10993,6 +11086,8 @@
             document.querySelector('[data-tab="azkar"]').classList.add('active');
             const specialFab = document.getElementById('specialAddFab');
             if (specialFab) specialFab.style.display = 'none';
+            const duaFab = document.getElementById('duaAddFab');
+            if (duaFab) duaFab.style.display = 'none';
             pipMode = 'special';
             updatePipCounter();
             document.getElementById('specialTotalDisplay').innerHTML = `/ <span>${specialGoal}</span>`;
@@ -13647,6 +13742,138 @@
             document.getElementById('themePickerOverlay').classList.remove('show');
         }
 
+        // ===== SOUND PICKERS =====
+        const CLICK_SOUNDS = [
+            { id: 'default',  label: 'Капля',    emoji: '💧', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.type='sine'; o.frequency.value=1200; const vol=Math.pow(v/10,2)*0.8+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.08); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.08); }},
+            { id: 'soft',     label: 'Мягкий',   emoji: '🫧', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.type='sine'; o.frequency.value=800; const vol=Math.pow(v/10,2)*0.6+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.15); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.15); }},
+            { id: 'snap',     label: 'Щелчок',   emoji: '🫰', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.type='square'; o.frequency.value=1800; const vol=Math.pow(v/10,2)*0.5+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.03); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.03); }},
+            { id: 'crystal',  label: 'Кристалл', emoji: '✨', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.type='sine'; o.frequency.value=2000; const vol=Math.pow(v/10,2)*0.5+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.12); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.12); }},
+            { id: 'pop',      label: 'Поп',      emoji: '🫧', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.type='sine'; o.frequency.setValueAtTime(600,ctx.currentTime); o.frequency.exponentialRampToValueAtTime(200,ctx.currentTime+0.05); const vol=Math.pow(v/10,2)*0.7+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.06); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.06); }},
+            { id: 'bubble',   label: 'Пузырь',   emoji: '🔵', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.type='sine'; o.frequency.setValueAtTime(400,ctx.currentTime); o.frequency.exponentialRampToValueAtTime(900,ctx.currentTime+0.08); const vol=Math.pow(v/10,2)*0.5+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.1); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.1); }},
+            { id: 'tick',     label: 'Тик',      emoji: '⏱️', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.type='triangle'; o.frequency.value=2400; const vol=Math.pow(v/10,2)*0.4+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.025); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.025); }},
+            { id: 'ding',     label: 'Динь',     emoji: '🛎️', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.type='sine'; o.frequency.value=1600; const vol=Math.pow(v/10,2)*0.6+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.2); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.2); }},
+            { id: 'flute',    label: 'Флейта',   emoji: '🪈', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.type='sine'; o.frequency.setValueAtTime(1400,ctx.currentTime); o.frequency.setValueAtTime(1760,ctx.currentTime+0.04); const vol=Math.pow(v/10,2)*0.5+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.18); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.18); }},
+            { id: 'shimmer',  label: 'Вспышка',   emoji: '💫', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(),o2=ctx.createOscillator(),g2=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o2.connect(g2);g2.connect(ctx.destination); o.type='sine'; o.frequency.value=1200; o2.type='sine'; o2.frequency.value=1805; const vol=Math.pow(v/10,2)*0.45+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g2.gain.setValueAtTime(vol*0.7,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.1); g2.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.1); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.1); o2.start(ctx.currentTime); o2.stop(ctx.currentTime+0.1); }}
+        ];
+
+        const GOAL_SOUNDS = [
+            { id: 'default',  label: 'Аккорд',   emoji: '🎵', play: (ctx,v) => { [880,1320].forEach((freq,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=freq;const vol=(Math.pow(v/10,2)*0.9+0.02)/(i+1);g.gain.setValueAtTime(vol,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+1.2);o.start(ctx.currentTime);o.stop(ctx.currentTime+1.2);}); }},
+            { id: 'chime',    label: 'Колокол',  emoji: '🔔', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.setValueAtTime(600,ctx.currentTime);o.frequency.exponentialRampToValueAtTime(1200,ctx.currentTime+0.3);const vol=Math.pow(v/10,2)*0.7+0.02;g.gain.setValueAtTime(vol,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.8);o.start(ctx.currentTime);o.stop(ctx.currentTime+0.8);}},
+            { id: 'peace',    label: 'Тишина',   emoji: '🕊️', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=528;const vol=Math.pow(v/10,2)*0.6+0.02;g.gain.setValueAtTime(vol,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+1.8);o.start(ctx.currentTime);o.stop(ctx.currentTime+1.8);}},
+            { id: 'celebrate',label: 'Восход',   emoji: '🌅', play: (ctx,v) => { [[523,0],[659,0.12],[784,0.24]].forEach(([freq,del])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=freq;const vol=Math.pow(v/10,2)*0.6+0.02;g.gain.setValueAtTime(0,ctx.currentTime+del);g.gain.linearRampToValueAtTime(vol,ctx.currentTime+del+0.04);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+del+0.9);o.start(ctx.currentTime+del);o.stop(ctx.currentTime+del+0.9);}); }},
+            { id: 'wave',     label: 'Волна',    emoji: '🌊', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.setValueAtTime(300,ctx.currentTime);o.frequency.exponentialRampToValueAtTime(200,ctx.currentTime+1.5);const vol=Math.pow(v/10,2)*0.7+0.02;g.gain.setValueAtTime(vol,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+1.5);o.start(ctx.currentTime);o.stop(ctx.currentTime+1.5);}},
+            { id: 'glory',    label: 'Слава',    emoji: '👑', play: (ctx,v) => { [[523,0],[659,0.08],[784,0.16],[1047,0.24]].forEach(([freq,del])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=freq;const vol=Math.pow(v/10,2)*0.5+0.02;g.gain.setValueAtTime(0,ctx.currentTime+del);g.gain.linearRampToValueAtTime(vol,ctx.currentTime+del+0.03);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+del+1.0);o.start(ctx.currentTime+del);o.stop(ctx.currentTime+del+1.0);}); }},
+            { id: 'moon',     label: 'Луна',     emoji: '🌙', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.setValueAtTime(440,ctx.currentTime);o.frequency.setValueAtTime(880,ctx.currentTime+0.3);const vol=Math.pow(v/10,2)*0.6+0.02;g.gain.setValueAtTime(vol,ctx.currentTime);g.gain.setValueAtTime(vol*0.8,ctx.currentTime+0.3);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+1.4);o.start(ctx.currentTime);o.stop(ctx.currentTime+1.4);}},
+            { id: 'star',     label: 'Звезда',   emoji: '⭐', play: (ctx,v) => { [1318,1568,2093].forEach((freq,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=freq;const vol=(Math.pow(v/10,2)*0.6+0.02)/(i+1);g.gain.setValueAtTime(vol,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+1.5);o.start(ctx.currentTime);o.stop(ctx.currentTime+1.5);}); }},
+            { id: 'echo',     label: 'Эхо',      emoji: '🪞', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=880;const vol=Math.pow(v/10,2)*0.7+0.02;[0,0.35,0.7].forEach((del,i)=>{g.gain.setValueAtTime(vol*(1-i*0.3),ctx.currentTime+del);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+del+0.3);});g.gain.setValueAtTime(0,ctx.currentTime);g.gain.linearRampToValueAtTime(vol,ctx.currentTime+0.01);o.start(ctx.currentTime);o.stop(ctx.currentTime+1.1);}},
+            { id: 'harp',     label: 'Арфа',     emoji: '🎸', play: (ctx,v) => { [[262,0],[330,0.06],[392,0.12],[523,0.18]].forEach(([freq,del])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=freq;const vol=Math.pow(v/10,2)*0.5+0.02;g.gain.setValueAtTime(0,ctx.currentTime+del);g.gain.linearRampToValueAtTime(vol,ctx.currentTime+del+0.01);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+del+1.2);o.start(ctx.currentTime+del);o.stop(ctx.currentTime+del+1.2);}); }}
+        ];
+
+        function _playClickSoundById(id, vol) {
+            const ctx = getAudioCtx();
+            const resume = ctx.state === 'suspended' ? ctx.resume() : Promise.resolve();
+            resume.then(() => {
+                const snd = CLICK_SOUNDS.find(s => s.id === id) || CLICK_SOUNDS[0];
+                snd.play(ctx, vol);
+            });
+        }
+        function _playGoalSoundById(id, vol) {
+            const ctx = getAudioCtx();
+            const resume = ctx.state === 'suspended' ? ctx.resume() : Promise.resolve();
+            resume.then(() => {
+                const snd = GOAL_SOUNDS.find(s => s.id === id) || GOAL_SOUNDS[0];
+                snd.play(ctx, vol);
+            });
+        }
+
+        // Long-press for click sound picker
+        let _clickSoundPressTimer = null;
+        function startClickSoundPress(e) {
+            e.preventDefault();
+            _clickSoundPressTimer = setTimeout(() => {
+                _clickSoundPressTimer = null;
+                openClickSoundPicker();
+            }, 1000);
+        }
+        function cancelClickSoundPress() {
+            if (_clickSoundPressTimer) {
+                clearTimeout(_clickSoundPressTimer);
+                _clickSoundPressTimer = null;
+                toggleSetting('clickSound');
+            }
+        }
+
+        // Long-press for goal sound picker
+        let _goalSoundPressTimer = null;
+        function startGoalSoundPress(e) {
+            e.preventDefault();
+            _goalSoundPressTimer = setTimeout(() => {
+                _goalSoundPressTimer = null;
+                openGoalSoundPicker();
+            }, 1000);
+        }
+        function cancelGoalSoundPress() {
+            if (_goalSoundPressTimer) {
+                clearTimeout(_goalSoundPressTimer);
+                _goalSoundPressTimer = null;
+                toggleSetting('sound');
+            }
+        }
+
+        function openClickSoundPicker() {
+            const titleEl = document.getElementById('clickSoundPickerTitle');
+            if (titleEl) titleEl.textContent = t('soundPickerTap');
+            const grid = document.getElementById('clickSoundGrid');
+            grid.innerHTML = '';
+            const current = settings.clickSoundType || 'default';
+            CLICK_SOUNDS.forEach(s => {
+                const opt = document.createElement('div');
+                opt.className = 'sound-option' + (current === s.id ? ' active' : '');
+                opt.innerHTML = '<div class="sound-icon-circle">' + s.emoji + '</div><div class="sound-option-label">' + s.label + '</div>';
+                opt.onclick = () => {
+                    settings.clickSoundType = s.id;
+                    settings.clickSound = true;
+                    saveDataDebounced();
+                    updateSettingsUI();
+                    const vol = settings.clickSoundVolume !== undefined ? settings.clickSoundVolume : 5;
+                    _playClickSoundById(s.id, vol);
+                    openClickSoundPicker();
+                };
+                grid.appendChild(opt);
+            });
+            document.getElementById('clickSoundPickerOverlay').classList.add('show');
+        }
+        function closeClickSoundPicker() {
+            document.getElementById('clickSoundPickerOverlay').classList.remove('show');
+        }
+
+        function openGoalSoundPicker() {
+            const titleEl = document.getElementById('goalSoundPickerTitle');
+            if (titleEl) titleEl.textContent = t('soundPickerGoal');
+            const grid = document.getElementById('goalSoundGrid');
+            grid.innerHTML = '';
+            const current = settings.goalSoundType || 'default';
+            GOAL_SOUNDS.forEach(s => {
+                const opt = document.createElement('div');
+                opt.className = 'sound-option' + (current === s.id ? ' active' : '');
+                opt.innerHTML = '<div class="sound-icon-circle">' + s.emoji + '</div><div class="sound-option-label">' + s.label + '</div>';
+                opt.onclick = () => {
+                    settings.goalSoundType = s.id;
+                    settings.sound = true;
+                    saveDataDebounced();
+                    updateSettingsUI();
+                    const vol = settings.goalSoundVolume !== undefined ? settings.goalSoundVolume : 5;
+                    _playGoalSoundById(s.id, vol);
+                    openGoalSoundPicker();
+                };
+                grid.appendChild(opt);
+            });
+            document.getElementById('goalSoundPickerOverlay').classList.add('show');
+        }
+        function closeGoalSoundPicker() {
+            document.getElementById('goalSoundPickerOverlay').classList.remove('show');
+        }
+
         function toggleSetting(key) { settings[key] = !settings[key]; saveDataDebounced(); updateSettingsUI(); }
 
         function onClickSoundSlider(val) {
@@ -13682,6 +13909,8 @@
             // Click sound volume slider
             const csSliderBlock = document.getElementById('clickSoundSliderBlock');
             if (csSliderBlock) csSliderBlock.style.display = settings.clickSound ? '' : 'none';
+            const csHint = document.getElementById('setClickSoundHint');
+            if (csHint) csHint.style.display = settings.clickSound ? '' : 'none';
             const csSlider = document.getElementById('clickSoundSlider');
             if (csSlider) {
                 const vol = settings.clickSoundVolume !== undefined ? settings.clickSoundVolume : 5;
@@ -13695,6 +13924,8 @@
             // Goal sound volume slider
             const gsSliderBlock = document.getElementById('goalSoundSliderBlock');
             if (gsSliderBlock) gsSliderBlock.style.display = settings.sound ? '' : 'none';
+            const gsHint = document.getElementById('setGoalSoundHint');
+            if (gsHint) gsHint.style.display = settings.sound ? '' : 'none';
             const gsSlider = document.getElementById('goalSoundSlider');
             if (gsSlider) {
                 const vol = settings.goalSoundVolume !== undefined ? settings.goalSoundVolume : 5;
@@ -13765,6 +13996,61 @@
         }
 
         function switchTab(tab) {
+            // Покидаем экран спец зикра через навбар — сохраняем прогресс, сбрасываем состояние
+            if (document.getElementById('screen-special-counter').classList.contains('active') && tab !== 'special-counter') {
+                if (currentSpecialId) {
+                    specialProgress[currentSpecialId] = specialCount;
+                    saveDataDebounced();
+                }
+                isSpecialActive = false;
+                _specialGoalShown = false;
+                currentSpecialId = null;
+                specialCount = 0;
+                const _co = document.getElementById('completionOverlay');
+                if (_co) { _co.classList.remove('show'); _co.onclick = closeCompletion; }
+                window._azkarMilestoneActive = false;
+            }
+            // Если нажимаем «Зикр» и уже на экране спец зикра — уходим на основной экран
+            if (tab === 'azkar' && document.getElementById('screen-special-counter').classList.contains('active')) {
+                if (currentSpecialId) {
+                    specialProgress[currentSpecialId] = specialCount;
+                    saveDataDebounced();
+                }
+                isSpecialActive = false;
+                currentSpecialId = null;
+                specialCount = 0;
+                lastActiveSpecialId = null;
+                localStorage.removeItem('azkar_last_special_id');
+                const _co2 = document.getElementById('completionOverlay');
+                if (_co2) { _co2.classList.remove('show'); _co2.onclick = closeCompletion; }
+                window._azkarMilestoneActive = false;
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById('screen-azkar').classList.add('active');
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                document.querySelector('[data-tab="azkar"]').classList.add('active');
+                pipMode = 'main';
+                updatePipCounter();
+                try {
+                    document.dispatchEvent(new CustomEvent('_screenChanged', { detail: 'screen-azkar' }));
+                    if (typeof window._stealthTryActivate === 'function') window._stealthTryActivate('screen-azkar');
+                } catch(e) {}
+                const specialFab = document.getElementById('specialAddFab');
+                if (specialFab) specialFab.style.display = 'none';
+                const pipBtn = document.getElementById('pipCounterBtn');
+                if (pipBtn && settings.pipCounter) pipBtn.classList.add('show');
+                return;
+            }
+            // Если нажимаем «Зикр» и есть сохранённый спец зикр — переходим на него
+            if (tab === 'azkar' && lastActiveSpecialId && !currentSpecialId
+                && !document.getElementById('screen-azkar').classList.contains('active')) {
+                const dhikr = specialDhikrs.find(d => d.id === lastActiveSpecialId);
+                if (dhikr) {
+                    startSpecialDhikrDirect(lastActiveSpecialId);
+                    return;
+                }
+                lastActiveSpecialId = null;
+                localStorage.removeItem('azkar_last_special_id');
+            }
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('screen-' + tab).classList.add('active');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -13793,8 +14079,6 @@
             if (checklistFab) checklistFab.style.display = (tab === 'checklist') ? '' : 'none';
             // Switch pip mode: azkar tab → main, any other tab doesn't change pip mode
             if (tab === 'azkar') {
-                // Уходим с экрана спец зикра через таб-навигацию — сохраняем прогресс
-                // и сбрасываем состояние, чтобы не было фантомного completionOverlay.
                 if (currentSpecialId) {
                     specialProgress[currentSpecialId] = specialCount;
                     saveDataDebounced();
