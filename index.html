@@ -5175,6 +5175,17 @@
     </div>
 
     <!-- Модалка: имя списка (создать / переименовать) -->
+    <div class="overlay" id="googleSignOutOverlay" onclick="if(event.target===this)cancelGoogleSignOut()">
+        <div class="overlay-card">
+            <div class="overlay-title" id="googleSignOutTitle">Sign out of your Google account?</div>
+            <div class="overlay-sub" id="googleSignOutSub">Your local guest data will stay on this device</div>
+            <div class="overlay-btns">
+                <button class="overlay-btn-cancel" id="googleSignOutNoBtn" onclick="cancelGoogleSignOut()">No</button>
+                <button class="overlay-btn-confirm" id="googleSignOutYesBtn" onclick="confirmGoogleSignOut()">Yes</button>
+            </div>
+        </div>
+    </div>
+
     <div class="cl-modal-overlay" id="listNameOverlay" onclick="if(event.target===this)closeListNameModal()">
         <div class="cl-modal">
             <div class="cl-modal-title-row">
@@ -14555,6 +14566,27 @@
             return dict[currentLang] || dict.en;
         }
 
+        function signOutConfirmSubText() {
+            const dict = {
+                ru: '\u041b\u043e\u043a\u0430\u043b\u044c\u043d\u044b\u0435 \u0434\u0430\u043d\u043d\u044b\u0435 \u0431\u0435\u0437 \u0432\u0445\u043e\u0434\u0430 \u043e\u0441\u0442\u0430\u043d\u0443\u0442\u0441\u044f \u043d\u0430 \u044d\u0442\u043e\u043c \u0443\u0441\u0442\u0440\u043e\u0439\u0441\u0442\u0432\u0435',
+                en: 'Your local guest data will stay on this device',
+                uz: 'Kirishsiz mahalliy ma\u2019lumotlar shu qurilmada qoladi',
+                de: 'Deine lokalen Gastdaten bleiben auf diesem Ger\u00e4t',
+                es: 'Tus datos locales sin cuenta se quedar\u00e1n en este dispositivo',
+                fr: 'Vos donn\u00e9es locales invit\u00e9 resteront sur cet appareil',
+                it: 'I dati locali senza account resteranno su questo dispositivo',
+                ja: '\u30ed\u30fc\u30ab\u30eb\u306e\u30b2\u30b9\u30c8\u30c7\u30fc\u30bf\u306f\u3053\u306e\u7aef\u672b\u306b\u6b8b\u308a\u307e\u3059',
+                ko: '\ub85c\uceec \uac8c\uc2a4\ud2b8 \ub370\uc774\ud130\ub294 \uc774 \uae30\uae30\uc5d0 \ub0a8\uc544 \uc788\uc2b5\ub2c8\ub2e4',
+                zh: '\u672c\u5730\u8bbf\u5ba2\u6570\u636e\u4f1a\u4fdd\u7559\u5728\u6b64\u8bbe\u5907\u4e0a',
+                tr: 'Yerel misafir verilerin bu cihazda kalacak',
+                hi: '\u092c\u093f\u0928\u093e \u0932\u0949\u0917\u093f\u0928 \u0915\u093e \u0932\u094b\u0915\u0932 \u0921\u0947\u091f\u093e \u0907\u0938 \u0921\u093f\u0935\u093e\u0907\u0938 \u092a\u0930 \u0930\u0939\u0947\u0917\u093e',
+                ms: 'Data tetamu setempat akan kekal pada peranti ini',
+                id: 'Data tamu lokal akan tetap ada di perangkat ini',
+                th: '\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e17\u0e49\u0e2d\u0e07\u0e16\u0e34\u0e48\u0e19\u0e41\u0e1a\u0e1a\u0e1c\u0e39\u0e49\u0e40\u0e22\u0e35\u0e48\u0e22\u0e21\u0e0a\u0e21\u0e08\u0e30\u0e22\u0e31\u0e07\u0e2d\u0e22\u0e39\u0e48\u0e1a\u0e19\u0e2d\u0e38\u0e1b\u0e01\u0e23\u0e13\u0e4c\u0e19\u0e35\u0e49'
+            };
+            return dict[currentLang] || dict.en;
+        }
+
         function loadGoogleAccount() {
             try {
                 const raw = localStorage.getItem(GOOGLE_ACCOUNT_STORAGE_KEY);
@@ -14847,8 +14879,8 @@
 
             const accountSectionTitle = document.getElementById('setSecAccount');
             if (accountSectionTitle) {
-                accountSectionTitle.hidden = !signedIn;
-                accountSectionTitle.style.display = signedIn ? '' : 'none';
+                accountSectionTitle.hidden = true;
+                accountSectionTitle.style.display = 'none';
             }
 
             const iconPickerBtn = document.getElementById('accountIconPickerBtn');
@@ -14870,8 +14902,8 @@
             const signOutBtn = document.getElementById('googleSignOutBtn');
             const signInBtn = document.getElementById('googleSignInBtn');
             if (accountHead) {
-                accountHead.hidden = !signedIn;
-                accountHead.style.display = signedIn ? '' : 'none';
+                accountHead.hidden = true;
+                accountHead.style.display = 'none';
             }
             if (profileBox) {
                 profileBox.hidden = !signedIn;
@@ -14932,9 +14964,26 @@
             }
         }
 
-        async function signOutGoogleAccount() {
-            const L = googleAccountText();
-            if (!confirm(signOutConfirmText())) return;
+        function signOutGoogleAccount() {
+            const overlay = document.getElementById('googleSignOutOverlay');
+            const title = document.getElementById('googleSignOutTitle');
+            const sub = document.getElementById('googleSignOutSub');
+            const noBtn = document.getElementById('googleSignOutNoBtn');
+            const yesBtn = document.getElementById('googleSignOutYesBtn');
+            if (title) title.textContent = signOutConfirmText();
+            if (sub) sub.textContent = signOutConfirmSubText();
+            if (noBtn) noBtn.textContent = t('btnNo') || 'No';
+            if (yesBtn) yesBtn.textContent = t('btnYes') || 'Yes';
+            if (overlay) overlay.classList.add('show');
+        }
+
+        function cancelGoogleSignOut() {
+            const overlay = document.getElementById('googleSignOutOverlay');
+            if (overlay) overlay.classList.remove('show');
+        }
+
+        async function confirmGoogleSignOut() {
+            cancelGoogleSignOut();
             try {
                 flushSave();
                 if (AppStorage.remote && typeof AppStorage.remote.push === 'function') {
