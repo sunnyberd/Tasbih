@@ -9821,6 +9821,7 @@
         let _snapRingToStart = false;
         let specialCount = 0, specialGoal = 100, currentSpecialId = null, isSpecialActive = false;
         let completedSpecial = {};
+        let openSpecialFolderIdx = null;
         let _duaDragSrcId = null; // tracks dua id during drag-into-folder
         let specialProgress = {};
         // Накопленный (lifetime) счётчик по каждому зикру — НЕ сбрасывается
@@ -10452,7 +10453,8 @@
                 const folderDhikrs = folder.dhikrIds.map(id => specialDhikrs.find(d => d.id === id)).filter(Boolean);
                 const allDone = folderDhikrs.length > 0 && folderDhikrs.every(d => completedSpecial[d.id] === _todaySpecial);
                 const folderDiv = document.createElement('div');
-                folderDiv.className = 'cl-folder dua-folder acc-folder' + (allDone ? ' special-folder-done' : '');
+                const isOpen = openSpecialFolderIdx === f;
+                folderDiv.className = 'cl-folder dua-folder acc-folder' + (allDone ? ' special-folder-done' : '') + (isOpen ? ' acc-open' : '');
                 folderDiv.id = 'specialFolder' + f;
                 folderDiv.innerHTML = `
                     <div class="cl-folder-header" onclick="toggleSpecialFolder(${f})">
@@ -10514,6 +10516,9 @@
             // If was closed — open it
             if (!isOpen) {
                 folderDiv.classList.add('acc-open');
+                openSpecialFolderIdx = idx;
+            } else {
+                openSpecialFolderIdx = null;
             }
         }
 
@@ -10690,11 +10695,16 @@
             if (currentSpecialId) {
                 const today = _islamicDayKey();
                 completedSpecial[currentSpecialId] = today;
+                
+                const folderIdx = specialFolders.findIndex(folder => folder.dhikrIds.includes(currentSpecialId));
+                if (folderIdx !== -1) {
+                    openSpecialFolderIdx = folderIdx;
+                }
+
                 saveDataDebounced();
                 markDirty('stats');
                 renderSpecialList(); _dirty.special = false;
                 renderStats(); _dirty.stats = false;
-                
             }
             isSpecialActive = false;
             _specialGoalShown = false;
@@ -10735,11 +10745,16 @@
             if (currentSpecialId) {
                 const today = _islamicDayKey();
                 completedSpecial[currentSpecialId] = today;
+                
+                const folderIdx = specialFolders.findIndex(folder => folder.dhikrIds.includes(currentSpecialId));
+                if (folderIdx !== -1) {
+                    openSpecialFolderIdx = folderIdx;
+                }
+
                 saveDataDebounced();
                 markDirty('stats');
                 renderSpecialList(); _dirty.special = false;
                 renderStats(); _dirty.stats = false;
-                
             }
             isSpecialActive = false;
             _specialGoalShown = false;
@@ -10748,10 +10763,10 @@
             currentSpecialId = null;
             lastActiveSpecialId = null;
             localStorage.removeItem('azkar_last_special_id');
-            // Go to next incomplete dhikr if available
+            // Go to next incomplete dhikr if available (only if autoAdvance is enabled)
             const today = _islamicDayKey();
             let nextDhikr = null;
-            if (curIdx >= 0) {
+            if (settings.autoAdvance && curIdx >= 0) {
                 for (let i = curIdx + 1; i < specialDhikrs.length; i++) {
                     if (completedSpecial[specialDhikrs[i].id] !== today) {
                         nextDhikr = specialDhikrs[i];
