@@ -10587,7 +10587,7 @@
             _swipeSpecialId = id;
             localStorage.setItem('azkar_last_special_id', id);
             specialCount = specialProgress[id] || 0;
-            isSpecialActive = false;
+            isSpecialActive = true;
             _specialGoalShown = (specialCount >= (specialDhikrs.find(d => d.id === id)?.goal || 100));
             const dhikr = specialDhikrs.find(d => d.id === id);
             specialGoal = dhikr ? (dhikr.goal || 100) : 100;
@@ -10681,7 +10681,7 @@
                     return;
                 }
                 const co = document.getElementById('completionOverlay');
-                if (co) co.onclick = () => { closeCompletion(); _specialGoalShown = false; };
+                if (co) co.onclick = onSpecialAchievementTap;
                 document.getElementById('completionOverlay').classList.add('show');
             }
         }
@@ -10763,6 +10763,7 @@
                 // Start next dhikr directly without any countdown
                 currentSpecialId = nextDhikr.id;
                 lastActiveSpecialId = nextDhikr.id;
+                isSpecialActive = true;
                 localStorage.setItem('azkar_last_special_id', nextDhikr.id);
                 specialCount = specialProgress[nextDhikr.id] || 0;
                 specialGoal = nextDhikr.goal || 100;
@@ -10791,6 +10792,8 @@
                 if (specialFab) specialFab.style.display = '';
                 pipMode = 'main';
                 updatePipCounter();
+                const co = document.getElementById('completionOverlay');
+                if (co) co.onclick = closeCompletion;
                 try { if (typeof window._stealthDeactivate === 'function') window._stealthDeactivate(); } catch(e) {}
             }
         }
@@ -11073,7 +11076,7 @@
             _swipeSpecialId = id;
             localStorage.setItem('azkar_last_special_id', id);
             specialCount = specialProgress[id] || 0;
-            isSpecialActive = false;
+            isSpecialActive = true;
             _specialGoalShown = (specialCount >= (specialDhikrs.find(d => d.id === id)?.goal || 100));
             const dhikr = specialDhikrs.find(d => d.id === id);
             specialGoal = dhikr ? dhikr.goal : 100;
