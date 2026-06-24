@@ -14322,6 +14322,7 @@
         let firebaseSyncStarting = false;
         let firebaseRemoteImporting = false;
         let firebaseAuthListenerReady = false;
+        let firebaseSigningOut = false;
 
         function googleAccountText() {
             const dict = {
@@ -14724,8 +14725,10 @@
                     firebaseAuthListenerReady = true;
                     firebaseAuthApi.onAuthStateChanged(firebaseAuth, function(user) {
                         if (user) {
+                            if (firebaseSigningOut) return;
                             applyFirebaseUser(user, { sync: true });
                         } else {
+                            firebaseSigningOut = false;
                             firebaseCurrentUid = null;
                             if (typeof AppStorage !== 'undefined') AppStorage.remote = null;
                             googleAccount = null;
@@ -14936,6 +14939,7 @@
 
         async function signInWithGoogle() {
             const L = googleAccountText();
+            firebaseSigningOut = false;
             saveGuestLocalSnapshot();
             googleSignInBusy = true;
             updateGoogleAccountUI();
@@ -14984,35 +14988,40 @@
 
         async function confirmGoogleSignOut() {
             cancelGoogleSignOut();
+            firebaseSigningOut = true;
+            const authApi = firebaseAuthApi;
+            const auth = firebaseAuth;
+            const remote = (typeof AppStorage !== 'undefined') ? AppStorage.remote : null;
+
             try {
                 flushSave();
-                if (AppStorage.remote && typeof AppStorage.remote.push === 'function') {
-                    await AppStorage.remote.push(AppStorage.exportAll());
+                if (remote && typeof remote.push === 'function') {
+                    Promise.resolve(remote.push(AppStorage.exportAll())).catch(function(e) {
+                        console.warn('[Firebase sync] Final push before sign-out failed:', e);
+                    });
                 }
             } catch(syncError) {}
+
+            googleAccount = null;
+            try { localStorage.removeItem(GOOGLE_ACCOUNT_STORAGE_KEY); } catch(e) {}
+            if (typeof AppStorage !== 'undefined') AppStorage.remote = null;
+            firebaseCurrentUid = null;
+            restoreGuestLocalSnapshot();
+            updateGoogleAccountUI();
+
             try {
-                if (firebaseAuthApi && firebaseAuth) {
-                    await firebaseAuthApi.signOut(firebaseAuth);
+                if (authApi && auth) {
+                    await Promise.race([
+                        authApi.signOut(auth),
+                        new Promise(function(resolve) { setTimeout(resolve, 2500); })
+                    ]);
+                    firebaseSigningOut = false;
                 } else {
-                    googleAccount = null;
-                    try { localStorage.removeItem(GOOGLE_ACCOUNT_STORAGE_KEY); } catch(e) {}
-                    if (typeof AppStorage !== 'undefined') AppStorage.remote = null;
-                    firebaseCurrentUid = null;
-                    updateGoogleAccountUI();
+                    firebaseSigningOut = false;
                 }
-                if (typeof AppStorage !== 'undefined') AppStorage.remote = null;
-                firebaseCurrentUid = null;
-                googleAccount = null;
-                try { localStorage.removeItem(GOOGLE_ACCOUNT_STORAGE_KEY); } catch(e) {}
-                restoreGuestLocalSnapshot();
-                updateGoogleAccountUI();
             } catch(e) {
-                googleAccount = null;
-                try { localStorage.removeItem(GOOGLE_ACCOUNT_STORAGE_KEY); } catch(err) {}
-                if (typeof AppStorage !== 'undefined') AppStorage.remote = null;
-                firebaseCurrentUid = null;
-                restoreGuestLocalSnapshot();
-                updateGoogleAccountUI();
+                firebaseSigningOut = false;
+                console.warn('[Firebase auth] Sign-out failed:', e);
             }
         }
 
