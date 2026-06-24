@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru" data-theme="dark">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover, maximum-scale=1.0">
@@ -9069,7 +9069,7 @@
             localStorage.setItem('azkar_special_deleted_defaults', JSON.stringify([...set]));
         }
 
-        let currentLang = 'ru';
+        let currentLang = 'en';
         let isSpecialEditMode = false;
 
         // ===== SPECIAL: CRUD helpers =====
@@ -9493,7 +9493,7 @@
             });
         }
 
-        function t(key) { return i18n[currentLang]?.[key] || i18n['ru'][key] || key; }
+        function t(key) { return i18n[currentLang]?.[key] || i18n['en']?.[key] || i18n['ru']?.[key] || key; }
 
         function applySettingsSectionLabels(lang) {
             const S = {
@@ -9802,7 +9802,7 @@
         // ==================== STATE ====================
         let count = 0, goal = 33, isUnlimited = false;
         const UNLIMITED_GOAL = 999999999;
-        let settings = { autosave: true, theme: 'dark', language: 'ru', sound: true, clickSound: true, clickSoundVolume: 10, goalSoundVolume: 10, vibration: false, vibrationLevel: 3, timerEnabled: false, autoExport: false };
+        let settings = { autosave: true, theme: 'dark', language: 'en', sound: true, clickSound: true, clickSoundVolume: 10, goalSoundVolume: 10, vibration: false, vibrationLevel: 3, timerEnabled: false, autoExport: false };
         let duas = [], deleteId = null;
         const CIRCUMFERENCE = 848;
         let lastIncrementTime = 0;
@@ -11139,6 +11139,8 @@
             isSpecialActive = false;
             currentSpecialId = null;
             specialCount = 0;
+            lastActiveSpecialId = null;
+            localStorage.removeItem('azkar_last_special_id');
             // Скрываем completionOverlay если он был показан для спец зикра
             const co = document.getElementById('completionOverlay');
             if (co) { co.classList.remove('show'); co.onclick = closeCompletion; }
@@ -11310,8 +11312,8 @@
                       geoBtn:'อนุญาตตำแหน่ง' }
             };
             function _l() {
-                const lang = (typeof currentLang !== 'undefined' ? currentLang : 'ru');
-                return QIBLA_I18N[lang] || QIBLA_I18N.ru;
+                const lang = (typeof currentLang !== 'undefined' ? currentLang : 'en');
+                return QIBLA_I18N[lang] || QIBLA_I18N.en || QIBLA_I18N.ru;
             }
             function _isIOSDevice() {
                 return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
@@ -11955,6 +11957,13 @@
             localStorage.setItem('azkar_goal', 100);
             document.querySelectorAll('.goal-chip').forEach(c => c.classList.remove('active'));
             document.querySelector('[data-goal="100"]').classList.add('active');
+            
+            // Сброс своей цели на 1000 по умолчанию
+            customGoal = 1000;
+            localStorage.setItem('azkar_custom_goal', 1000);
+            const _cgNum = document.getElementById('customGoalNum');
+            if (_cgNum) _cgNum.innerText = formatGoalShort(1000);
+
             updateDisplay(); saveDataDebounced();
             // Сброс статистики
             localStorage.removeItem('azkar_stats_v2');
@@ -13540,7 +13549,7 @@
                         try {
                             const ss = localStorage.getItem('azkar_settings');
                             if (ss) Object.assign(settings, JSON.parse(ss));
-                            currentLang = settings.language || 'ru';
+                            currentLang = settings.language || 'en';
                             count = parseInt(localStorage.getItem('azkar_count') || '0');
                             const gg = localStorage.getItem('azkar_goal');
                             if (gg) { const pg = parseInt(gg); isUnlimited = (pg === UNLIMITED_GOAL); goal = isUnlimited ? 33 : pg; }
@@ -13579,7 +13588,7 @@
                     // Restore settings
                     if (data.settings) {
                         Object.assign(settings, data.settings);
-                        currentLang = settings.language || 'ru';
+                        currentLang = settings.language || 'en';
                     }
                     // Restore counter
                     if (typeof data.count === 'number') count = data.count;
@@ -14199,14 +14208,14 @@
         // и старый плоский {translation:"..."} — на всякий случай.
         function _hadithText(h) {
             if (!h) return '';
-            const lang = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : 'ru';
+            const lang = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : 'en';
             if (h.text && typeof h.text === 'object') return h.text[lang] || h.text.en || h.text.ru || '';
             return h.translation || '';
         }
         // Источник хадиса на текущем языке. Поддерживает {source:{ru,...}} и строку.
         function _hadithSource(h) {
             if (!h) return '';
-            const lang = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : 'ru';
+            const lang = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : 'en';
             if (h.source && typeof h.source === 'object') return h.source[lang] || h.source.en || h.source.ru || '';
             return h.source || '';
         }
@@ -14358,7 +14367,7 @@
             duas = JSON.parse(localStorage.getItem('azkar_duas') || '[]');
             loadDuaFolders();
             loadSpecialFolders();
-            currentLang = settings.language || 'ru';
+            currentLang = settings.language || 'en';
             // Блокируем CSS-переходы на время первой загрузки — иначе тема анимируется из initial-value
             document.documentElement.classList.add('no-transition');
             applyTheme(settings.theme || 'dark');
@@ -15006,8 +15015,8 @@
         function clGetName(obj) {
             if (!obj) return '';
             if (obj.names && typeof obj.names === 'object') {
-                const lang = (typeof currentLang !== 'undefined' ? currentLang : 'ru');
-                return obj.names[lang] || obj.names.ru || obj.names.en || obj.name || '';
+                const lang = (typeof currentLang !== 'undefined' ? currentLang : 'en');
+                return obj.names[lang] || obj.names.en || obj.names.ru || obj.name || '';
             }
             return obj.name || '';
         }
@@ -17470,8 +17479,8 @@
             PRAYER_I18N.id = Object.assign({}, PRAYER_I18N.en, { fajr: "Subuh", sunrise: "Terbit", dhuhr: "Zuhur", asr: "Asar", maghrib: "Magrib", isha: "Isya", title: "Waktu salat", today: "Hari ini", next: "Berikutnya", passed: "lewat", enableTitle: "Tampilkan waktu salat", enableText: "Izinkan akses lokasi untuk menghitung waktu tepat bagi kotamu.", enableBtn: "Izinkan lokasi", perm_title: "Izinkan lokasi", perm_text: "Lokasi hanya digunakan untuk dua fitur. Tidak pernah keluar dari perangkatmu.", perm_b1: "Waktu tepat untuk 5 salat harian", perm_b2: "Arah kiblat tepat ke Ka'bah", perm_allow: "Izinkan", perm_skip: "Nanti saja", tomorrowFajr: "Besok" });
             PRAYER_I18N.th = Object.assign({}, PRAYER_I18N.en, { fajr: "ฟัจร์", sunrise: "พระอาทิตย์ขึ้น", dhuhr: "ซุฮร์", asr: "อัศร์", maghrib: "มัฆริบ", isha: "อิชาอ์", title: "เวลาละหมาด", today: "วันนี้", next: "ถัดไป", passed: "ผ่านไปแล้ว", enableTitle: "แสดงเวลาละหมาด", enableText: "อนุญาตการเข้าถึงตำแหน่งเพื่อคำนวณเวลาที่แม่นยำสำหรับเมืองของคุณ", enableBtn: "อนุญาตตำแหน่ง", perm_title: "อนุญาตตำแหน่ง", perm_text: "ตำแหน่งใช้เพียงสองฟีเจอร์เท่านั้น และไม่เคยออกจากอุปกรณ์ของคุณ", perm_b1: "เวลาที่แม่นยำสำหรับละหมาด 5 เวลา", perm_b2: "ทิศกิบลัตที่แม่นยำสู่กะอ์บะฮ์", perm_allow: "อนุญาต", perm_skip: "ไว้ทีหลัง", tomorrowFajr: "พรุ่งนี้" });
             function L() {
-                const lang = (typeof currentLang !== 'undefined' ? currentLang : 'ru');
-                return PRAYER_I18N[lang] || PRAYER_I18N.ru;
+                const lang = (typeof currentLang !== 'undefined' ? currentLang : 'en');
+                return PRAYER_I18N[lang] || PRAYER_I18N.en || PRAYER_I18N.ru;
             }
 
             // ===== CALCULATION METHOD AUTO-DETECTION BY GPS =====
@@ -17506,8 +17515,8 @@
 
             // Localized strings for the method picker / settings entry.
             function ML() {
-                const lang = (typeof currentLang !== 'undefined' ? currentLang : 'ru');
-                return METHOD_I18N[lang] || METHOD_I18N.ru;
+                const lang = (typeof currentLang !== 'undefined' ? currentLang : 'en');
+                return METHOD_I18N[lang] || METHOD_I18N.en || METHOD_I18N.ru;
             }
 
             // The tappable row shown at the bottom of the prayer modal. Opens the
@@ -17685,7 +17694,7 @@
                 }
 
                 // Localized weekday + date for subtitle
-                const lang = (typeof currentLang !== 'undefined' ? currentLang : 'ru');
+                const lang = (typeof currentLang !== 'undefined' ? currentLang : 'en');
                 const dateStr = now.toLocaleDateString(lang === 'uz' ? 'uz-UZ' : (lang === 'zh' ? 'zh-CN' : lang),
                     { weekday: 'long', day: 'numeric', month: 'long' });
                 if (sub) sub.textContent = l.today + ' • ' + dateStr;
@@ -18622,7 +18631,7 @@
                         try {
                             const ss = localStorage.getItem('azkar_settings');
                             if (ss) Object.assign(settings, JSON.parse(ss));
-                            currentLang = settings.language || 'ru';
+                            currentLang = settings.language || 'en';
                             count = parseInt(localStorage.getItem('azkar_count') || '0');
                             const gg = localStorage.getItem('azkar_goal');
                             if (gg) { const pg = parseInt(gg); isUnlimited = (pg === UNLIMITED_GOAL); goal = isUnlimited ? 33 : pg; }
@@ -18755,7 +18764,7 @@
 
         // ===== BACKUP MODAL =====
         function openBackupModal() {
-            const L = i18n[currentLang] || i18n['ru'];
+            const L = i18n[currentLang] || i18n['en'] || i18n['ru'];
             document.getElementById('backupModalTitle').textContent = L.backupTitle || 'Резервные копии';
             document.getElementById('backupModalOverlay').classList.add('show');
             _renderBackupList();
@@ -18791,7 +18800,7 @@
             };
         };
         function _renderBackupList() {
-            const L = i18n[currentLang] || i18n['ru'];
+            const L = i18n[currentLang] || i18n['en'] || i18n['ru'];
             window.getAllBackups(function(list) {
                 const container = document.getElementById('backupList');
                 container.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:0.9rem;padding:20px 0;" id="backupEmptyMsg"' + (list.length ? ' hidden' : '') + '>' + (L.backupEmpty || 'Нет сохранённых копий') + '</div>';
@@ -18830,7 +18839,7 @@
         let _deleteBackupKey = null;
         function promptDeleteBackup(key) {
             _deleteBackupKey = key;
-            const L = i18n[currentLang] || i18n['ru'];
+            const L = i18n[currentLang] || i18n['en'] || i18n['ru'];
             const tt = document.getElementById('deleteBackupTitle');
             const ss = document.getElementById('deleteBackupSub');
             if (tt) tt.textContent = L.backupDelete || 'Удалить эту копию?';
@@ -18853,7 +18862,7 @@
         let _restoreBackupItem = null;
         function promptRestoreBackup(item) {
             _restoreBackupItem = item;
-            const L = i18n[currentLang] || i18n['ru'];
+            const L = i18n[currentLang] || i18n['en'] || i18n['ru'];
             const tt = document.getElementById('restoreBackupTitle');
             const ss = document.getElementById('restoreBackupSub');
             if (tt) tt.textContent = L.backupRestoreTitle || 'Восстановить эту копию?';
