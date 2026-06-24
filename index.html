@@ -1794,6 +1794,220 @@
         .set-row.set-row-col .set-row-main { display: flex; align-items: center; gap: 13px; cursor: pointer; }
         .set-row.set-row-col .set-row-main .set-row-lbl { display: flex; flex-direction: column; }
 
+        .account-row {
+            gap: 12px;
+            padding: 14px 15px 15px;
+            overflow: hidden;
+            isolation: isolate;
+            background: var(--surface);
+        }
+        .account-row::after {
+            content: "";
+            position: absolute;
+            left: 15px;
+            right: 15px;
+            bottom: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(66,133,244,0.45), rgba(52,168,83,0.4), rgba(251,188,5,0.38), rgba(234,67,53,0.42), transparent);
+            opacity: 0.85;
+            pointer-events: none;
+        }
+        .account-head {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .account-title-wrap {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 13px;
+        }
+        .google-mark,
+        .google-glyph {
+            width: 36px;
+            height: 36px;
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: color-mix(in srgb, var(--surface-light) 88%, #ffffff 12%);
+            border: 1px solid var(--border);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 6px 14px rgba(0,0,0,0.16);
+        }
+        .google-mark svg,
+        .google-glyph svg {
+            width: 20px;
+            height: 20px;
+            display: block;
+        }
+        .account-icon-picker {
+            appearance: none;
+            -webkit-appearance: none;
+            padding: 0;
+            cursor: pointer;
+            transition: transform 0.12s, border-color 0.14s, box-shadow 0.14s;
+            position: relative;
+            overflow: hidden;
+            font: inherit;
+            color: inherit;
+        }
+        .account-icon-picker:active {
+            transform: scale(0.94);
+        }
+        .account-icon-picker:hover {
+            border-color: var(--border-hover);
+        }
+        .account-icon-picker:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 3px;
+        }
+        .account-custom-icon {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: inherit;
+        }
+        .account-custom-icon[hidden] {
+            display: none !important;
+        }
+        .account-status {
+            flex: 0 0 auto;
+            padding: 6px 9px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: var(--surface-light);
+            color: var(--text-dim);
+            font-size: 0.65rem;
+            font-weight: 700;
+            white-space: normal;
+            text-align: center;
+            line-height: 1.15;
+            max-width: 42%;
+            overflow-wrap: anywhere;
+        }
+        .account-status.connected {
+            color: #22c55e;
+            border-color: rgba(34,197,94,0.35);
+            background: rgba(34,197,94,0.10);
+        }
+        .account-profile {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            width: 100%;
+            padding: 10px 11px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: color-mix(in srgb, var(--surface-light) 82%, transparent);
+        }
+        .account-profile[hidden],
+        .account-ghost-btn[hidden] {
+            display: none !important;
+        }
+        .account-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid var(--border-hover);
+            background: var(--surface-light);
+        }
+        .account-profile-copy {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .account-profile-copy strong,
+        .account-profile-copy span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .account-profile-copy strong {
+            color: var(--text);
+            font-size: 0.88rem;
+            font-weight: 700;
+        }
+        .account-profile-copy span {
+            color: var(--text-dim);
+            font-size: 0.72rem;
+        }
+        .account-actions {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            align-items: stretch;
+        }
+        .google-signin-btn,
+        .account-ghost-btn {
+            min-height: 46px;
+            border-radius: 15px;
+            border: 1px solid var(--border);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 0.82rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            transition: transform 0.12s, border-color 0.14s, background 0.14s, opacity 0.14s, box-shadow 0.14s;
+        }
+        .google-signin-btn {
+            flex: 1;
+            background: color-mix(in srgb, var(--surface-light) 92%, #ffffff 8%);
+            color: var(--text);
+            border-color: var(--border);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 18px rgba(0,0,0,0.13);
+            padding: 0 13px;
+            min-width: 0;
+        }
+        .google-signin-btn:hover {
+            border-color: var(--border-hover);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 22px rgba(0,0,0,0.16);
+        }
+        .google-signin-btn .google-glyph {
+            width: 28px;
+            height: 28px;
+            border-radius: 10px;
+            background: #ffffff;
+            border-color: rgba(0,0,0,0.08);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.14);
+        }
+        .google-signin-btn span:last-child {
+            min-width: 0;
+            overflow-wrap: anywhere;
+            white-space: normal;
+            line-height: 1.22;
+            text-align: center;
+        }
+        .google-signin-btn:disabled {
+            opacity: 0.72;
+            cursor: wait;
+        }
+        .account-ghost-btn {
+            padding: 0 14px;
+            background: var(--surface-light);
+            color: var(--text-muted);
+        }
+        .google-signin-btn:active,
+        .account-ghost-btn:active {
+            transform: scale(0.97);
+        }
+        @media (max-width: 430px) {
+            .account-head { flex-wrap: wrap; }
+            .account-status { margin-left: 48px; }
+            .account-actions { flex-direction: column; }
+            .account-ghost-btn { width: 100%; }
+        }
+
         /* ===== LANGUAGE DROPDOWN ===== */
         .lang-select-wrap {
             position: relative;
@@ -2827,10 +3041,13 @@
             color: var(--gold); z-index: 5000;
             transition: transform 0.18s cubic-bezier(0.2, 0.9, 0.4, 1), opacity 0.18s ease;
             opacity: 0;
-            white-space: nowrap; box-shadow: var(--shadow-md);
+            white-space: normal; box-shadow: var(--shadow-md);
             font-size: clamp(0.78rem, 3vw, 0.85rem);
+            line-height: 1.35;
             will-change: transform, opacity;
-            max-width: min(90vw, 320px);
+            box-sizing: border-box;
+            max-width: min(calc(100vw - 28px), 360px);
+            overflow-wrap: anywhere;
             text-align: center;
         }
         .toast.show { transform: translateX(-50%) translateY(0) translateZ(0); opacity: 1; }
@@ -3024,7 +3241,7 @@
         }
         .sound-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(5, minmax(0, 1fr));
             gap: 8px 6px;
         }
         .sound-option {
@@ -3050,10 +3267,13 @@
             box-shadow: 0 0 0 3px var(--accent-glow);
         }
         .sound-option-label {
-            font-size: 0.52rem; font-weight: 500;
+            font-size: 0.58rem; font-weight: 600;
             color: var(--text-dim);
             text-align: center; line-height: 1.2;
-            max-width: 56px;
+            max-width: 72px;
+            min-height: 1.4em;
+            overflow-wrap: anywhere;
+            hyphens: auto;
         }
         .sound-option.active .sound-option-label { color: var(--gold); }
         .sound-hold-hint {
@@ -5159,6 +5379,54 @@
             <h2 id="titleSettings">Настройки</h2>
         </div>
         <div class="settings-list">
+            <!-- ===== Account ===== -->
+            <div class="set-section">
+              <div class="set-section-h" id="setSecAccount">Account</div>
+              <div class="set-group">
+            <div class="set-row set-row-col account-row" style="cursor:default;">
+                <div class="account-head">
+                    <div class="account-title-wrap">
+                        <button class="google-mark account-icon-picker" id="accountIconPickerBtn" type="button" onclick="openAccountIconPicker(event)" aria-label="Change account icon">
+                            <svg id="accountDefaultIcon" viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06L5.84 9.9C6.71 7.31 9.14 5.38 12 5.38z"/>
+                            </svg>
+                            <img class="account-custom-icon" id="accountCustomIcon" alt="" hidden>
+                        </button>
+                        <input type="file" id="accountIconInput" accept="image/*" hidden onchange="setAccountIconFromFile(event)">
+                        <div class="set-row-lbl">
+                            <b id="labelGoogleAccount">Google account</b>
+                        </div>
+                    </div>
+                    <span class="account-status" id="googleAccountStatus">Not connected</span>
+                </div>
+                <div class="account-profile" id="googleAccountProfile" hidden>
+                    <img class="account-avatar" id="googleAccountAvatar" alt="" referrerpolicy="no-referrer">
+                    <div class="account-profile-copy">
+                        <strong id="googleAccountName">Google user</strong>
+                        <span id="googleAccountEmail">user@gmail.com</span>
+                    </div>
+                </div>
+                <div class="account-actions">
+                    <button class="google-signin-btn" id="googleSignInBtn" type="button" onclick="signInWithGoogle()">
+                        <span class="google-glyph" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" focusable="false">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06L5.84 9.9C6.71 7.31 9.14 5.38 12 5.38z"/>
+                            </svg>
+                        </span>
+                        <span id="googleSignInText">Sign in with Google</span>
+                    </button>
+                    <button class="account-ghost-btn" id="googleSignOutBtn" type="button" onclick="signOutGoogleAccount()" hidden>Sign out</button>
+                </div>
+            </div>
+              </div>
+            </div>
+
             <!-- ===== Внешний вид ===== -->
             <div class="set-section">
               <div class="set-section-h" id="setSecAppearance">Внешний вид</div>
@@ -6199,7 +6467,7 @@
                 chartTitle: "Fortschritt", timeChartTitle: "Lieblingszeit für Dhikr",
                 titleSettings: "Einstellungen",
                 labelLang: "Sprache", labelTheme: "Design", labelSound: "Sound bei Ziel", labelClickSound: "Sound beim Tippen",
-                soundHint: "Halten zum Auswählen",
+                soundHint: "Halten, um einen Ton auszuwählen",
                 soundPickerTap: "Tipp-Sound", soundPickerGoal: "Ziel-Sound",
                 btnClearStats: "Alles löschen",
                 clearStatsTitle: "Alles löschen?", clearStatsSub: "Zähler und alle Dhikr-Daten werden dauerhaft gelöscht",
@@ -6326,7 +6594,7 @@
                 chartTitle: "Progreso", timeChartTitle: "Hora favorita para el dhikr",
                 titleSettings: "Ajustes",
                 labelLang: "Idioma", labelTheme: "Tema", labelSound: "Sonido al alcanzar meta", labelClickSound: "Sonido al pulsar",
-                soundHint: "Mantener para seleccionar",
+                soundHint: "Mantén pulsado para elegir un sonido",
                 soundPickerTap: "Sonido al pulsar", soundPickerGoal: "Sonido al alcanzar meta",
                 btnClearStats: "Borrar todo",
                 clearStatsTitle: "¿Borrar todo?", clearStatsSub: "El contador y todos los datos del dhikr se eliminarán permanentemente",
@@ -6453,7 +6721,7 @@
                 chartTitle: "Progrès", timeChartTitle: "Moment favori pour le dhikr",
                 titleSettings: "Paramètres",
                 labelLang: "Langue", labelTheme: "Thème", labelSound: "Son à l'objectif", labelClickSound: "Son au toucher",
-                soundHint: "Maintenir pour sélectionner",
+                soundHint: "Maintenez pour choisir un son",
                 soundPickerTap: "Son au toucher", soundPickerGoal: "Son à l'objectif",
                 btnClearStats: "Tout effacer",
                 clearStatsTitle: "Tout effacer ?", clearStatsSub: "Le compteur et toutes les données de dhikr seront supprimés définitivement",
@@ -6580,7 +6848,7 @@
                 chartTitle: "Progresso", timeChartTitle: "Ora preferita per il dhikr",
                 titleSettings: "Impostazioni",
                 labelLang: "Lingua", labelTheme: "Tema", labelSound: "Suono al raggiungimento", labelClickSound: "Suono al tocco",
-                soundHint: "Tieni premuto per selezionare",
+                soundHint: "Tieni premuto per scegliere un suono",
                 soundPickerTap: "Suono al tocco", soundPickerGoal: "Suono al raggiungimento",
                 btnClearStats: "Cancella tutto",
                 clearStatsTitle: "Cancellare tutto?", clearStatsSub: "Il contatore e tutti i dati del dhikr verranno eliminati definitivamente",
@@ -9657,6 +9925,7 @@
             const vLabelEl = document.getElementById('vibrationSliderLabel');
             if (vLabelEl) vLabelEl.textContent = getVibLabel(settings.vibrationLevel || 3);
             applySettingsSectionLabels(lang);
+            if (typeof updateGoogleAccountUI === 'function') updateGoogleAccountUI();
             // Хадисы: пересылаем расписание в SW с текстами на текущем языке
             if (settings && settings.hadithEnabled && typeof sendHadithScheduleToSW === 'function') {
                 sendHadithScheduleToSW();
@@ -13856,6 +14125,50 @@
             { id: 'harp',     label: 'Арфа',     emoji: '🎸', play: (ctx,v) => { [[262,0],[330,0.06],[392,0.12],[523,0.18]].forEach(([freq,del])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=freq;const vol=Math.pow(v/10,2)*0.5+0.02;g.gain.setValueAtTime(0,ctx.currentTime+del);g.gain.linearRampToValueAtTime(vol,ctx.currentTime+del+0.01);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+del+1.2);o.start(ctx.currentTime+del);o.stop(ctx.currentTime+del+1.2);}); }}
         ];
 
+        const SOUND_LABELS = {
+            click: {
+                ru: { default: 'Капля', soft: 'Мягкий', snap: 'Щелчок', crystal: 'Кристалл', pop: 'Поп', bubble: 'Пузырь', tick: 'Тик', ding: 'Динь', flute: 'Флейта', shimmer: 'Вспышка' },
+                en: { default: 'Droplet', soft: 'Soft', snap: 'Click', crystal: 'Crystal', pop: 'Pop', bubble: 'Bubble', tick: 'Tick', ding: 'Ding', flute: 'Flute', shimmer: 'Shimmer' },
+                uz: { default: 'Tomchi', soft: 'Yumshoq', snap: 'Chertish', crystal: 'Kristall', pop: 'Pop', bubble: 'Pufak', tick: 'Tik', ding: 'Ding', flute: 'Nay', shimmer: 'Yaltirash' },
+                de: { default: 'Tropfen', soft: 'Sanft', snap: 'Klick', crystal: 'Kristall', pop: 'Pop', bubble: 'Blase', tick: 'Tick', ding: 'Ding', flute: 'Flöte', shimmer: 'Schimmer' },
+                es: { default: 'Gota', soft: 'Suave', snap: 'Clic', crystal: 'Cristal', pop: 'Pop', bubble: 'Burbuja', tick: 'Tic', ding: 'Ding', flute: 'Flauta', shimmer: 'Brillo' },
+                fr: { default: 'Goutte', soft: 'Doux', snap: 'Clic', crystal: 'Cristal', pop: 'Pop', bubble: 'Bulle', tick: 'Tic', ding: 'Ding', flute: 'Flûte', shimmer: 'Éclat' },
+                it: { default: 'Goccia', soft: 'Morbido', snap: 'Clic', crystal: 'Cristallo', pop: 'Pop', bubble: 'Bolla', tick: 'Tic', ding: 'Din', flute: 'Flauto', shimmer: 'Luccichio' },
+                ja: { default: '水滴', soft: 'ソフト', snap: 'クリック', crystal: 'クリスタル', pop: 'ポップ', bubble: 'バブル', tick: 'チック', ding: 'ディン', flute: 'フルート', shimmer: 'きらめき' },
+                ko: { default: '물방울', soft: '부드러움', snap: '클릭', crystal: '크리스털', pop: '팝', bubble: '거품', tick: '틱', ding: '딩', flute: '플루트', shimmer: '반짝임' },
+                zh: { default: '水滴', soft: '柔和', snap: '点击', crystal: '水晶', pop: '弹响', bubble: '气泡', tick: '滴答', ding: '叮', flute: '长笛', shimmer: '闪光' },
+                tr: { default: 'Damla', soft: 'Yumuşak', snap: 'Tık', crystal: 'Kristal', pop: 'Pop', bubble: 'Kabarcık', tick: 'Tik', ding: 'Ding', flute: 'Flüt', shimmer: 'Parıltı' },
+                hi: { default: 'बूंद', soft: 'मुलायम', snap: 'क्लिक', crystal: 'क्रिस्टल', pop: 'पॉप', bubble: 'बुलबुला', tick: 'टिक', ding: 'डिंग', flute: 'बाँसुरी', shimmer: 'चमक' },
+                ms: { default: 'Titis', soft: 'Lembut', snap: 'Klik', crystal: 'Kristal', pop: 'Pop', bubble: 'Gelembung', tick: 'Tik', ding: 'Ding', flute: 'Seruling', shimmer: 'Kilau' },
+                id: { default: 'Tetes', soft: 'Lembut', snap: 'Klik', crystal: 'Kristal', pop: 'Pop', bubble: 'Gelembung', tick: 'Tik', ding: 'Ding', flute: 'Seruling', shimmer: 'Kilau' },
+                th: { default: 'หยด', soft: 'นุ่ม', snap: 'คลิก', crystal: 'คริสตัล', pop: 'ป๊อป', bubble: 'ฟอง', tick: 'ติ๊ก', ding: 'ดิง', flute: 'ขลุ่ย', shimmer: 'ประกาย' }
+            },
+            goal: {
+                ru: { default: 'Аккорд', chime: 'Колокол', peace: 'Тишина', celebrate: 'Восход', wave: 'Волна', glory: 'Слава', moon: 'Луна', star: 'Звезда', echo: 'Эхо', harp: 'Арфа' },
+                en: { default: 'Chord', chime: 'Chime', peace: 'Peace', celebrate: 'Sunrise', wave: 'Wave', glory: 'Glory', moon: 'Moon', star: 'Star', echo: 'Echo', harp: 'Harp' },
+                uz: { default: 'Akkord', chime: "Qo'ng'iroq", peace: 'Tinchlik', celebrate: 'Tong', wave: "To'lqin", glory: 'Shon', moon: 'Oy', star: 'Yulduz', echo: 'Aks-sado', harp: 'Arfa' },
+                de: { default: 'Akkord', chime: 'Glocke', peace: 'Frieden', celebrate: 'Sonnenaufgang', wave: 'Welle', glory: 'Glanz', moon: 'Mond', star: 'Stern', echo: 'Echo', harp: 'Harfe' },
+                es: { default: 'Acorde', chime: 'Campana', peace: 'Paz', celebrate: 'Amanecer', wave: 'Ola', glory: 'Gloria', moon: 'Luna', star: 'Estrella', echo: 'Eco', harp: 'Arpa' },
+                fr: { default: 'Accord', chime: 'Cloche', peace: 'Paix', celebrate: 'Aube', wave: 'Vague', glory: 'Gloire', moon: 'Lune', star: 'Étoile', echo: 'Écho', harp: 'Harpe' },
+                it: { default: 'Accordo', chime: 'Campana', peace: 'Pace', celebrate: 'Alba', wave: 'Onda', glory: 'Gloria', moon: 'Luna', star: 'Stella', echo: 'Eco', harp: 'Arpa' },
+                ja: { default: 'コード', chime: 'チャイム', peace: '平和', celebrate: '夜明け', wave: '波', glory: '栄光', moon: '月', star: '星', echo: 'エコー', harp: 'ハープ' },
+                ko: { default: '화음', chime: '종소리', peace: '평화', celebrate: '일출', wave: '파도', glory: '영광', moon: '달', star: '별', echo: '메아리', harp: '하프' },
+                zh: { default: '和弦', chime: '铃声', peace: '宁静', celebrate: '日出', wave: '波浪', glory: '荣光', moon: '月亮', star: '星星', echo: '回声', harp: '竖琴' },
+                tr: { default: 'Akor', chime: 'Çan', peace: 'Huzur', celebrate: 'Şafak', wave: 'Dalga', glory: 'İhtişam', moon: 'Ay', star: 'Yıldız', echo: 'Yankı', harp: 'Arp' },
+                hi: { default: 'कॉर्ड', chime: 'घंटी', peace: 'शांति', celebrate: 'सूर्योदय', wave: 'लहर', glory: 'महिमा', moon: 'चाँद', star: 'तारा', echo: 'गूंज', harp: 'वीणा' },
+                ms: { default: 'Kord', chime: 'Loceng', peace: 'Damai', celebrate: 'Fajar', wave: 'Ombak', glory: 'Gemilang', moon: 'Bulan', star: 'Bintang', echo: 'Gema', harp: 'Harpa' },
+                id: { default: 'Akor', chime: 'Lonceng', peace: 'Damai', celebrate: 'Fajar', wave: 'Ombak', glory: 'Kemuliaan', moon: 'Bulan', star: 'Bintang', echo: 'Gema', harp: 'Harpa' },
+                th: { default: 'คอร์ด', chime: 'กระดิ่ง', peace: 'สงบ', celebrate: 'รุ่งอรุณ', wave: 'คลื่น', glory: 'เกียรติ', moon: 'ดวงจันทร์', star: 'ดาว', echo: 'เสียงสะท้อน', harp: 'พิณ' }
+            }
+        };
+
+        function getSoundLabel(type, id, fallback) {
+            const pack = SOUND_LABELS[type] || {};
+            const langPack = pack[currentLang] || pack.en || {};
+            const enPack = pack.en || {};
+            return langPack[id] || enPack[id] || fallback || id;
+        }
+
         function _playClickSoundById(id, vol) {
             const ctx = getAudioCtx();
             const resume = ctx.state === 'suspended' ? ctx.resume() : Promise.resolve();
@@ -13916,7 +14229,7 @@
             CLICK_SOUNDS.forEach(s => {
                 const opt = document.createElement('div');
                 opt.className = 'sound-option' + (current === s.id ? ' active' : '');
-                opt.innerHTML = '<div class="sound-icon-circle">' + s.emoji + '</div><div class="sound-option-label">' + s.label + '</div>';
+                opt.innerHTML = '<div class="sound-icon-circle">' + s.emoji + '</div><div class="sound-option-label">' + getSoundLabel('click', s.id, s.label) + '</div>';
                 opt.onclick = () => {
                     settings.clickSoundType = s.id;
                     settings.clickSound = true;
@@ -13944,7 +14257,7 @@
             GOAL_SOUNDS.forEach(s => {
                 const opt = document.createElement('div');
                 opt.className = 'sound-option' + (current === s.id ? ' active' : '');
-                opt.innerHTML = '<div class="sound-icon-circle">' + s.emoji + '</div><div class="sound-option-label">' + s.label + '</div>';
+                opt.innerHTML = '<div class="sound-icon-circle">' + s.emoji + '</div><div class="sound-option-label">' + getSoundLabel('goal', s.id, s.label) + '</div>';
                 opt.onclick = () => {
                     settings.goalSoundType = s.id;
                     settings.sound = true;
@@ -13964,6 +14277,622 @@
         }
 
         function toggleSetting(key) { settings[key] = !settings[key]; saveDataDebounced(); updateSettingsUI(); }
+
+        const GOOGLE_ACCOUNT_STORAGE_KEY = 'azkar_google_account_v1';
+        const ACCOUNT_ICON_STORAGE_KEY = 'azkar_account_icon_v1';
+        const FIREBASE_SDK_VERSION = '12.15.0';
+        const FIREBASE_CONFIG = {
+            apiKey: "AIzaSyCK08Vc1hxLM12fLUQM-Ipq3jnMfB4aY3U",
+            authDomain: "azkar-pwa.firebaseapp.com",
+            projectId: "azkar-pwa",
+            storageBucket: "azkar-pwa.firebasestorage.app",
+            messagingSenderId: "939307317987",
+            appId: "1:939307317987:web:2aeda9da43b3c1adc3a3d6",
+            measurementId: "G-QDKS5VTMHP"
+        };
+        let googleAccount = loadGoogleAccount();
+        let accountIconDataUrl = loadAccountIcon();
+        let googleSignInBusy = false;
+        let firebaseReadyPromise = null;
+        let firebaseAuth = null;
+        let firebaseDb = null;
+        let firebaseAuthApi = null;
+        let firebaseFirestoreApi = null;
+        let firebaseCurrentUid = null;
+        let firebaseSyncStarting = false;
+        let firebaseRemoteImporting = false;
+        let firebaseAuthListenerReady = false;
+
+        function googleAccountText() {
+            const dict = {
+                ru: {
+                    section: 'Аккаунт',
+                    title: 'Аккаунт Google',
+                    connected: 'Подключён',
+                    disconnected: 'Не подключён',
+                    signIn: 'Войти через Google',
+                    signInBusy: 'Открываем Google...',
+                    signOut: 'Выйти',
+                    saved: 'Аккаунт Google подключён',
+                    signedOut: 'Аккаунт отключён',
+                    setup: 'Добавьте Google Client ID, чтобы включить вход',
+                    failed: 'Не удалось войти через Google'
+                },
+                en: {
+                    section: 'Account',
+                    title: 'Google account',
+                    connected: 'Connected',
+                    disconnected: 'Not connected',
+                    signIn: 'Sign in with Google',
+                    signInBusy: 'Opening Google...',
+                    signOut: 'Sign out',
+                    saved: 'Google account connected',
+                    signedOut: 'Account disconnected',
+                    setup: 'Add a Google Client ID to enable sign-in',
+                    failed: 'Could not sign in with Google'
+                },
+                uz: {
+                    section: 'Akkaunt',
+                    title: 'Google akkaunti',
+                    connected: 'Ulangan',
+                    disconnected: 'Ulanmagan',
+                    signIn: 'Google orqali kirish',
+                    signInBusy: 'Google ochilmoqda...',
+                    signOut: 'Chiqish',
+                    saved: 'Google akkaunti ulandi',
+                    signedOut: 'Akkaunt uzildi',
+                    setup: 'Kirishni yoqish uchun Google Client ID qo‘shing',
+                    failed: 'Google orqali kirib bo‘lmadi'
+                },
+                de: {
+                    section: 'Konto',
+                    title: 'Google-Konto',
+                    connected: 'Verbunden',
+                    disconnected: 'Nicht verbunden',
+                    signIn: 'Mit Google anmelden',
+                    signInBusy: 'Google wird geöffnet...',
+                    signOut: 'Abmelden',
+                    saved: 'Google-Konto verbunden',
+                    signedOut: 'Konto getrennt',
+                    setup: 'Google Client ID hinzufügen, um die Anmeldung zu aktivieren',
+                    failed: 'Anmeldung mit Google fehlgeschlagen'
+                },
+                es: {
+                    section: 'Cuenta',
+                    title: 'Cuenta de Google',
+                    connected: 'Conectado',
+                    disconnected: 'No conectado',
+                    signIn: 'Iniciar sesión con Google',
+                    signInBusy: 'Abriendo Google...',
+                    signOut: 'Cerrar sesión',
+                    saved: 'Cuenta de Google conectada',
+                    signedOut: 'Cuenta desconectada',
+                    setup: 'Añade un Google Client ID para activar el inicio de sesión',
+                    failed: 'No se pudo iniciar sesión con Google'
+                },
+                fr: {
+                    section: 'Compte',
+                    title: 'Compte Google',
+                    connected: 'Connecté',
+                    disconnected: 'Non connecté',
+                    signIn: 'Se connecter avec Google',
+                    signInBusy: 'Ouverture de Google...',
+                    signOut: 'Se déconnecter',
+                    saved: 'Compte Google connecté',
+                    signedOut: 'Compte déconnecté',
+                    setup: 'Ajoutez un Google Client ID pour activer la connexion',
+                    failed: 'Connexion avec Google impossible'
+                },
+                it: {
+                    section: 'Account',
+                    title: 'Account Google',
+                    connected: 'Connesso',
+                    disconnected: 'Non connesso',
+                    signIn: 'Accedi con Google',
+                    signInBusy: 'Apertura di Google...',
+                    signOut: 'Esci',
+                    saved: 'Account Google connesso',
+                    signedOut: 'Account disconnesso',
+                    setup: 'Aggiungi un Google Client ID per attivare l’accesso',
+                    failed: 'Accesso con Google non riuscito'
+                },
+                ja: {
+                    section: 'アカウント',
+                    title: 'Google アカウント',
+                    connected: '接続済み',
+                    disconnected: '未接続',
+                    signIn: 'Google でログイン',
+                    signInBusy: 'Google を開いています...',
+                    signOut: 'ログアウト',
+                    saved: 'Google アカウントを接続しました',
+                    signedOut: 'アカウントを切断しました',
+                    setup: 'ログインを有効にするには Google Client ID を追加してください',
+                    failed: 'Google でログインできませんでした'
+                },
+                ko: {
+                    section: '계정',
+                    title: 'Google 계정',
+                    connected: '연결됨',
+                    disconnected: '연결 안 됨',
+                    signIn: 'Google로 로그인',
+                    signInBusy: 'Google 여는 중...',
+                    signOut: '로그아웃',
+                    saved: 'Google 계정 연결됨',
+                    signedOut: '계정 연결 해제됨',
+                    setup: '로그인을 사용하려면 Google Client ID를 추가하세요',
+                    failed: 'Google로 로그인할 수 없습니다'
+                },
+                zh: {
+                    section: '账户',
+                    title: 'Google 账户',
+                    connected: '已连接',
+                    disconnected: '未连接',
+                    signIn: '使用 Google 登录',
+                    signInBusy: '正在打开 Google...',
+                    signOut: '退出登录',
+                    saved: 'Google 账户已连接',
+                    signedOut: '账户已断开连接',
+                    setup: '添加 Google Client ID 以启用登录',
+                    failed: '无法使用 Google 登录'
+                },
+                tr: {
+                    section: 'Hesap',
+                    title: 'Google hesabı',
+                    connected: 'Bağlı',
+                    disconnected: 'Bağlı değil',
+                    signIn: 'Google ile giriş yap',
+                    signInBusy: 'Google açılıyor...',
+                    signOut: 'Çıkış yap',
+                    saved: 'Google hesabı bağlandı',
+                    signedOut: 'Hesap bağlantısı kesildi',
+                    setup: 'Girişi etkinleştirmek için Google Client ID ekleyin',
+                    failed: 'Google ile giriş yapılamadı'
+                },
+                hi: {
+                    section: 'खाता',
+                    title: 'Google खाता',
+                    connected: 'जुड़ा हुआ',
+                    disconnected: 'जुड़ा नहीं',
+                    signIn: 'Google से साइन इन करें',
+                    signInBusy: 'Google खुल रहा है...',
+                    signOut: 'साइन आउट',
+                    saved: 'Google खाता जुड़ गया',
+                    signedOut: 'खाता अलग कर दिया गया',
+                    setup: 'साइन-इन चालू करने के लिए Google Client ID जोड़ें',
+                    failed: 'Google से साइन इन नहीं हो सका'
+                },
+                ms: {
+                    section: 'Akaun',
+                    title: 'Akaun Google',
+                    connected: 'Disambungkan',
+                    disconnected: 'Tidak disambungkan',
+                    signIn: 'Log masuk dengan Google',
+                    signInBusy: 'Membuka Google...',
+                    signOut: 'Log keluar',
+                    saved: 'Akaun Google disambungkan',
+                    signedOut: 'Akaun diputuskan',
+                    setup: 'Tambah Google Client ID untuk mengaktifkan log masuk',
+                    failed: 'Tidak dapat log masuk dengan Google'
+                },
+                id: {
+                    section: 'Akun',
+                    title: 'Akun Google',
+                    connected: 'Terhubung',
+                    disconnected: 'Tidak terhubung',
+                    signIn: 'Masuk dengan Google',
+                    signInBusy: 'Membuka Google...',
+                    signOut: 'Keluar',
+                    saved: 'Akun Google terhubung',
+                    signedOut: 'Akun terputus',
+                    setup: 'Tambahkan Google Client ID untuk mengaktifkan masuk',
+                    failed: 'Tidak dapat masuk dengan Google'
+                },
+                th: {
+                    section: 'บัญชี',
+                    title: 'บัญชี Google',
+                    connected: 'เชื่อมต่อแล้ว',
+                    disconnected: 'ยังไม่ได้เชื่อมต่อ',
+                    signIn: 'เข้าสู่ระบบด้วย Google',
+                    signInBusy: 'กำลังเปิด Google...',
+                    signOut: 'ออกจากระบบ',
+                    saved: 'เชื่อมต่อบัญชี Google แล้ว',
+                    signedOut: 'ยกเลิกการเชื่อมต่อบัญชีแล้ว',
+                    setup: 'เพิ่ม Google Client ID เพื่อเปิดใช้การเข้าสู่ระบบ',
+                    failed: 'ไม่สามารถเข้าสู่ระบบด้วย Google ได้'
+                }
+            };
+            return dict[currentLang] || dict.en;
+        }
+
+        function accountIconLabel() {
+            const dict = {
+                ru: 'Сменить иконку аккаунта',
+                en: 'Change account icon',
+                uz: 'Akkaunt ikonkasini almashtirish',
+                de: 'Kontosymbol ändern',
+                es: 'Cambiar icono de la cuenta',
+                fr: 'Changer l’icône du compte',
+                it: 'Cambia icona account',
+                ja: 'アカウントアイコンを変更',
+                ko: '계정 아이콘 변경',
+                zh: '更改账户图标',
+                tr: 'Hesap simgesini değiştir',
+                hi: 'खाता आइकन बदलें',
+                ms: 'Tukar ikon akaun',
+                id: 'Ubah ikon akun',
+                th: 'เปลี่ยนไอคอนบัญชี'
+            };
+            return dict[currentLang] || dict.en;
+        }
+
+        function loadGoogleAccount() {
+            try {
+                const raw = localStorage.getItem(GOOGLE_ACCOUNT_STORAGE_KEY);
+                return raw ? JSON.parse(raw) : null;
+            } catch(e) {
+                return null;
+            }
+        }
+
+        function loadAccountIcon() {
+            try {
+                return localStorage.getItem(ACCOUNT_ICON_STORAGE_KEY) || '';
+            } catch(e) {
+                return '';
+            }
+        }
+
+        function saveGoogleAccount(profile) {
+            googleAccount = profile;
+            try { localStorage.setItem(GOOGLE_ACCOUNT_STORAGE_KEY, JSON.stringify(profile)); } catch(e) {}
+            updateGoogleAccountUI();
+        }
+
+        function openAccountIconPicker(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            const input = document.getElementById('accountIconInput');
+            if (input) input.click();
+        }
+
+        function setAccountIconFromFile(event) {
+            const input = event && event.target;
+            const file = input && input.files && input.files[0];
+            if (!file) return;
+
+            if (!file.type || !file.type.startsWith('image/')) {
+                if (input) input.value = '';
+                try { showToast(googleAccountText().failed); } catch(e) {}
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function() {
+                const img = new Image();
+                img.onload = function() {
+                    try {
+                        const maxSize = 256;
+                        const largestSide = Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height, 1);
+                        const scale = Math.min(1, maxSize / largestSide);
+                        const width = Math.max(1, Math.round((img.naturalWidth || img.width) * scale));
+                        const height = Math.max(1, Math.round((img.naturalHeight || img.height) * scale));
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.clearRect(0, 0, width, height);
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        try {
+                            accountIconDataUrl = canvas.toDataURL('image/webp', 0.86);
+                        } catch(e) {
+                            accountIconDataUrl = canvas.toDataURL('image/png');
+                        }
+                    } catch(e) {
+                        accountIconDataUrl = reader.result || '';
+                    }
+
+                    try { localStorage.setItem(ACCOUNT_ICON_STORAGE_KEY, accountIconDataUrl); } catch(e) {}
+                    updateAccountIconUI();
+                    if (typeof markDataChanged === 'function') markDataChanged();
+                    if (input) input.value = '';
+                };
+                img.onerror = function() {
+                    if (input) input.value = '';
+                    try { showToast(googleAccountText().failed); } catch(e) {}
+                };
+                img.src = reader.result;
+            };
+            reader.onerror = function() {
+                if (input) input.value = '';
+                try { showToast(googleAccountText().failed); } catch(e) {}
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function updateAccountIconUI() {
+            const customIcon = document.getElementById('accountCustomIcon');
+            const defaultIcon = document.getElementById('accountDefaultIcon');
+            if (!customIcon || !defaultIcon) return;
+
+            if (accountIconDataUrl) {
+                customIcon.src = accountIconDataUrl;
+                customIcon.hidden = false;
+                defaultIcon.style.display = 'none';
+            } else {
+                customIcon.removeAttribute('src');
+                customIcon.hidden = true;
+                defaultIcon.style.display = '';
+            }
+        }
+
+        function firebaseSyncStampKey(uid) {
+            return 'azkar_cloud_synced_at_' + uid;
+        }
+
+        async function initFirebaseAccount() {
+            if (firebaseReadyPromise) return firebaseReadyPromise;
+
+            firebaseReadyPromise = (async function() {
+                const base = 'https://www.gstatic.com/firebasejs/' + FIREBASE_SDK_VERSION + '/';
+                const appApi = await import(base + 'firebase-app.js');
+                firebaseAuthApi = await import(base + 'firebase-auth.js');
+                firebaseFirestoreApi = await import(base + 'firebase-firestore.js');
+
+                const app = (appApi.getApps && appApi.getApps().length)
+                    ? appApi.getApp()
+                    : appApi.initializeApp(FIREBASE_CONFIG);
+                firebaseAuth = firebaseAuthApi.getAuth(app);
+                firebaseDb = firebaseFirestoreApi.getFirestore(app);
+
+                try {
+                    await firebaseAuthApi.setPersistence(firebaseAuth, firebaseAuthApi.browserLocalPersistence);
+                } catch(e) {}
+
+                try {
+                    const analyticsApi = await import(base + 'firebase-analytics.js');
+                    if (location.protocol === 'https:' && analyticsApi.isSupported && await analyticsApi.isSupported()) {
+                        analyticsApi.getAnalytics(app);
+                    }
+                } catch(e) {}
+
+                if (!firebaseAuthListenerReady) {
+                    firebaseAuthListenerReady = true;
+                    firebaseAuthApi.onAuthStateChanged(firebaseAuth, function(user) {
+                        if (user) {
+                            applyFirebaseUser(user, { sync: true });
+                        } else {
+                            firebaseCurrentUid = null;
+                            if (typeof AppStorage !== 'undefined') AppStorage.remote = null;
+                            googleAccount = null;
+                            try { localStorage.removeItem(GOOGLE_ACCOUNT_STORAGE_KEY); } catch(e) {}
+                            updateGoogleAccountUI();
+                        }
+                    });
+                }
+
+                try {
+                    const redirectResult = await firebaseAuthApi.getRedirectResult(firebaseAuth);
+                    if (redirectResult && redirectResult.user) {
+                        await applyFirebaseUser(redirectResult.user, { sync: true });
+                        showToast(googleAccountText().saved);
+                    }
+                } catch(e) {}
+
+                return { auth: firebaseAuth, db: firebaseDb, authApi: firebaseAuthApi, firestoreApi: firebaseFirestoreApi };
+            })().catch(function(e) {
+                firebaseReadyPromise = null;
+                throw e;
+            });
+
+            return firebaseReadyPromise;
+        }
+
+        function firebaseProfileFromUser(user) {
+            return {
+                provider: 'firebase-google',
+                id: user.uid || '',
+                uid: user.uid || '',
+                email: user.email || '',
+                name: user.displayName || user.email || 'Google user',
+                given_name: user.displayName || '',
+                picture: user.photoURL || '',
+                signedAt: new Date().toISOString()
+            };
+        }
+
+        async function applyFirebaseUser(user, options) {
+            if (!user) return;
+            saveGoogleAccount(firebaseProfileFromUser(user));
+            if (options && options.sync) {
+                await startFirebaseCloudSync(user);
+            }
+        }
+
+        function createFirebaseRemoteAdapter(uid) {
+            const db = firebaseDb;
+            const api = firebaseFirestoreApi;
+            const keyDoc = (key) => api.doc(db, 'users', uid, 'appData', key);
+            const metaDoc = api.doc(db, 'users', uid, 'meta', 'sync');
+
+            return {
+                async push(snapshot) {
+                    if (!snapshot || firebaseRemoteImporting) return;
+                    const now = Date.now();
+                    const batch = api.writeBatch(db);
+                    APP_DATA_KEYS.forEach(function(key) {
+                        const hasValue = Object.prototype.hasOwnProperty.call(snapshot, key);
+                        batch.set(keyDoc(key), {
+                            value: hasValue ? snapshot[key] : null,
+                            deleted: !hasValue,
+                            updatedAtMs: now
+                        }, { merge: true });
+                    });
+                    batch.set(metaDoc, {
+                        updatedAtMs: now,
+                        updatedAt: api.serverTimestamp(),
+                        app: 'azkar-pwa'
+                    }, { merge: true });
+                    await batch.commit();
+                    try { localStorage.setItem(firebaseSyncStampKey(uid), String(now)); } catch(e) {}
+                    try { localStorage.setItem('azkar_data_owner_uid', uid); } catch(e) {}
+                },
+                async pull() {
+                    const data = {};
+                    const rows = await api.getDocs(api.collection(db, 'users', uid, 'appData'));
+                    rows.forEach(function(row) {
+                        const item = row.data() || {};
+                        if (!item.deleted && typeof item.value === 'string') data[row.id] = item.value;
+                    });
+                    let updatedAtMs = 0;
+                    try {
+                        const meta = await api.getDoc(metaDoc);
+                        if (meta.exists()) updatedAtMs = Number((meta.data() || {}).updatedAtMs || 0);
+                    } catch(e) {}
+                    return { snapshot: data, updatedAtMs: updatedAtMs };
+                }
+            };
+        }
+
+        async function startFirebaseCloudSync(user) {
+            if (!user || !user.uid || firebaseSyncStarting) return;
+            if (firebaseCurrentUid === user.uid && AppStorage.remote) return;
+
+            firebaseSyncStarting = true;
+            firebaseCurrentUid = user.uid;
+            try {
+                AppStorage.remote = createFirebaseRemoteAdapter(user.uid);
+                const remote = await AppStorage.remote.pull();
+                const remoteSnapshot = remote && remote.snapshot ? remote.snapshot : {};
+                const remoteHasData = Object.keys(remoteSnapshot).length > 0;
+                const localSnapshot = AppStorage.exportAll();
+                const localHasData = Object.keys(localSnapshot).length > 0;
+                const localChangedAt = Number(localStorage.getItem('azkar_local_changed_at_v1') || '0');
+                const lastSyncedAt = Number(localStorage.getItem(firebaseSyncStampKey(user.uid)) || '0');
+                const remoteIsNewer = remoteHasData && remote.updatedAtMs && remote.updatedAtMs >= Math.max(localChangedAt, lastSyncedAt);
+
+                if (remoteIsNewer) {
+                    firebaseRemoteImporting = true;
+                    try {
+                        AppStorage.importAll(remoteSnapshot);
+                        reloadAppStateFromStorage();
+                        localStorage.setItem(firebaseSyncStampKey(user.uid), String(remote.updatedAtMs));
+                        localStorage.setItem('azkar_data_owner_uid', user.uid);
+                    } finally {
+                        firebaseRemoteImporting = false;
+                    }
+                } else if (localHasData) {
+                    await AppStorage.remote.push(localSnapshot);
+                }
+            } catch(e) {
+                console.warn('[Firebase sync] Sync failed:', e);
+            } finally {
+                firebaseSyncStarting = false;
+            }
+        }
+
+        function updateGoogleAccountUI() {
+            const L = googleAccountText();
+            const setText = (id, value) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value;
+            };
+            const signedIn = !!(googleAccount && googleAccount.email);
+
+            setText('setSecAccount', L.section);
+            setText('labelGoogleAccount', L.title);
+            setText('googleAccountStatus', signedIn ? L.connected : L.disconnected);
+            setText('googleSignInText', googleSignInBusy ? L.signInBusy : L.signIn);
+            setText('googleSignOutBtn', L.signOut);
+
+            const iconPickerBtn = document.getElementById('accountIconPickerBtn');
+            if (iconPickerBtn) {
+                const label = accountIconLabel();
+                iconPickerBtn.setAttribute('aria-label', label);
+                iconPickerBtn.title = label;
+            }
+
+            const status = document.getElementById('googleAccountStatus');
+            if (status) status.classList.toggle('connected', signedIn);
+
+            const profileBox = document.getElementById('googleAccountProfile');
+            const signOutBtn = document.getElementById('googleSignOutBtn');
+            const signInBtn = document.getElementById('googleSignInBtn');
+            if (profileBox) profileBox.hidden = !signedIn;
+            if (signOutBtn) signOutBtn.hidden = !signedIn;
+            if (signInBtn) {
+                signInBtn.disabled = googleSignInBusy;
+                signInBtn.setAttribute('aria-busy', googleSignInBusy ? 'true' : 'false');
+            }
+
+            if (signedIn) {
+                const avatar = document.getElementById('googleAccountAvatar');
+                const name = googleAccount.name || googleAccount.given_name || googleAccount.email;
+                if (avatar) {
+                    avatar.src = googleAccount.picture || '';
+                    avatar.style.display = googleAccount.picture ? '' : 'none';
+                }
+                setText('googleAccountName', name);
+                setText('googleAccountEmail', googleAccount.email);
+            }
+
+            updateAccountIconUI();
+        }
+
+        async function signInWithGoogle() {
+            const L = googleAccountText();
+            googleSignInBusy = true;
+            updateGoogleAccountUI();
+            try {
+                const ctx = await initFirebaseAccount();
+                const provider = new ctx.authApi.GoogleAuthProvider();
+                provider.setCustomParameters({ prompt: 'select_account' });
+
+                try {
+                    const result = await ctx.authApi.signInWithPopup(ctx.auth, provider);
+                    if (result && result.user) await applyFirebaseUser(result.user, { sync: true });
+                    showToast(L.saved);
+                } catch(popupError) {
+                    const code = String(popupError && popupError.code || '');
+                    if (code === 'auth/popup-blocked' || code === 'auth/operation-not-supported-in-this-environment') {
+                        await ctx.authApi.signInWithRedirect(ctx.auth, provider);
+                        return;
+                    }
+                    throw popupError;
+                }
+            } catch(e) {
+                console.warn('[Firebase auth] Sign-in failed:', e);
+                showToast(L.failed);
+            } finally {
+                googleSignInBusy = false;
+                updateGoogleAccountUI();
+            }
+        }
+
+        async function signOutGoogleAccount() {
+            const L = googleAccountText();
+            try {
+                if (firebaseAuthApi && firebaseAuth) {
+                    await firebaseAuthApi.signOut(firebaseAuth);
+                } else {
+                    googleAccount = null;
+                    try { localStorage.removeItem(GOOGLE_ACCOUNT_STORAGE_KEY); } catch(e) {}
+                    if (typeof AppStorage !== 'undefined') AppStorage.remote = null;
+                    firebaseCurrentUid = null;
+                    updateGoogleAccountUI();
+                }
+                showToast(L.signedOut);
+            } catch(e) {
+                googleAccount = null;
+                try { localStorage.removeItem(GOOGLE_ACCOUNT_STORAGE_KEY); } catch(err) {}
+                if (typeof AppStorage !== 'undefined') AppStorage.remote = null;
+                firebaseCurrentUid = null;
+                updateGoogleAccountUI();
+                showToast(L.signedOut);
+            }
+        }
 
         function onClickSoundSlider(val) {
             val = parseInt(val);
@@ -14072,6 +15001,7 @@
             if (stealthIconEl) stealthIconEl.textContent = settings.stealthMode ? '🌑' : '🌕';
             const autoAdvanceToggleEl = document.getElementById('autoAdvanceToggle');
             if (autoAdvanceToggleEl) autoAdvanceToggleEl.classList.toggle('on', !!settings.autoAdvance);
+            if (typeof updateGoogleAccountUI === 'function') updateGoogleAccountUI();
         }
 
         /* ===== ЛЕНИВЫЙ РЕНДЕР: флаги «грязных» разделов =====
@@ -14921,7 +15851,7 @@
             'azkar_duas', 'azkar_dua_folders', 'azkar_checklist_lists_v5', 'azkar_checklist_v4', 'azkar_stats_v2',
             'azkar_special_completed', 'azkar_special_progress', 'azkar_custom_special_dhikrs',
             'azkar_special_deleted_defaults', 'azkar_last_special_id', 'azkar_settings',
-            'azkar_special_history', 'azkar_task_history', 'azkar_dhikr_totals'
+            'azkar_special_history', 'azkar_task_history', 'azkar_dhikr_totals', 'azkar_account_icon_v1'
         ];
 
         const AppStorage = {
@@ -14947,17 +15877,63 @@
             }
         };
 
+        function reloadAppStateFromStorage() {
+            try {
+                const ss = localStorage.getItem('azkar_settings');
+                if (ss) Object.assign(settings, JSON.parse(ss));
+                currentLang = settings.language || 'en';
+                count = parseInt(localStorage.getItem('azkar_count') || '0');
+                const gg = localStorage.getItem('azkar_goal');
+                if (gg) {
+                    const pg = parseInt(gg);
+                    isUnlimited = (pg === UNLIMITED_GOAL);
+                    goal = isUnlimited ? 33 : pg;
+                }
+                goalBaseline = parseInt(localStorage.getItem('azkar_goal_baseline') || '0');
+                if (isNaN(goalBaseline) || goalBaseline < 0 || goalBaseline > count) goalBaseline = 0;
+                customGoal = parseInt(localStorage.getItem('azkar_custom_goal') || '0');
+                duas = JSON.parse(localStorage.getItem('azkar_duas') || '[]');
+                loadDuaFolders();
+                loadSpecialFolders();
+                _statsCache = JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}');
+                completedSpecial = JSON.parse(localStorage.getItem('azkar_special_completed') || '{}');
+                specialProgress = JSON.parse(localStorage.getItem('azkar_special_progress') || '{}');
+                loadDhikrTotals();
+                loadCustomSpecialDhikrs();
+                lastActiveSpecialId = localStorage.getItem('azkar_last_special_id') || null;
+                accountIconDataUrl = loadAccountIcon();
+                try { loadChecklist(); } catch(e) {}
+                applyTheme(settings.theme || 'dark');
+                applyLanguage(currentLang);
+                updateDisplay();
+                updateSettingsUI();
+                updateHadithUI();
+                updatePipCounter();
+                try { updateDhikrOverallProgress(); } catch(e) {}
+                markDirty('dua','favorites','names','stats','special');
+            } catch(e) {
+                console.warn('[Storage] Reload failed:', e);
+            }
+        }
+
         // Single integration point for a future database / sync engine. Local
         // persistence itself is handled by flushSave(); this only mirrors changes to
         // an optional remote adapter (debounced). With no adapter it is a cheap no-op,
         // so every existing save path can call it safely today.
         let _dataSyncTimer = null;
         function markDataChanged() {
+            try { localStorage.setItem('azkar_local_changed_at_v1', String(Date.now())); } catch (e) {}
+            if (firebaseRemoteImporting) return;
             if (!AppStorage.remote || typeof AppStorage.remote.push !== 'function') return;
             if (_dataSyncTimer) clearTimeout(_dataSyncTimer);
             _dataSyncTimer = setTimeout(() => {
                 _dataSyncTimer = null;
-                try { flushSave(); AppStorage.remote.push(AppStorage.exportAll()); } catch (e) {}
+                try {
+                    flushSave();
+                    Promise.resolve(AppStorage.remote.push(AppStorage.exportAll())).catch(function(e) {
+                        console.warn('[Firebase sync] Push failed:', e);
+                    });
+                } catch (e) {}
             }, 900);
         }
 
@@ -17221,6 +18197,7 @@
         // renderDuas / renderFavorites / renderStats / renderNames / renderSpecialList
         // вызываются через switchTab() по мере необходимости.
         updateSettingsUI();
+        initFirebaseAccount().catch(function(e) { console.warn('[Firebase] Init failed:', e); });
         initReminder();
 
         // ===== PRAYER TIMES MODULE =====
