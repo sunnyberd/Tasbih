@@ -1818,6 +1818,14 @@
             align-items: center;
             gap: 12px;
         }
+        #setSecAccount[hidden],
+        .account-head[hidden],
+        .account-status[hidden],
+        .google-signin-btn[hidden],
+        .account-profile[hidden],
+        .account-ghost-btn[hidden] {
+            display: none !important;
+        }
         .account-title-wrap {
             flex: 1;
             min-width: 0;
@@ -14838,7 +14846,10 @@
             setText('googleSignOutBtn', L.signOut);
 
             const accountSectionTitle = document.getElementById('setSecAccount');
-            if (accountSectionTitle) accountSectionTitle.hidden = !signedIn;
+            if (accountSectionTitle) {
+                accountSectionTitle.hidden = !signedIn;
+                accountSectionTitle.style.display = signedIn ? '' : 'none';
+            }
 
             const iconPickerBtn = document.getElementById('accountIconPickerBtn');
             if (iconPickerBtn) {
@@ -14850,6 +14861,7 @@
             const status = document.getElementById('googleAccountStatus');
             if (status) {
                 status.hidden = true;
+                status.style.display = 'none';
                 status.classList.toggle('connected', signedIn);
             }
 
@@ -14857,11 +14869,21 @@
             const profileBox = document.getElementById('googleAccountProfile');
             const signOutBtn = document.getElementById('googleSignOutBtn');
             const signInBtn = document.getElementById('googleSignInBtn');
-            if (accountHead) accountHead.hidden = !signedIn;
-            if (profileBox) profileBox.hidden = !signedIn;
-            if (signOutBtn) signOutBtn.hidden = !signedIn;
+            if (accountHead) {
+                accountHead.hidden = !signedIn;
+                accountHead.style.display = signedIn ? '' : 'none';
+            }
+            if (profileBox) {
+                profileBox.hidden = !signedIn;
+                profileBox.style.display = signedIn ? '' : 'none';
+            }
+            if (signOutBtn) {
+                signOutBtn.hidden = !signedIn;
+                signOutBtn.style.display = signedIn ? '' : 'none';
+            }
             if (signInBtn) {
                 signInBtn.hidden = signedIn;
+                signInBtn.style.display = signedIn ? 'none' : '';
                 signInBtn.disabled = googleSignInBusy;
                 signInBtn.setAttribute('aria-busy', googleSignInBusy ? 'true' : 'false');
             }
