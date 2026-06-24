@@ -5384,7 +5384,7 @@
               <div class="set-section-h" id="setSecAccount">Account</div>
               <div class="set-group">
             <div class="set-row set-row-col account-row" style="cursor:default;">
-                <div class="account-head">
+                <div class="account-head" id="googleAccountHead">
                     <div class="account-title-wrap">
                         <button class="google-mark account-icon-picker" id="accountIconPickerBtn" type="button" onclick="openAccountIconPicker(event)" aria-label="Change account icon">
                             <svg id="accountDefaultIcon" viewBox="0 0 24 24" focusable="false" aria-hidden="true">
@@ -14280,6 +14280,7 @@
 
         const GOOGLE_ACCOUNT_STORAGE_KEY = 'azkar_google_account_v1';
         const ACCOUNT_ICON_STORAGE_KEY = 'azkar_account_icon_v1';
+        const GUEST_SNAPSHOT_STORAGE_KEY = 'azkar_guest_snapshot_v1';
         const FIREBASE_SDK_VERSION = '12.15.0';
         const FIREBASE_CONFIG = {
             apiKey: "AIzaSyCK08Vc1hxLM12fLUQM-Ipq3jnMfB4aY3U",
@@ -14525,6 +14526,27 @@
             return dict[currentLang] || dict.en;
         }
 
+        function signOutConfirmText() {
+            const dict = {
+                ru: '\u0412\u044b\u0439\u0442\u0438 \u0438\u0437 \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u0430 Google?',
+                en: 'Sign out of your Google account?',
+                uz: 'Google akkauntidan chiqasizmi?',
+                de: 'Vom Google-Konto abmelden?',
+                es: '\u00bfCerrar sesi\u00f3n en tu cuenta de Google?',
+                fr: 'Se d\u00e9connecter du compte Google ?',
+                it: 'Uscire dall\u2019account Google?',
+                ja: 'Google \u30a2\u30ab\u30a6\u30f3\u30c8\u304b\u3089\u30ed\u30b0\u30a2\u30a6\u30c8\u3057\u307e\u3059\u304b\uff1f',
+                ko: 'Google \uacc4\uc815\uc5d0\uc11c \ub85c\uadf8\uc544\uc6c3\ud560\uae4c\uc694?',
+                zh: '\u8981\u9000\u51fa Google \u8d26\u6237\u5417\uff1f',
+                tr: 'Google hesab\u0131ndan \u00e7\u0131k\u0131\u015f yap\u0131ls\u0131n m\u0131?',
+                hi: 'Google \u0916\u093e\u0924\u0947 \u0938\u0947 \u0938\u093e\u0907\u0928 \u0906\u0909\u091f \u0915\u0930\u0947\u0902?',
+                ms: 'Log keluar daripada akaun Google?',
+                id: 'Keluar dari akun Google?',
+                th: '\u0e2d\u0e2d\u0e01\u0e08\u0e32\u0e01\u0e1a\u0e31\u0e0d\u0e0a\u0e35 Google \u0e2b\u0e23\u0e37\u0e2d\u0e44\u0e21\u0e48?'
+            };
+            return dict[currentLang] || dict.en;
+        }
+
         function loadGoogleAccount() {
             try {
                 const raw = localStorage.getItem(GOOGLE_ACCOUNT_STORAGE_KEY);
@@ -14677,7 +14699,6 @@
                     const redirectResult = await firebaseAuthApi.getRedirectResult(firebaseAuth);
                     if (redirectResult && redirectResult.user) {
                         await applyFirebaseUser(redirectResult.user, { sync: true });
-                        showToast(googleAccountText().saved);
                     }
                 } catch(e) {}
 
@@ -14776,13 +14797,22 @@
                 if (remoteIsNewer) {
                     firebaseRemoteImporting = true;
                     try {
-                        AppStorage.importAll(remoteSnapshot);
+                        AppStorage.replaceAll(remoteSnapshot);
                         reloadAppStateFromStorage();
                         localStorage.setItem(firebaseSyncStampKey(user.uid), String(remote.updatedAtMs));
                         localStorage.setItem('azkar_data_owner_uid', user.uid);
                     } finally {
                         firebaseRemoteImporting = false;
                     }
+                } else if (!remoteHasData) {
+                    firebaseRemoteImporting = true;
+                    try {
+                        AppStorage.replaceAll(buildCleanAccountSnapshot());
+                        reloadAppStateFromStorage();
+                    } finally {
+                        firebaseRemoteImporting = false;
+                    }
+                    await AppStorage.remote.push(AppStorage.exportAll());
                 } else if (localHasData) {
                     await AppStorage.remote.push(localSnapshot);
                 }
@@ -14807,6 +14837,9 @@
             setText('googleSignInText', googleSignInBusy ? L.signInBusy : L.signIn);
             setText('googleSignOutBtn', L.signOut);
 
+            const accountSectionTitle = document.getElementById('setSecAccount');
+            if (accountSectionTitle) accountSectionTitle.hidden = !signedIn;
+
             const iconPickerBtn = document.getElementById('accountIconPickerBtn');
             if (iconPickerBtn) {
                 const label = accountIconLabel();
@@ -14815,14 +14848,20 @@
             }
 
             const status = document.getElementById('googleAccountStatus');
-            if (status) status.classList.toggle('connected', signedIn);
+            if (status) {
+                status.hidden = true;
+                status.classList.toggle('connected', signedIn);
+            }
 
+            const accountHead = document.getElementById('googleAccountHead');
             const profileBox = document.getElementById('googleAccountProfile');
             const signOutBtn = document.getElementById('googleSignOutBtn');
             const signInBtn = document.getElementById('googleSignInBtn');
+            if (accountHead) accountHead.hidden = !signedIn;
             if (profileBox) profileBox.hidden = !signedIn;
             if (signOutBtn) signOutBtn.hidden = !signedIn;
             if (signInBtn) {
+                signInBtn.hidden = signedIn;
                 signInBtn.disabled = googleSignInBusy;
                 signInBtn.setAttribute('aria-busy', googleSignInBusy ? 'true' : 'false');
             }
@@ -14843,6 +14882,7 @@
 
         async function signInWithGoogle() {
             const L = googleAccountText();
+            saveGuestLocalSnapshot();
             googleSignInBusy = true;
             updateGoogleAccountUI();
             try {
@@ -14853,7 +14893,6 @@
                 try {
                     const result = await ctx.authApi.signInWithPopup(ctx.auth, provider);
                     if (result && result.user) await applyFirebaseUser(result.user, { sync: true });
-                    showToast(L.saved);
                 } catch(popupError) {
                     const code = String(popupError && popupError.code || '');
                     if (code === 'auth/popup-blocked' || code === 'auth/operation-not-supported-in-this-environment') {
@@ -14873,6 +14912,13 @@
 
         async function signOutGoogleAccount() {
             const L = googleAccountText();
+            if (!confirm(signOutConfirmText())) return;
+            try {
+                flushSave();
+                if (AppStorage.remote && typeof AppStorage.remote.push === 'function') {
+                    await AppStorage.remote.push(AppStorage.exportAll());
+                }
+            } catch(syncError) {}
             try {
                 if (firebaseAuthApi && firebaseAuth) {
                     await firebaseAuthApi.signOut(firebaseAuth);
@@ -14883,14 +14929,19 @@
                     firebaseCurrentUid = null;
                     updateGoogleAccountUI();
                 }
-                showToast(L.signedOut);
+                if (typeof AppStorage !== 'undefined') AppStorage.remote = null;
+                firebaseCurrentUid = null;
+                googleAccount = null;
+                try { localStorage.removeItem(GOOGLE_ACCOUNT_STORAGE_KEY); } catch(e) {}
+                restoreGuestLocalSnapshot();
+                updateGoogleAccountUI();
             } catch(e) {
                 googleAccount = null;
                 try { localStorage.removeItem(GOOGLE_ACCOUNT_STORAGE_KEY); } catch(err) {}
                 if (typeof AppStorage !== 'undefined') AppStorage.remote = null;
                 firebaseCurrentUid = null;
+                restoreGuestLocalSnapshot();
                 updateGoogleAccountUI();
-                showToast(L.signedOut);
             }
         }
 
@@ -15874,8 +15925,67 @@
                 APP_DATA_KEYS.forEach(k => {
                     try { if (Object.prototype.hasOwnProperty.call(data, k)) localStorage.setItem(k, data[k]); } catch (e) {}
                 });
+            },
+            replaceAll(data) {
+                APP_DATA_KEYS.forEach(k => {
+                    try { localStorage.removeItem(k); } catch (e) {}
+                });
+                this.importAll(data || {});
             }
         };
+
+        function saveGuestLocalSnapshot() {
+            if (firebaseCurrentUid) return;
+            try {
+                flushSave();
+                localStorage.setItem(GUEST_SNAPSHOT_STORAGE_KEY, JSON.stringify({
+                    savedAt: new Date().toISOString(),
+                    snapshot: AppStorage.exportAll()
+                }));
+            } catch(e) {}
+        }
+
+        function restoreGuestLocalSnapshot() {
+            try {
+                const raw = localStorage.getItem(GUEST_SNAPSHOT_STORAGE_KEY);
+                if (!raw) return false;
+                const data = JSON.parse(raw);
+                if (!data || !data.snapshot) return false;
+                firebaseRemoteImporting = true;
+                try {
+                    AppStorage.replaceAll(data.snapshot);
+                    reloadAppStateFromStorage();
+                } finally {
+                    firebaseRemoteImporting = false;
+                }
+                return true;
+            } catch(e) {
+                return false;
+            }
+        }
+
+        function buildCleanAccountSnapshot() {
+            const cleanSettings = {
+                ...settings,
+                language: currentLang || settings.language || 'en'
+            };
+            return {
+                azkar_settings: JSON.stringify(cleanSettings),
+                azkar_count: '0',
+                azkar_goal: '100',
+                azkar_goal_baseline: '0',
+                azkar_custom_goal: '0',
+                azkar_duas: '[]',
+                azkar_dua_folders: '[]',
+                azkar_checklist_lists_v5: JSON.stringify({ activeId: null, lists: [] }),
+                azkar_stats_v2: '{}',
+                azkar_special_completed: '{}',
+                azkar_special_progress: '{}',
+                azkar_custom_special_dhikrs: '[]',
+                azkar_special_deleted_defaults: '[]',
+                azkar_dhikr_totals: '{}'
+            };
+        }
 
         function reloadAppStateFromStorage() {
             try {
