@@ -10133,6 +10133,10 @@
         // null = нет активного; string = id последнего запущенного зикра (сбрасывается только кнопкой "Назад" или завершением)
         let lastActiveSpecialId = null;
         let _swipeSpecialId = null;
+        function restoreLastSpecialSelection() {
+            lastActiveSpecialId = localStorage.getItem('azkar_last_special_id') || null;
+            _swipeSpecialId = lastActiveSpecialId;
+        }
         // 'main' | 'special' — к какому счётчику привязана плавающая кнопка
         let pipMode = 'main';
 
@@ -11420,6 +11424,7 @@
             // Уходим с экрана спец зикра — сохраняем прогресс и сбрасываем состояние,
             // иначе isSpecialActive/currentSpecialId остаются «живыми» в памяти,
             // completionOverlay может всплыть поверх главного экрана и заблокировать его.
+            const activeSpecialId = currentSpecialId || _swipeSpecialId || lastActiveSpecialId;
             if (currentSpecialId) {
                 specialProgress[currentSpecialId] = specialCount;
                 saveDataDebounced();
@@ -11427,8 +11432,11 @@
             isSpecialActive = false;
             currentSpecialId = null;
             specialCount = 0;
-            lastActiveSpecialId = null;
-            localStorage.removeItem('azkar_last_special_id');
+            if (activeSpecialId) {
+                lastActiveSpecialId = activeSpecialId;
+                _swipeSpecialId = activeSpecialId;
+                localStorage.setItem('azkar_last_special_id', activeSpecialId);
+            }
             // Скрываем completionOverlay если он был показан для спец зикра
             const co = document.getElementById('completionOverlay');
             if (co) { co.classList.remove('show'); co.onclick = closeCompletion; }
@@ -13854,7 +13862,7 @@
                             // страница не будет перезагружена.
                             loadDhikrTotals();
                             loadCustomSpecialDhikrs();
-                            lastActiveSpecialId = localStorage.getItem('azkar_last_special_id') || null;
+                            restoreLastSpecialSelection();
                         } catch(e1) {}
                         // Задачи/списки перечитываем через loadChecklist() — он сам
                         // разберёт новый формат (списки) или мигрирует старый v4.
@@ -15169,8 +15177,6 @@
                 isSpecialActive = false;
                 currentSpecialId = null;
                 specialCount = 0;
-                lastActiveSpecialId = null;
-                localStorage.removeItem('azkar_last_special_id');
                 const _co2 = document.getElementById('completionOverlay');
                 if (_co2) { _co2.classList.remove('show'); _co2.onclick = closeCompletion; }
                 window._azkarMilestoneActive = false;
@@ -15199,6 +15205,7 @@
                     return;
                 }
                 lastActiveSpecialId = null;
+                _swipeSpecialId = null;
                 localStorage.removeItem('azkar_last_special_id');
             }
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -15444,7 +15451,7 @@
             // Сбрасываем completedSpecial и specialProgress прошлых дней сразу при загрузке.
             pruneCompletedSpecial();
             loadCustomSpecialDhikrs();
-            lastActiveSpecialId = localStorage.getItem('azkar_last_special_id') || null;
+            restoreLastSpecialSelection();
             // Restore vibration defaults if not set
             if (settings.vibration === undefined) settings.vibration = false;
             if (settings.vibrationLevel === undefined) settings.vibrationLevel = 3;
@@ -16090,7 +16097,7 @@
                 specialProgress = JSON.parse(localStorage.getItem('azkar_special_progress') || '{}');
                 loadDhikrTotals();
                 loadCustomSpecialDhikrs();
-                lastActiveSpecialId = localStorage.getItem('azkar_last_special_id') || null;
+                restoreLastSpecialSelection();
                 accountIconDataUrl = loadAccountIcon();
                 try { loadChecklist(); } catch(e) {}
                 applyTheme(settings.theme || 'dark');
@@ -19813,7 +19820,7 @@
                             // Перечитываем общий прогресс зикров в память (см. importData).
                             if (typeof loadDhikrTotals === 'function') loadDhikrTotals();
                             if (typeof loadCustomSpecialDhikrs === 'function') loadCustomSpecialDhikrs();
-                            lastActiveSpecialId = localStorage.getItem('azkar_last_special_id') || null;
+                            restoreLastSpecialSelection();
                         } catch(e1) {}
                         try { if (typeof loadChecklist === 'function') loadChecklist(); } catch(e4) {}
                         if (typeof applyTheme === 'function') applyTheme(settings.theme || 'dark');
