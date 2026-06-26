@@ -10133,23 +10133,6 @@
         // null = нет активного; string = id последнего запущенного зикра (сбрасывается только кнопкой "Назад" или завершением)
         let lastActiveSpecialId = null;
         let _swipeSpecialId = null;
-        let zikrResumeScreen = 'main';
-        function setZikrResumeScreen(screen) {
-            zikrResumeScreen = screen === 'special-counter' ? 'special-counter' : 'main';
-            localStorage.setItem('azkar_zikr_resume_screen', zikrResumeScreen);
-        }
-        function clearLastSpecialSelection() {
-            lastActiveSpecialId = null;
-            _swipeSpecialId = null;
-            localStorage.removeItem('azkar_last_special_id');
-            setZikrResumeScreen('main');
-        }
-        function restoreLastSpecialSelection() {
-            lastActiveSpecialId = localStorage.getItem('azkar_last_special_id') || null;
-            _swipeSpecialId = lastActiveSpecialId;
-            zikrResumeScreen = localStorage.getItem('azkar_zikr_resume_screen') === 'special-counter' ? 'special-counter' : 'main';
-            if (zikrResumeScreen === 'special-counter' && !lastActiveSpecialId) setZikrResumeScreen('main');
-        }
         // 'main' | 'special' — к какому счётчику привязана плавающая кнопка
         let pipMode = 'main';
 
@@ -10896,7 +10879,6 @@
             lastActiveSpecialId = id;
             _swipeSpecialId = id;
             localStorage.setItem('azkar_last_special_id', id);
-            setZikrResumeScreen('special-counter');
             specialCount = specialProgress[id] || 0;
             isSpecialActive = true;
             _specialGoalShown = (specialCount >= (specialDhikrs.find(d => d.id === id)?.goal || 100));
@@ -11017,7 +10999,8 @@
             specialCount = 0;
             currentSpecialId = null;
             // Зикр завершён — сбрасываем, чтобы свайп открывал список
-            setZikrResumeScreen('main');
+            lastActiveSpecialId = null;
+            localStorage.removeItem('azkar_last_special_id');
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('screen-special-list').classList.add('active');
             const specialFab = document.getElementById('specialAddFab');
@@ -11066,7 +11049,8 @@
             const prevId = currentSpecialId;
             specialCount = 0;
             currentSpecialId = null;
-            setZikrResumeScreen('main');
+            lastActiveSpecialId = null;
+            localStorage.removeItem('azkar_last_special_id');
             // Go to next incomplete dhikr if available (only if autoAdvance is enabled)
             const today = _islamicDayKey();
             let nextDhikr = null;
@@ -11082,10 +11066,8 @@
                 // Start next dhikr directly without any countdown
                 currentSpecialId = nextDhikr.id;
                 lastActiveSpecialId = nextDhikr.id;
-                _swipeSpecialId = nextDhikr.id;
                 isSpecialActive = true;
                 localStorage.setItem('azkar_last_special_id', nextDhikr.id);
-                setZikrResumeScreen('special-counter');
                 specialCount = specialProgress[nextDhikr.id] || 0;
                 specialGoal = nextDhikr.goal || 100;
                 document.getElementById('specialCounterName').innerText = getSpecialName(nextDhikr);
@@ -11161,7 +11143,9 @@
             specialCount = 0;
             currentSpecialId = null;
             // Нажата кнопка "Назад" — явно сбрасываем, свайп откроет список
-            setZikrResumeScreen('main');
+            lastActiveSpecialId = null;
+            _swipeSpecialId = null;
+            localStorage.removeItem('azkar_last_special_id');
             // Скрываем completionOverlay если он висел от спец зикра
             const co = document.getElementById('completionOverlay');
             if (co) { co.classList.remove('show'); co.onclick = closeCompletion; }
@@ -11367,7 +11351,7 @@
         }
         function switchToSpecialList() {
             // Свайп: используем _swipeSpecialId (не lastActiveSpecialId)
-            if (zikrResumeScreen === 'special-counter' && _swipeSpecialId) {
+            if (_swipeSpecialId) {
                 const dhikr = specialDhikrs.find(d => d.id === _swipeSpecialId);
                 if (dhikr) {
                     startSpecialDhikrDirect(_swipeSpecialId);
@@ -11394,7 +11378,6 @@
             lastActiveSpecialId = id;
             _swipeSpecialId = id;
             localStorage.setItem('azkar_last_special_id', id);
-            setZikrResumeScreen('special-counter');
             specialCount = specialProgress[id] || 0;
             isSpecialActive = true;
             _specialGoalShown = (specialCount >= (specialDhikrs.find(d => d.id === id)?.goal || 100));
@@ -11437,7 +11420,6 @@
             // Уходим с экрана спец зикра — сохраняем прогресс и сбрасываем состояние,
             // иначе isSpecialActive/currentSpecialId остаются «живыми» в памяти,
             // completionOverlay может всплыть поверх главного экрана и заблокировать его.
-            const activeSpecialId = currentSpecialId || _swipeSpecialId || lastActiveSpecialId;
             if (currentSpecialId) {
                 specialProgress[currentSpecialId] = specialCount;
                 saveDataDebounced();
@@ -11445,12 +11427,8 @@
             isSpecialActive = false;
             currentSpecialId = null;
             specialCount = 0;
-            if (activeSpecialId) {
-                lastActiveSpecialId = activeSpecialId;
-                _swipeSpecialId = activeSpecialId;
-                localStorage.setItem('azkar_last_special_id', activeSpecialId);
-            }
-            setZikrResumeScreen('main');
+            lastActiveSpecialId = null;
+            localStorage.removeItem('azkar_last_special_id');
             // Скрываем completionOverlay если он был показан для спец зикра
             const co = document.getElementById('completionOverlay');
             if (co) { co.classList.remove('show'); co.onclick = closeCompletion; }
@@ -13876,7 +13854,7 @@
                             // страница не будет перезагружена.
                             loadDhikrTotals();
                             loadCustomSpecialDhikrs();
-                            restoreLastSpecialSelection();
+                            lastActiveSpecialId = localStorage.getItem('azkar_last_special_id') || null;
                         } catch(e1) {}
                         // Задачи/списки перечитываем через loadChecklist() — он сам
                         // разберёт новый формат (списки) или мигрирует старый v4.
@@ -15170,19 +15148,14 @@
         function switchTab(tab) {
             // Покидаем экран спец зикра через навбар — сохраняем прогресс, сбрасываем состояние
             if (document.getElementById('screen-special-counter').classList.contains('active') && tab !== 'special-counter') {
-                const leavingSpecialId = currentSpecialId;
                 if (currentSpecialId) {
                     specialProgress[currentSpecialId] = specialCount;
-                    lastActiveSpecialId = currentSpecialId;
-                    _swipeSpecialId = currentSpecialId;
-                    localStorage.setItem('azkar_last_special_id', currentSpecialId);
                     saveDataDebounced();
                 }
                 isSpecialActive = false;
                 _specialGoalShown = false;
                 currentSpecialId = null;
                 specialCount = 0;
-                setZikrResumeScreen(tab === 'azkar' ? 'main' : (leavingSpecialId ? 'special-counter' : 'main'));
                 const _co = document.getElementById('completionOverlay');
                 if (_co) { _co.classList.remove('show'); _co.onclick = closeCompletion; }
                 window._azkarMilestoneActive = false;
@@ -15196,7 +15169,8 @@
                 isSpecialActive = false;
                 currentSpecialId = null;
                 specialCount = 0;
-                setZikrResumeScreen('main');
+                lastActiveSpecialId = null;
+                localStorage.removeItem('azkar_last_special_id');
                 const _co2 = document.getElementById('completionOverlay');
                 if (_co2) { _co2.classList.remove('show'); _co2.onclick = closeCompletion; }
                 window._azkarMilestoneActive = false;
@@ -15217,14 +15191,15 @@
                 return;
             }
             // Если нажимаем «Зикр» и есть сохранённый спец зикр — переходим на него
-            if (tab === 'azkar' && zikrResumeScreen === 'special-counter' && lastActiveSpecialId && !currentSpecialId
+            if (tab === 'azkar' && lastActiveSpecialId && !currentSpecialId
                 && !document.getElementById('screen-azkar').classList.contains('active')) {
                 const dhikr = specialDhikrs.find(d => d.id === lastActiveSpecialId);
                 if (dhikr) {
                     startSpecialDhikrDirect(lastActiveSpecialId);
                     return;
                 }
-                clearLastSpecialSelection();
+                lastActiveSpecialId = null;
+                localStorage.removeItem('azkar_last_special_id');
             }
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('screen-' + tab).classList.add('active');
@@ -15261,7 +15236,6 @@
                 isSpecialActive = false;
                 currentSpecialId = null;
                 specialCount = 0;
-                setZikrResumeScreen('main');
                 const _co = document.getElementById('completionOverlay');
                 if (_co) { _co.classList.remove('show'); _co.onclick = closeCompletion; }
                 window._azkarMilestoneActive = false;
@@ -15470,7 +15444,7 @@
             // Сбрасываем completedSpecial и specialProgress прошлых дней сразу при загрузке.
             pruneCompletedSpecial();
             loadCustomSpecialDhikrs();
-            restoreLastSpecialSelection();
+            lastActiveSpecialId = localStorage.getItem('azkar_last_special_id') || null;
             // Restore vibration defaults if not set
             if (settings.vibration === undefined) settings.vibration = false;
             if (settings.vibrationLevel === undefined) settings.vibrationLevel = 3;
@@ -16007,7 +15981,7 @@
             'azkar_count', 'azkar_goal', 'azkar_goal_baseline', 'azkar_custom_goal',
             'azkar_duas', 'azkar_dua_folders', 'azkar_checklist_lists_v5', 'azkar_checklist_v4', 'azkar_stats_v2',
             'azkar_special_completed', 'azkar_special_progress', 'azkar_custom_special_dhikrs',
-            'azkar_special_deleted_defaults', 'azkar_last_special_id', 'azkar_zikr_resume_screen', 'azkar_settings',
+            'azkar_special_deleted_defaults', 'azkar_last_special_id', 'azkar_settings',
             'azkar_special_history', 'azkar_task_history', 'azkar_dhikr_totals', 'azkar_account_icon_v1'
         ];
 
@@ -16116,7 +16090,7 @@
                 specialProgress = JSON.parse(localStorage.getItem('azkar_special_progress') || '{}');
                 loadDhikrTotals();
                 loadCustomSpecialDhikrs();
-                restoreLastSpecialSelection();
+                lastActiveSpecialId = localStorage.getItem('azkar_last_special_id') || null;
                 accountIconDataUrl = loadAccountIcon();
                 try { loadChecklist(); } catch(e) {}
                 applyTheme(settings.theme || 'dark');
@@ -19839,7 +19813,7 @@
                             // Перечитываем общий прогресс зикров в память (см. importData).
                             if (typeof loadDhikrTotals === 'function') loadDhikrTotals();
                             if (typeof loadCustomSpecialDhikrs === 'function') loadCustomSpecialDhikrs();
-                            restoreLastSpecialSelection();
+                            lastActiveSpecialId = localStorage.getItem('azkar_last_special_id') || null;
                         } catch(e1) {}
                         try { if (typeof loadChecklist === 'function') loadChecklist(); } catch(e4) {}
                         if (typeof applyTheme === 'function') applyTheme(settings.theme || 'dark');
