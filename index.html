@@ -14301,6 +14301,7 @@
         const ACCOUNT_ICON_STORAGE_KEY = 'azkar_account_icon_v1';
         const GUEST_SNAPSHOT_STORAGE_KEY = 'azkar_guest_snapshot_v1';
         const ACCOUNT_SNAPSHOT_STORAGE_PREFIX = 'azkar_account_snapshot_v1_';
+        const ACCOUNT_SNAPSHOT_DIRTY_PREFIX = 'azkar_account_snapshot_dirty_v1_';
         const FIREBASE_SDK_VERSION = '12.15.0';
         const FIREBASE_CONFIG = {
             apiKey: "AIzaSyCK08Vc1hxLM12fLUQM-Ipq3jnMfB4aY3U",
@@ -14721,6 +14722,10 @@
             return ACCOUNT_SNAPSHOT_STORAGE_PREFIX + String(uid || '').replace(/[^a-zA-Z0-9_-]/g, '_');
         }
 
+        function firebaseAccountSnapshotDirtyKey(uid) {
+            return ACCOUNT_SNAPSHOT_DIRTY_PREFIX + String(uid || '').replace(/[^a-zA-Z0-9_-]/g, '_');
+        }
+
         function loadFirebaseAccountLocalSnapshot(uid) {
             try {
                 if (!uid) return null;
@@ -14734,15 +14739,28 @@
             }
         }
 
-        function saveFirebaseAccountLocalSnapshot(uid, snapshot, updatedAtMs) {
+        function isFirebaseAccountLocalSnapshotDirty(uid, data) {
+            try {
+                if (data && data.dirty === true) return true;
+                return !!uid && localStorage.getItem(firebaseAccountSnapshotDirtyKey(uid)) === '1';
+            } catch(e) {
+                return false;
+            }
+        }
+
+        function saveFirebaseAccountLocalSnapshot(uid, snapshot, updatedAtMs, dirty) {
             try {
                 if (!uid || !snapshot) return;
                 const savedAtMs = Number(updatedAtMs || Date.now());
+                const isDirty = dirty === true;
                 localStorage.setItem(firebaseAccountSnapshotKey(uid), JSON.stringify({
                     savedAt: new Date(savedAtMs).toISOString(),
                     savedAtMs: savedAtMs,
+                    dirty: isDirty,
                     snapshot: snapshot
                 }));
+                if (isDirty) localStorage.setItem(firebaseAccountSnapshotDirtyKey(uid), '1');
+                else localStorage.removeItem(firebaseAccountSnapshotDirtyKey(uid));
             } catch(e) {}
         }
 
@@ -14891,7 +14909,7 @@
                     try { localStorage.setItem(firebaseSyncStampKey(uid), String(now)); } catch(e) {}
                     if (firebaseCurrentUid === uid) {
                         setActiveDataOwnerUid(uid);
-                        saveFirebaseAccountLocalSnapshot(uid, snapshot, now);
+                        saveFirebaseAccountLocalSnapshot(uid, snapshot, now, false);
                     }
                 },
                 async pull() {
@@ -14933,24 +14951,29 @@
                 const cachedSnapshot = cached && cached.snapshot ? cached.snapshot : null;
                 const cachedUpdatedAtMs = Number(cached && cached.savedAtMs || 0);
                 const cachedHasData = !!(cachedSnapshot && Object.keys(cachedSnapshot).length > 0);
+                const cachedIsDirty = cachedHasData && isFirebaseAccountLocalSnapshotDirty(uid, cached);
                 let snapshotToApply = null;
                 let snapshotUpdatedAtMs = remoteUpdatedAtMs;
                 let shouldRepairRemote = false;
+                let snapshotIsDirty = false;
 
-                if (remoteHasData && cachedHasData && cachedUpdatedAtMs > remoteUpdatedAtMs) {
+                if (remoteHasData && cachedIsDirty && cachedUpdatedAtMs > remoteUpdatedAtMs) {
                     snapshotToApply = cachedSnapshot;
                     snapshotUpdatedAtMs = cachedUpdatedAtMs;
                     shouldRepairRemote = true;
+                    snapshotIsDirty = true;
                 } else if (remoteHasData) {
                     snapshotToApply = remoteSnapshot;
-                } else if (cachedHasData) {
+                } else if (cachedIsDirty) {
                     snapshotToApply = cachedSnapshot;
                     snapshotUpdatedAtMs = cachedUpdatedAtMs;
                     shouldRepairRemote = true;
+                    snapshotIsDirty = true;
                 } else {
                     snapshotToApply = buildCleanAccountSnapshot();
                     snapshotUpdatedAtMs = Date.now();
                     shouldRepairRemote = true;
+                    snapshotIsDirty = true;
                 }
 
                 if (token !== firebaseSyncEpoch) return false;
@@ -14959,7 +14982,7 @@
                     AppStorage.replaceAll(snapshotToApply);
                     reloadAppStateFromStorage();
                     setActiveDataOwnerUid(uid);
-                    saveFirebaseAccountLocalSnapshot(uid, AppStorage.exportAll(), snapshotUpdatedAtMs);
+                    saveFirebaseAccountLocalSnapshot(uid, AppStorage.exportAll(), snapshotUpdatedAtMs, snapshotIsDirty);
                 } finally {
                     firebaseRemoteImporting = false;
                 }
@@ -15122,7 +15145,7 @@
                     accountSnapshot = AppStorage.exportAll();
                 }
                 if (accountSnapshot) {
-                    saveFirebaseAccountLocalSnapshot(signingOutUid, accountSnapshot);
+                    saveFirebaseAccountLocalSnapshot(signingOutUid, accountSnapshot, Date.now(), true);
                     await pushFirebaseSnapshotWithTimeout(remote, accountSnapshot, 4000, '[Firebase sync] Final push before sign-out failed:', signingOutUid);
                 }
             } catch(syncError) {}
@@ -16257,7 +16280,7 @@
                     const uid = firebaseCurrentUid;
                     flushSave();
                     const snapshot = AppStorage.exportAll();
-                    saveFirebaseAccountLocalSnapshot(uid, snapshot);
+                    saveFirebaseAccountLocalSnapshot(uid, snapshot, Date.now(), true);
                     pushFirebaseSnapshotWithTimeout(AppStorage.remote, snapshot, 12000, '[Firebase sync] Push failed:', uid);
                 } catch (e) {}
             }, 900);
