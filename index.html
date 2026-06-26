@@ -14300,6 +14300,7 @@
         const GOOGLE_ACCOUNT_STORAGE_KEY = 'azkar_google_account_v1';
         const ACCOUNT_ICON_STORAGE_KEY = 'azkar_account_icon_v1';
         const GUEST_SNAPSHOT_STORAGE_KEY = 'azkar_guest_snapshot_v1';
+        const ACCOUNT_SNAPSHOT_STORAGE_PREFIX = 'azkar_account_snapshot_v1_';
         const FIREBASE_SDK_VERSION = '12.15.0';
         const FIREBASE_CONFIG = {
             apiKey: "AIzaSyCK08Vc1hxLM12fLUQM-Ipq3jnMfB4aY3U",
@@ -14323,6 +14324,8 @@
         let firebaseRemoteImporting = false;
         let firebaseAuthListenerReady = false;
         let firebaseSigningOut = false;
+        let firebaseSyncEpoch = 0;
+        const firebasePendingPushes = {};
 
         function googleAccountText() {
             const dict = {
@@ -14714,9 +14717,56 @@
             return !!uid && getActiveDataOwnerUid() === uid;
         }
 
-        function pushFirebaseSnapshotWithTimeout(remote, snapshot, timeoutMs, label) {
+        function firebaseAccountSnapshotKey(uid) {
+            return ACCOUNT_SNAPSHOT_STORAGE_PREFIX + String(uid || '').replace(/[^a-zA-Z0-9_-]/g, '_');
+        }
+
+        function loadFirebaseAccountLocalSnapshot(uid) {
+            try {
+                if (!uid) return null;
+                const raw = localStorage.getItem(firebaseAccountSnapshotKey(uid));
+                if (!raw) return null;
+                const data = JSON.parse(raw);
+                if (!data || !data.snapshot || typeof data.snapshot !== 'object') return null;
+                return data;
+            } catch(e) {
+                return null;
+            }
+        }
+
+        function saveFirebaseAccountLocalSnapshot(uid, snapshot, updatedAtMs) {
+            try {
+                if (!uid || !snapshot) return;
+                const savedAtMs = Number(updatedAtMs || Date.now());
+                localStorage.setItem(firebaseAccountSnapshotKey(uid), JSON.stringify({
+                    savedAt: new Date(savedAtMs).toISOString(),
+                    savedAtMs: savedAtMs,
+                    snapshot: snapshot
+                }));
+            } catch(e) {}
+        }
+
+        function trackFirebasePush(uid, pushPromise) {
+            if (!uid || !pushPromise) return pushPromise;
+            const tracked = Promise.resolve(pushPromise).finally(function() {
+                if (firebasePendingPushes[uid] === tracked) delete firebasePendingPushes[uid];
+            });
+            firebasePendingPushes[uid] = tracked;
+            return tracked;
+        }
+
+        function waitForFirebasePendingPush(uid, timeoutMs) {
+            const pending = uid ? firebasePendingPushes[uid] : null;
+            if (!pending) return Promise.resolve();
+            return Promise.race([
+                pending.catch(function() {}),
+                new Promise(function(resolve) { setTimeout(resolve, timeoutMs || 2500); })
+            ]);
+        }
+
+        function pushFirebaseSnapshotWithTimeout(remote, snapshot, timeoutMs, label, uid) {
             if (!remote || typeof remote.push !== 'function' || !snapshot) return Promise.resolve();
-            const pushPromise = Promise.resolve(remote.push(snapshot));
+            const pushPromise = trackFirebasePush(uid, Promise.resolve(remote.push(snapshot)));
             pushPromise.catch(function(e) {
                 console.warn(label || '[Firebase sync] Push failed:', e);
             });
@@ -14761,7 +14811,9 @@
                             if (firebaseSigningOut) return;
                             applyFirebaseUser(user, { sync: true });
                         } else {
+                            firebaseSyncEpoch++;
                             firebaseSigningOut = false;
+                            googleSignInBusy = false;
                             firebaseCurrentUid = null;
                             if (typeof AppStorage !== 'undefined') AppStorage.remote = null;
                             setActiveDataOwnerUid(null);
@@ -14803,10 +14855,12 @@
 
         async function applyFirebaseUser(user, options) {
             if (!user) return;
-            saveGoogleAccount(firebaseProfileFromUser(user));
+            const syncToken = ++firebaseSyncEpoch;
             if (options && options.sync) {
-                await startFirebaseCloudSync(user);
+                const synced = await startFirebaseCloudSync(user, syncToken);
+                if (!synced || syncToken !== firebaseSyncEpoch) return;
             }
+            if (syncToken === firebaseSyncEpoch) saveGoogleAccount(firebaseProfileFromUser(user));
         }
 
         function createFirebaseRemoteAdapter(uid) {
@@ -14835,7 +14889,10 @@
                     }, { merge: true });
                     await batch.commit();
                     try { localStorage.setItem(firebaseSyncStampKey(uid), String(now)); } catch(e) {}
-                    if (firebaseCurrentUid === uid) setActiveDataOwnerUid(uid);
+                    if (firebaseCurrentUid === uid) {
+                        setActiveDataOwnerUid(uid);
+                        saveFirebaseAccountLocalSnapshot(uid, snapshot, now);
+                    }
                 },
                 async pull() {
                     const data = {};
@@ -14854,43 +14911,75 @@
             };
         }
 
-        async function startFirebaseCloudSync(user) {
-            if (!user || !user.uid || firebaseSyncStarting) return;
-            if (firebaseCurrentUid === user.uid && AppStorage.remote && localDataBelongsToFirebaseUser(user.uid)) return;
+        async function startFirebaseCloudSync(user, syncToken) {
+            if (!user || !user.uid) return false;
+            const uid = user.uid;
+            const token = syncToken || ++firebaseSyncEpoch;
+            if (firebaseCurrentUid === uid && AppStorage.remote && localDataBelongsToFirebaseUser(uid)) return true;
 
             firebaseSyncStarting = true;
             try {
-                const remoteAdapter = createFirebaseRemoteAdapter(user.uid);
+                await waitForFirebasePendingPush(uid, 3500);
+                if (token !== firebaseSyncEpoch) return false;
+
+                const remoteAdapter = createFirebaseRemoteAdapter(uid);
                 const remote = await remoteAdapter.pull();
+                if (token !== firebaseSyncEpoch) return false;
+
                 const remoteSnapshot = remote && remote.snapshot ? remote.snapshot : {};
                 const remoteHasData = Object.keys(remoteSnapshot).length > 0;
+                const remoteUpdatedAtMs = Number(remote && remote.updatedAtMs || 0);
+                const cached = loadFirebaseAccountLocalSnapshot(uid);
+                const cachedSnapshot = cached && cached.snapshot ? cached.snapshot : null;
+                const cachedUpdatedAtMs = Number(cached && cached.savedAtMs || 0);
+                const cachedHasData = !!(cachedSnapshot && Object.keys(cachedSnapshot).length > 0);
+                let snapshotToApply = null;
+                let snapshotUpdatedAtMs = remoteUpdatedAtMs;
+                let shouldRepairRemote = false;
 
+                if (remoteHasData && cachedHasData && cachedUpdatedAtMs > remoteUpdatedAtMs) {
+                    snapshotToApply = cachedSnapshot;
+                    snapshotUpdatedAtMs = cachedUpdatedAtMs;
+                    shouldRepairRemote = true;
+                } else if (remoteHasData) {
+                    snapshotToApply = remoteSnapshot;
+                } else if (cachedHasData) {
+                    snapshotToApply = cachedSnapshot;
+                    snapshotUpdatedAtMs = cachedUpdatedAtMs;
+                    shouldRepairRemote = true;
+                } else {
+                    snapshotToApply = buildCleanAccountSnapshot();
+                    snapshotUpdatedAtMs = Date.now();
+                    shouldRepairRemote = true;
+                }
+
+                if (token !== firebaseSyncEpoch) return false;
                 firebaseRemoteImporting = true;
                 try {
-                    if (remoteHasData) {
-                        AppStorage.replaceAll(remoteSnapshot);
-                        reloadAppStateFromStorage();
-                    } else {
-                        AppStorage.replaceAll(buildCleanAccountSnapshot());
-                        reloadAppStateFromStorage();
-                    }
-                    setActiveDataOwnerUid(user.uid);
+                    AppStorage.replaceAll(snapshotToApply);
+                    reloadAppStateFromStorage();
+                    setActiveDataOwnerUid(uid);
+                    saveFirebaseAccountLocalSnapshot(uid, AppStorage.exportAll(), snapshotUpdatedAtMs);
                 } finally {
                     firebaseRemoteImporting = false;
                 }
 
-                firebaseCurrentUid = user.uid;
+                if (token !== firebaseSyncEpoch || !localDataBelongsToFirebaseUser(uid)) return false;
+
+                firebaseCurrentUid = uid;
                 AppStorage.remote = remoteAdapter;
-                if (remote && remote.updatedAtMs) localStorage.setItem(firebaseSyncStampKey(user.uid), String(remote.updatedAtMs));
-                if (!remoteHasData) {
-                    await pushFirebaseSnapshotWithTimeout(remoteAdapter, AppStorage.exportAll(), 2500, '[Firebase sync] Initial account push failed:');
+                if (remoteUpdatedAtMs) localStorage.setItem(firebaseSyncStampKey(uid), String(remoteUpdatedAtMs));
+                if (shouldRepairRemote) {
+                    await pushFirebaseSnapshotWithTimeout(remoteAdapter, AppStorage.exportAll(), 3500, '[Firebase sync] Account repair push failed:', uid);
                 }
+                return token === firebaseSyncEpoch && localDataBelongsToFirebaseUser(uid);
             } catch(e) {
-                if (firebaseCurrentUid === user.uid) firebaseCurrentUid = null;
+                if (firebaseCurrentUid === uid) firebaseCurrentUid = null;
                 if (AppStorage.remote) AppStorage.remote = null;
                 console.warn('[Firebase sync] Sync failed:', e);
+                return false;
             } finally {
-                firebaseSyncStarting = false;
+                if (token === firebaseSyncEpoch) firebaseSyncStarting = false;
             }
         }
 
@@ -14966,6 +15055,7 @@
         }
 
         async function signInWithGoogle() {
+            if (googleSignInBusy) return;
             const L = googleAccountText();
             firebaseSigningOut = false;
             saveGuestLocalSnapshot();
@@ -15017,6 +15107,9 @@
         async function confirmGoogleSignOut() {
             cancelGoogleSignOut();
             firebaseSigningOut = true;
+            firebaseSyncEpoch++;
+            googleSignInBusy = true;
+            updateGoogleAccountUI();
             const authApi = firebaseAuthApi;
             const auth = firebaseAuth;
             const remote = (typeof AppStorage !== 'undefined') ? AppStorage.remote : null;
@@ -15029,7 +15122,8 @@
                     accountSnapshot = AppStorage.exportAll();
                 }
                 if (accountSnapshot) {
-                    await pushFirebaseSnapshotWithTimeout(remote, accountSnapshot, 1500, '[Firebase sync] Final push before sign-out failed:');
+                    saveFirebaseAccountLocalSnapshot(signingOutUid, accountSnapshot);
+                    await pushFirebaseSnapshotWithTimeout(remote, accountSnapshot, 4000, '[Firebase sync] Final push before sign-out failed:', signingOutUid);
                 }
             } catch(syncError) {}
 
@@ -15047,12 +15141,17 @@
                         new Promise(function(resolve) { setTimeout(resolve, 2500); })
                     ]);
                     firebaseSigningOut = false;
+                    googleSignInBusy = false;
                 } else {
                     firebaseSigningOut = false;
+                    googleSignInBusy = false;
                 }
             } catch(e) {
                 firebaseSigningOut = false;
+                googleSignInBusy = false;
                 console.warn('[Firebase auth] Sign-out failed:', e);
+            } finally {
+                updateGoogleAccountUI();
             }
         }
 
@@ -16155,10 +16254,11 @@
                 try {
                     if (!firebaseCurrentUid || !localDataBelongsToFirebaseUser(firebaseCurrentUid)) return;
                     if (!AppStorage.remote || typeof AppStorage.remote.push !== 'function') return;
+                    const uid = firebaseCurrentUid;
                     flushSave();
-                    Promise.resolve(AppStorage.remote.push(AppStorage.exportAll())).catch(function(e) {
-                        console.warn('[Firebase sync] Push failed:', e);
-                    });
+                    const snapshot = AppStorage.exportAll();
+                    saveFirebaseAccountLocalSnapshot(uid, snapshot);
+                    pushFirebaseSnapshotWithTimeout(AppStorage.remote, snapshot, 12000, '[Firebase sync] Push failed:', uid);
                 } catch (e) {}
             }, 900);
         }
