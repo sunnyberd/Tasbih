@@ -14695,6 +14695,39 @@
             return 'azkar_cloud_synced_at_' + uid;
         }
 
+        function getActiveDataOwnerUid() {
+            try {
+                return localStorage.getItem('azkar_data_owner_uid') || '';
+            } catch(e) {
+                return '';
+            }
+        }
+
+        function setActiveDataOwnerUid(uid) {
+            try {
+                if (uid) localStorage.setItem('azkar_data_owner_uid', uid);
+                else localStorage.removeItem('azkar_data_owner_uid');
+            } catch(e) {}
+        }
+
+        function localDataBelongsToFirebaseUser(uid) {
+            return !!uid && getActiveDataOwnerUid() === uid;
+        }
+
+        function pushFirebaseSnapshotWithTimeout(remote, snapshot, timeoutMs, label) {
+            if (!remote || typeof remote.push !== 'function' || !snapshot) return Promise.resolve();
+            const pushPromise = Promise.resolve(remote.push(snapshot));
+            pushPromise.catch(function(e) {
+                console.warn(label || '[Firebase sync] Push failed:', e);
+            });
+            return Promise.race([
+                pushPromise,
+                new Promise(function(resolve) { setTimeout(resolve, timeoutMs || 1500); })
+            ]).catch(function(e) {
+                console.warn(label || '[Firebase sync] Push failed:', e);
+            });
+        }
+
         async function initFirebaseAccount() {
             if (firebaseReadyPromise) return firebaseReadyPromise;
 
@@ -14731,6 +14764,7 @@
                             firebaseSigningOut = false;
                             firebaseCurrentUid = null;
                             if (typeof AppStorage !== 'undefined') AppStorage.remote = null;
+                            setActiveDataOwnerUid(null);
                             googleAccount = null;
                             try { localStorage.removeItem(GOOGLE_ACCOUNT_STORAGE_KEY); } catch(e) {}
                             updateGoogleAccountUI();
@@ -14801,7 +14835,7 @@
                     }, { merge: true });
                     await batch.commit();
                     try { localStorage.setItem(firebaseSyncStampKey(uid), String(now)); } catch(e) {}
-                    try { localStorage.setItem('azkar_data_owner_uid', uid); } catch(e) {}
+                    if (firebaseCurrentUid === uid) setActiveDataOwnerUid(uid);
                 },
                 async pull() {
                     const data = {};
@@ -14822,44 +14856,38 @@
 
         async function startFirebaseCloudSync(user) {
             if (!user || !user.uid || firebaseSyncStarting) return;
-            if (firebaseCurrentUid === user.uid && AppStorage.remote) return;
+            if (firebaseCurrentUid === user.uid && AppStorage.remote && localDataBelongsToFirebaseUser(user.uid)) return;
 
             firebaseSyncStarting = true;
-            firebaseCurrentUid = user.uid;
             try {
-                AppStorage.remote = createFirebaseRemoteAdapter(user.uid);
-                const remote = await AppStorage.remote.pull();
+                const remoteAdapter = createFirebaseRemoteAdapter(user.uid);
+                const remote = await remoteAdapter.pull();
                 const remoteSnapshot = remote && remote.snapshot ? remote.snapshot : {};
                 const remoteHasData = Object.keys(remoteSnapshot).length > 0;
-                const localSnapshot = AppStorage.exportAll();
-                const localHasData = Object.keys(localSnapshot).length > 0;
-                const localChangedAt = Number(localStorage.getItem('azkar_local_changed_at_v1') || '0');
-                const lastSyncedAt = Number(localStorage.getItem(firebaseSyncStampKey(user.uid)) || '0');
-                const remoteIsNewer = remoteHasData && remote.updatedAtMs && remote.updatedAtMs >= Math.max(localChangedAt, lastSyncedAt);
 
-                if (remoteIsNewer) {
-                    firebaseRemoteImporting = true;
-                    try {
+                firebaseRemoteImporting = true;
+                try {
+                    if (remoteHasData) {
                         AppStorage.replaceAll(remoteSnapshot);
                         reloadAppStateFromStorage();
-                        localStorage.setItem(firebaseSyncStampKey(user.uid), String(remote.updatedAtMs));
-                        localStorage.setItem('azkar_data_owner_uid', user.uid);
-                    } finally {
-                        firebaseRemoteImporting = false;
-                    }
-                } else if (!remoteHasData) {
-                    firebaseRemoteImporting = true;
-                    try {
+                    } else {
                         AppStorage.replaceAll(buildCleanAccountSnapshot());
                         reloadAppStateFromStorage();
-                    } finally {
-                        firebaseRemoteImporting = false;
                     }
-                    await AppStorage.remote.push(AppStorage.exportAll());
-                } else if (localHasData) {
-                    await AppStorage.remote.push(localSnapshot);
+                    setActiveDataOwnerUid(user.uid);
+                } finally {
+                    firebaseRemoteImporting = false;
+                }
+
+                firebaseCurrentUid = user.uid;
+                AppStorage.remote = remoteAdapter;
+                if (remote && remote.updatedAtMs) localStorage.setItem(firebaseSyncStampKey(user.uid), String(remote.updatedAtMs));
+                if (!remoteHasData) {
+                    await pushFirebaseSnapshotWithTimeout(remoteAdapter, AppStorage.exportAll(), 2500, '[Firebase sync] Initial account push failed:');
                 }
             } catch(e) {
+                if (firebaseCurrentUid === user.uid) firebaseCurrentUid = null;
+                if (AppStorage.remote) AppStorage.remote = null;
                 console.warn('[Firebase sync] Sync failed:', e);
             } finally {
                 firebaseSyncStarting = false;
@@ -14992,13 +15020,16 @@
             const authApi = firebaseAuthApi;
             const auth = firebaseAuth;
             const remote = (typeof AppStorage !== 'undefined') ? AppStorage.remote : null;
+            const signingOutUid = firebaseCurrentUid;
+            let accountSnapshot = null;
 
             try {
                 flushSave();
-                if (remote && typeof remote.push === 'function') {
-                    Promise.resolve(remote.push(AppStorage.exportAll())).catch(function(e) {
-                        console.warn('[Firebase sync] Final push before sign-out failed:', e);
-                    });
+                if (localDataBelongsToFirebaseUser(signingOutUid)) {
+                    accountSnapshot = AppStorage.exportAll();
+                }
+                if (accountSnapshot) {
+                    await pushFirebaseSnapshotWithTimeout(remote, accountSnapshot, 1500, '[Firebase sync] Final push before sign-out failed:');
                 }
             } catch(syncError) {}
 
@@ -16017,6 +16048,7 @@
         function saveGuestLocalSnapshot() {
             if (firebaseCurrentUid) return;
             try {
+                setActiveDataOwnerUid(null);
                 flushSave();
                 localStorage.setItem(GUEST_SNAPSHOT_STORAGE_KEY, JSON.stringify({
                     savedAt: new Date().toISOString(),
@@ -16027,6 +16059,7 @@
 
         function restoreGuestLocalSnapshot() {
             try {
+                setActiveDataOwnerUid(null);
                 const raw = localStorage.getItem(GUEST_SNAPSHOT_STORAGE_KEY);
                 if (!raw) return false;
                 const data = JSON.parse(raw);
@@ -16114,11 +16147,14 @@
         function markDataChanged() {
             try { localStorage.setItem('azkar_local_changed_at_v1', String(Date.now())); } catch (e) {}
             if (firebaseRemoteImporting) return;
+            if (!firebaseCurrentUid || !localDataBelongsToFirebaseUser(firebaseCurrentUid)) return;
             if (!AppStorage.remote || typeof AppStorage.remote.push !== 'function') return;
             if (_dataSyncTimer) clearTimeout(_dataSyncTimer);
             _dataSyncTimer = setTimeout(() => {
                 _dataSyncTimer = null;
                 try {
+                    if (!firebaseCurrentUid || !localDataBelongsToFirebaseUser(firebaseCurrentUid)) return;
+                    if (!AppStorage.remote || typeof AppStorage.remote.push !== 'function') return;
                     flushSave();
                     Promise.resolve(AppStorage.remote.push(AppStorage.exportAll())).catch(function(e) {
                         console.warn('[Firebase sync] Push failed:', e);
