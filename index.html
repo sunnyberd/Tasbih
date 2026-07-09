@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
@@ -11115,9 +11115,19 @@
             });
             // Сбрасываем незавершённый прогресс только при смене дня (Фаджр),
             // а не при каждом открытии приложения — иначе прогресс того же дня теряется.
+            // Если ключа дня ещё нет, это старый формат данных: считаем сохранённые
+            // цифры устаревшими, чтобы застрявший прогресс не жил неделями.
             const progressDay = localStorage.getItem('azkar_special_progress_day');
-            if (progressDay && progressDay !== today) {
+            if (progressDay !== today) {
                 specialProgress = {};
+                if (currentSpecialId) {
+                    specialCount = 0;
+                    _specialGoalShown = false;
+                    try { updateSpecialDisplay(); } catch(e) {}
+                }
+                lastActiveSpecialId = null;
+                _swipeSpecialId = null;
+                localStorage.removeItem('azkar_last_special_id');
                 changed = true;
             }
             // Всегда обновляем ключ дня прогресса
@@ -16331,6 +16341,7 @@
                 specialProgress = JSON.parse(localStorage.getItem('azkar_special_progress') || '{}');
                 loadDhikrTotals();
                 loadCustomSpecialDhikrs();
+                pruneCompletedSpecial();
                 lastActiveSpecialId = localStorage.getItem('azkar_last_special_id') || null;
                 accountIconDataUrl = loadAccountIcon();
                 try { loadChecklist(); } catch(e) {}
