@@ -14364,6 +14364,11 @@
         const firebasePendingPushes = {};
         let firebaseUnsubSnapshot = null;
         let _firebaseLastPushMs = 0;
+        // Snapshot the local state before Firebase begins its asynchronous boot.
+        // User taps made while the SDK/auth/cloud data are still loading are merged
+        // into the pulled snapshot instead of being overwritten by it.
+        let _firebaseBootLocalRevision = 0;
+        let _firebaseBootLocalSnapshot = null;
 
         function googleAccountText() {
             const dict = {
@@ -14836,6 +14841,9 @@
         async function initFirebaseAccount() {
             if (firebaseReadyPromise) return firebaseReadyPromise;
 
+            _firebaseBootLocalRevision = _localDataRevision;
+            _firebaseBootLocalSnapshot = AppStorage.exportAll();
+
             firebaseReadyPromise = (async function() {
                 const base = 'https://www.gstatic.com/firebasejs/' + FIREBASE_SDK_VERSION + '/';
                 const appApi = await import(base + 'firebase-app.js');
@@ -14875,6 +14883,8 @@
                             setActiveDataOwnerUid(null);
                             googleAccount = null;
                             try { localStorage.removeItem(GOOGLE_ACCOUNT_STORAGE_KEY); } catch(e) {}
+                            _firebaseBootLocalRevision = _localDataRevision;
+                            _firebaseBootLocalSnapshot = null;
                             updateGoogleAccountUI();
                         }
                     });
@@ -14993,25 +15003,53 @@
 
                 if (remoteMs <= _firebaseLastPushMs) return;
 
+                // A local tap/change that is newer than this remote event is already
+                // queued for upload. Applying the older snapshot here would make the
+                // visible counter jump backwards before that upload finishes.
+                let localChangedAtMs = 0;
+                try { localChangedAtMs = Number(localStorage.getItem('azkar_local_changed_at_v1') || 0); } catch(e) {}
+                if (localChangedAtMs > remoteMs) return;
+
                 if (!AppStorage.remote) return;
 
                 const token = firebaseSyncEpoch;
+                const localRevisionAtPullStart = _localDataRevision;
+                const localSnapshotAtPullStart = AppStorage.exportAll();
                 (async function() {
                     try {
                         const remote = await AppStorage.remote.pull();
                         if (firebaseSyncEpoch !== token) return;
                         if (firebaseCurrentUid !== uid) return;
 
-                        const snapshot = remote && remote.snapshot ? remote.snapshot : {};
+                        let snapshot = remote && remote.snapshot ? remote.snapshot : {};
                         if (Object.keys(snapshot).length === 0) return;
+
+                        const localChangedDuringPull = _localDataRevision !== localRevisionAtPullStart;
+                        if (localChangedDuringPull) {
+                            flushSave();
+                            snapshot = mergeSnapshotWithLocalActivity(
+                                snapshot,
+                                localSnapshotAtPullStart,
+                                AppStorage.exportAll()
+                            );
+                        }
 
                         firebaseRemoteImporting = true;
                         try {
                             AppStorage.replaceAll(snapshot);
                             reloadAppStateFromStorage();
-                            saveFirebaseAccountLocalSnapshot(uid, AppStorage.exportAll(), remoteMs, false);
+                            saveFirebaseAccountLocalSnapshot(uid, AppStorage.exportAll(), localChangedDuringPull ? Date.now() : remoteMs, localChangedDuringPull);
                         } finally {
                             firebaseRemoteImporting = false;
+                        }
+                        if (localChangedDuringPull) {
+                            await pushFirebaseSnapshotWithTimeout(
+                                AppStorage.remote,
+                                AppStorage.exportAll(),
+                                12000,
+                                '[Firebase realtime] Local activity repair push failed:',
+                                uid
+                            );
                         }
                     } catch(e) {
                         console.warn('[Firebase realtime] Sync from remote failed:', e);
@@ -15027,6 +15065,13 @@
             const uid = user.uid;
             const token = syncToken || ++firebaseSyncEpoch;
             if (firebaseCurrentUid === uid && AppStorage.remote && localDataBelongsToFirebaseUser(uid)) return true;
+
+            const localRevisionAtSyncStart = _firebaseBootLocalSnapshot
+                ? _firebaseBootLocalRevision
+                : _localDataRevision;
+            const localSnapshotAtSyncStart = _firebaseBootLocalSnapshot
+                ? { ..._firebaseBootLocalSnapshot }
+                : AppStorage.exportAll();
 
             firebaseSyncStarting = true;
             try {
@@ -15069,6 +15114,20 @@
                     snapshotIsDirty = true;
                 }
 
+                // The Firebase SDK and the first pull can take a few seconds after a
+                // cold/resumed start. Preserve every local action made in that gap.
+                if (_localDataRevision !== localRevisionAtSyncStart) {
+                    flushSave();
+                    snapshotToApply = mergeSnapshotWithLocalActivity(
+                        snapshotToApply,
+                        localSnapshotAtSyncStart,
+                        AppStorage.exportAll()
+                    );
+                    snapshotUpdatedAtMs = Date.now();
+                    shouldRepairRemote = true;
+                    snapshotIsDirty = true;
+                }
+
                 if (token !== firebaseSyncEpoch) return false;
                 firebaseRemoteImporting = true;
                 try {
@@ -15089,6 +15148,8 @@
                 if (shouldRepairRemote) {
                     await pushFirebaseSnapshotWithTimeout(remoteAdapter, AppStorage.exportAll(), 3500, '[Firebase sync] Account repair push failed:', uid);
                 }
+                _firebaseBootLocalRevision = _localDataRevision;
+                _firebaseBootLocalSnapshot = null;
                 return token === firebaseSyncEpoch && localDataBelongsToFirebaseUser(uid);
             } catch(e) {
                 if (firebaseCurrentUid === uid) firebaseCurrentUid = null;
@@ -16358,14 +16419,110 @@
             }
         }
 
+        function _isPlainSyncObject(value) {
+            return !!value && typeof value === 'object' && !Array.isArray(value);
+        }
+
+        function _parseSyncJsonObject(raw) {
+            try {
+                const value = JSON.parse(raw || '{}');
+                return _isPlainSyncObject(value) ? value : {};
+            } catch(e) {
+                return {};
+            }
+        }
+
+        // Apply numeric increments made locally while a remote snapshot was in
+        // flight. This lets a +3 made during startup become remoteCount + 3 rather
+        // than either losing the taps or discarding newer progress from another
+        // device.
+        function _mergeAdditiveSyncValue(remoteValue, beforeValue, currentValue) {
+            if (typeof currentValue === 'number') {
+                const beforeNumber = (typeof beforeValue === 'number') ? beforeValue : 0;
+                const remoteNumber = (typeof remoteValue === 'number') ? remoteValue : 0;
+                const delta = currentValue - beforeNumber;
+                return delta >= 0 ? remoteNumber + delta : currentValue;
+            }
+
+            if (_isPlainSyncObject(currentValue)) {
+                const result = _isPlainSyncObject(remoteValue) ? { ...remoteValue } : {};
+                const beforeObject = _isPlainSyncObject(beforeValue) ? beforeValue : {};
+                const keys = new Set([...Object.keys(beforeObject), ...Object.keys(currentValue)]);
+                keys.forEach(function(key) {
+                    const beforeHas = Object.prototype.hasOwnProperty.call(beforeObject, key);
+                    const currentHas = Object.prototype.hasOwnProperty.call(currentValue, key);
+                    if (!currentHas) {
+                        if (beforeHas) delete result[key];
+                        return;
+                    }
+                    if (!beforeHas || JSON.stringify(beforeObject[key]) !== JSON.stringify(currentValue[key])) {
+                        result[key] = _mergeAdditiveSyncValue(result[key], beforeObject[key], currentValue[key]);
+                    }
+                });
+                return result;
+            }
+
+            return currentValue;
+        }
+
+        function mergeSnapshotWithLocalActivity(remoteSnapshot, beforeSnapshot, currentSnapshot) {
+            const merged = { ...(remoteSnapshot || {}) };
+            const before = beforeSnapshot || {};
+            const current = currentSnapshot || {};
+            const additiveJsonKeys = new Set(['azkar_stats_v2', 'azkar_dhikr_totals']);
+
+            APP_DATA_KEYS.forEach(function(key) {
+                const beforeHas = Object.prototype.hasOwnProperty.call(before, key);
+                const currentHas = Object.prototype.hasOwnProperty.call(current, key);
+                const beforeValue = beforeHas ? before[key] : undefined;
+                const currentValue = currentHas ? current[key] : undefined;
+                if (beforeHas === currentHas && beforeValue === currentValue) return;
+
+                if (!currentHas) {
+                    delete merged[key];
+                    return;
+                }
+
+                if (key === 'azkar_count') {
+                    const beforeCount = Number(beforeValue || 0);
+                    const currentCount = Number(currentValue || 0);
+                    const remoteCount = Number(merged[key] || 0);
+                    const delta = currentCount - beforeCount;
+                    merged[key] = String(delta >= 0 ? remoteCount + delta : currentCount);
+                    return;
+                }
+
+                if (additiveJsonKeys.has(key)) {
+                    const value = _mergeAdditiveSyncValue(
+                        _parseSyncJsonObject(merged[key]),
+                        _parseSyncJsonObject(beforeValue),
+                        _parseSyncJsonObject(currentValue)
+                    );
+                    merged[key] = JSON.stringify(value);
+                    return;
+                }
+
+                // Non-additive settings/content changed during the pull use the
+                // user's current local value.
+                merged[key] = currentValue;
+            });
+
+            return merged;
+        }
+
         // Single integration point for a future database / sync engine. Local
         // persistence itself is handled by flushSave(); this only mirrors changes to
         // an optional remote adapter (debounced). With no adapter it is a cheap no-op,
         // so every existing save path can call it safely today.
         let _dataSyncTimer = null;
+        let _localDataRevision = 0;
         function markDataChanged() {
-            try { localStorage.setItem('azkar_local_changed_at_v1', String(Date.now())); } catch (e) {}
+            // Imports call updateDisplay(), which also reaches this function. They
+            // are not user edits and must not be mistaken for activity made while a
+            // remote pull was in flight.
             if (firebaseRemoteImporting) return;
+            _localDataRevision++;
+            try { localStorage.setItem('azkar_local_changed_at_v1', String(Date.now())); } catch (e) {}
             if (!firebaseCurrentUid || !localDataBelongsToFirebaseUser(firebaseCurrentUid)) return;
             if (!AppStorage.remote || typeof AppStorage.remote.push !== 'function') return;
             if (_dataSyncTimer) clearTimeout(_dataSyncTimer);
@@ -19663,6 +19820,7 @@
             let _holdTimer   = null;
             let _holdInterval = null;
             let _holdStart   = 0;
+            let _ignoreTouchEndsUntilClear = false;
             let _achievementActive = false;
             let _achievementOnTap = null;
             const HOLD_MS    = 2000;
@@ -19684,6 +19842,26 @@
                 elPlus.classList.remove('flash');
                 void elPlus.offsetWidth; // reflow
                 elPlus.classList.add('flash');
+            }
+
+            function cancelExitHold() {
+                clearTimeout(_holdTimer);
+                clearTimeout(overlay._preTimer);
+                clearInterval(_holdInterval);
+                _holdTimer = null;
+                overlay._preTimer = null;
+                _holdInterval = null;
+                _holdStart = 0;
+                const elRing = document.getElementById('stealthHoldRing');
+                if (elRing) elRing.classList.remove('ring-active');
+                if (elRingCircle) elRingCircle.style.strokeDashoffset = RING_FULL;
+            }
+
+            function incrementStealthCounter() {
+                if (_targetCounter === 'special') incrementSpecial();
+                else increment();
+                updateCountDisplay();
+                showPlus();
             }
 
             function hideAchievement() {
@@ -19755,6 +19933,7 @@
 
             function activate(screenId) {
                 _active = false;
+                _ignoreTouchEndsUntilClear = false;
                 clearInterval(_cdTimer); _cdTimer = null;
                 clearTimeout(_holdTimer);
                 clearTimeout(overlay._preTimer);
@@ -19805,6 +19984,7 @@
             function deactivate() {
                 if (!_active) return;
                 _active = false;
+                _ignoreTouchEndsUntilClear = false;
                 clearInterval(_cdTimer); _cdTimer = null;
                 overlay.classList.remove('active', 'counting');
                 elCountdown.classList.remove('hidden');
@@ -19835,6 +20015,20 @@
                 if (!overlay.classList.contains('counting')) return;
                 e.preventDefault();
                 if (_achievementActive) return;
+
+                // A second finger must never replace the first finger's timer:
+                // the old unreferenced timer would otherwise keep running and exit
+                // stealth mode after the visible ring had already been cancelled.
+                // Treat each extra-finger tap as zikr and cancel the exit gesture
+                // until all fingers have left the screen.
+                if (e.touches.length > 1) {
+                    cancelExitHold();
+                    _ignoreTouchEndsUntilClear = true;
+                    incrementStealthCounter();
+                    return;
+                }
+                if (_ignoreTouchEndsUntilClear) return;
+
                 _holdStart = Date.now();
                 if (elRingCircle) {
                     elRingCircle.style.strokeDashoffset = RING_FULL;
@@ -19874,20 +20068,23 @@
                     updateCountDisplay();
                     return;
                 }
+                if (_ignoreTouchEndsUntilClear) {
+                    if (e.touches.length === 0) _ignoreTouchEndsUntilClear = false;
+                    return;
+                }
                 const held = Date.now() - _holdStart;
-                clearTimeout(_holdTimer);
-                clearTimeout(overlay._preTimer);
-                clearInterval(_holdInterval);
-                const elRing = document.getElementById('stealthHoldRing');
-                if (elRing) elRing.classList.remove('ring-active');
-                if (elRingCircle) elRingCircle.style.strokeDashoffset = RING_FULL;
+                cancelExitHold();
                 // Short tap = increment
                 if (held < 300) {
-                    if (_targetCounter === 'special') incrementSpecial();
-                    else increment();
-                    updateCountDisplay();
-                    showPlus();
+                    incrementStealthCounter();
                 }
+            }, { passive: false });
+
+            overlay.addEventListener('touchcancel', function(e) {
+                if (!overlay.classList.contains('counting')) return;
+                e.preventDefault();
+                cancelExitHold();
+                if (e.touches.length === 0) _ignoreTouchEndsUntilClear = false;
             }, { passive: false });
 
             // Also handle mouse (desktop testing)
