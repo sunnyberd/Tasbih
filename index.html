@@ -4832,7 +4832,7 @@
                 <div class="modal-title" id="customGoalModalTitle">⚡ Своя цель</div>
                 <div class="auto-extend-wrap">
                     <div id="autoExtendBadge" class="off" onclick="toggleAutoExtendMenu(event)">
-                        <span id="autoExtendBadgeLabel">Выкл</span>
+                        <span id="autoExtendBadgeLabel">Выкл.</span>
                         <svg viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </div>
                     <div class="auto-extend-dropdown" id="autoExtendDropdown">
@@ -5638,7 +5638,7 @@
             <!-- Online presence indicator -->
             <div class="set-row" onclick="toggleSetting('onlinePresence')">
                 <span class="set-ic" id="onlinePresenceIcon">🟢</span>
-                <div class="set-row-lbl"><b id="labelOnlinePresence">Онлайн-индикатор</b></div>
+                <div class="set-row-lbl"><b id="labelOnlinePresence">Показывать онлайн</b></div>
                 <div class="toggle-switch" id="onlinePresenceToggle"></div>
             </div>
               </div>
@@ -6183,6 +6183,7 @@
                 chartTitle: "Прогресс", timeChartTitle: "Любимое время для зикра",
                 titleSettings: "Настройки",
                 labelLang: "Язык", labelTheme: "Тема", labelSound: "Звук при достижении", labelClickSound: "Звук при нажатии",
+                labelOnlinePresence: "Показывать онлайн", autoExtendOff: "Выключено", autoExtendOffShort: "Выкл.",
                 soundHint: "Удержите для выбора звука",
                 soundPickerTap: "Звук нажатия", soundPickerGoal: "Звук достижения",
                 btnClearStats: "Очистить всё",
@@ -6311,6 +6312,7 @@
                 chartTitle: "Progress", timeChartTitle: "Favorite time for dhikr",
                 titleSettings: "Settings",
                 labelLang: "Language", labelTheme: "Theme", labelSound: "Sound on goal", labelClickSound: "Sound on tap",
+                labelOnlinePresence: "Show online count", autoExtendOff: "Off", autoExtendOffShort: "Off",
                 soundHint: "Hold to select sound",
                 soundPickerTap: "Tap sound", soundPickerGoal: "Goal sound",
                 btnClearStats: "Clear everything",
@@ -6438,6 +6440,7 @@
                 chartTitle: "Progress", timeChartTitle: "Zikr uchun sevimli vaqt",
                 titleSettings: "Sozlamalar",
                 labelLang: "Til", labelTheme: "Mavzu", labelSound: "Ovoz (maqsadga yetganda)", labelClickSound: "Bosishda ovoz",
+                labelOnlinePresence: "Onlayn sonini ko‘rsatish", autoExtendOff: "O‘chirilgan", autoExtendOffShort: "O‘chiq",
                 soundHint: "Ovozni tanlash uchun ushlab turing",
                 soundPickerTap: "Bosish ovozi", soundPickerGoal: "Maqsad ovozi",
                 btnClearStats: "Hammasini tozalash",
@@ -6565,6 +6568,7 @@
                 chartTitle: "Fortschritt", timeChartTitle: "Lieblingszeit für Dhikr",
                 titleSettings: "Einstellungen",
                 labelLang: "Sprache", labelTheme: "Design", labelSound: "Sound bei Ziel", labelClickSound: "Sound beim Tippen",
+                labelOnlinePresence: "Online-Zähler anzeigen", autoExtendOff: "Ausgeschaltet", autoExtendOffShort: "Aus",
                 soundHint: "Halten, um einen Ton auszuwählen",
                 soundPickerTap: "Tipp-Sound", soundPickerGoal: "Ziel-Sound",
                 btnClearStats: "Alles löschen",
@@ -6692,6 +6696,7 @@
                 chartTitle: "Progreso", timeChartTitle: "Hora favorita para el dhikr",
                 titleSettings: "Ajustes",
                 labelLang: "Idioma", labelTheme: "Tema", labelSound: "Sonido al alcanzar meta", labelClickSound: "Sonido al pulsar",
+                labelOnlinePresence: "Mostrar usuarios en línea", autoExtendOff: "Desactivado", autoExtendOffShort: "Desact.",
                 soundHint: "Mantén pulsado para elegir un sonido",
                 soundPickerTap: "Sonido al pulsar", soundPickerGoal: "Sonido al alcanzar meta",
                 btnClearStats: "Borrar todo",
@@ -6819,6 +6824,7 @@
                 chartTitle: "Progrès", timeChartTitle: "Moment favori pour le dhikr",
                 titleSettings: "Paramètres",
                 labelLang: "Langue", labelTheme: "Thème", labelSound: "Son à l'objectif", labelClickSound: "Son au toucher",
+                labelOnlinePresence: "Afficher le compteur en ligne", autoExtendOff: "Désactivé", autoExtendOffShort: "Désact.",
                 soundHint: "Maintenez pour choisir un son",
                 soundPickerTap: "Son au toucher", soundPickerGoal: "Son à l'objectif",
                 btnClearStats: "Tout effacer",
@@ -6946,6 +6952,7 @@
                 chartTitle: "Progresso", timeChartTitle: "Ora preferita per il dhikr",
                 titleSettings: "Impostazioni",
                 labelLang: "Lingua", labelTheme: "Tema", labelSound: "Suono al raggiungimento", labelClickSound: "Suono al tocco",
+                labelOnlinePresence: "Mostra contatore online", autoExtendOff: "Disattivato", autoExtendOffShort: "Disatt.",
                 soundHint: "Tieni premuto per scegliere un suono",
                 soundPickerTap: "Suono al tocco", soundPickerGoal: "Suono al raggiungimento",
                 btnClearStats: "Cancella tutto",
@@ -7073,6 +7080,7 @@
                 chartTitle: "進捗", timeChartTitle: "ズィクルのお気に入り時間",
                 titleSettings: "設定",
                 labelLang: "言語", labelTheme: "テーマ", labelSound: "目標達成時のサウンド", labelClickSound: "タップ音",
+                labelOnlinePresence: "オンライン人数を表示", autoExtendOff: "オフ", autoExtendOffShort: "オフ",
                 soundHint: "長押しでサウンドを選択",
                 soundPickerTap: "タップ音", soundPickerGoal: "目標達成時のサウンド",
                 btnClearStats: "すべて消去",
@@ -7200,6 +7208,7 @@
                 chartTitle: "진행 상황", timeChartTitle: "지크르에 좋아하는 시간",
                 titleSettings: "설정",
                 labelLang: "언어", labelTheme: "테마", labelSound: "목표 달성 소리", labelClickSound: "탭 소리",
+                labelOnlinePresence: "온라인 인원 표시", autoExtendOff: "꺼짐", autoExtendOffShort: "꺼짐",
                 soundHint: "길게 눌러 사운드 선택",
                 soundPickerTap: "탭 소리", soundPickerGoal: "목표 달성 소리",
                 btnClearStats: "모두 삭제",
@@ -7327,6 +7336,7 @@
                 chartTitle: "进度", timeChartTitle: "最喜欢的迪克尔时间",
                 titleSettings: "设置",
                 labelLang: "语言", labelTheme: "主题", labelSound: "达成目标时提示音", labelClickSound: "点击提示音",
+                labelOnlinePresence: "显示在线人数", autoExtendOff: "已关闭", autoExtendOffShort: "关闭",
                 soundHint: "长按选择声音",
                 soundPickerTap: "点击提示音", soundPickerGoal: "达成目标时提示音",
                 btnClearStats: "清除所有",
@@ -7466,6 +7476,8 @@
             titleSettings: "Ayarlar",
             labelLang: "Dil",
             labelTheme: "Tema",
+            labelOnlinePresence: "Çevrimiçi sayısını göster",
+            autoExtendOff: "Kapalı", autoExtendOffShort: "Kapalı",
             labelSound: "Hedefte ses",
             labelClickSound: "Dokunuşta ses",
             soundHint: "Ses seçmek için basılı tutun",
@@ -7697,6 +7709,8 @@
             titleSettings: "सेटिंग्स",
             labelLang: "भाषा",
             labelTheme: "थीम",
+            labelOnlinePresence: "ऑनलाइन संख्या दिखाएँ",
+            autoExtendOff: "बंद", autoExtendOffShort: "बंद",
             labelSound: "लक्ष्य पर ध्वनि",
             labelClickSound: "टैप पर ध्वनि",
             soundHint: "ध्वनि चुनने के लिए दबाकर रखें",
@@ -7928,6 +7942,8 @@
             titleSettings: "Tetapan",
             labelLang: "Bahasa",
             labelTheme: "Tema",
+            labelOnlinePresence: "Tunjukkan jumlah dalam talian",
+            autoExtendOff: "Dimatikan", autoExtendOffShort: "Mati",
             labelSound: "Bunyi apabila sasaran dicapai",
             labelClickSound: "Bunyi ketika ketuk",
             soundHint: "Tekan dan tahan untuk memilih bunyi",
@@ -8159,6 +8175,8 @@
             titleSettings: "Pengaturan",
             labelLang: "Bahasa",
             labelTheme: "Tema",
+            labelOnlinePresence: "Tampilkan jumlah online",
+            autoExtendOff: "Dinonaktifkan", autoExtendOffShort: "Nonaktif",
             labelSound: "Suara saat target tercapai",
             labelClickSound: "Suara saat ketuk",
             soundHint: "Tahan untuk memilih suara",
@@ -8390,6 +8408,8 @@
             titleSettings: "การตั้งค่า",
             labelLang: "ภาษา",
             labelTheme: "ธีม",
+            labelOnlinePresence: "แสดงจำนวนออนไลน์",
+            autoExtendOff: "ปิดใช้งาน", autoExtendOffShort: "ปิด",
             labelSound: "เสียงเมื่อถึงเป้าหมาย",
             labelClickSound: "เสียงเมื่อแตะ",
             soundHint: "กดค้างเพื่อเลือกเสียง",
@@ -9899,7 +9919,8 @@
                 titleFav: 'titleFav', subtitleFav: 'subtitleFav', titleStats: 'titleStats', labelToday: 'labelToday',
                 labelTotal: 'labelTotal', labelWeek: 'labelWeek', labelYear: 'labelYear', labelMonth: 'labelMonth',
                 chartTitle: 'chartTitle', timeChartTitle: 'timeChartTitle', titleSettings: 'titleSettings',
-                labelLang: 'labelLang', labelTheme: 'labelTheme', labelSound: 'labelSound',
+                labelLang: 'labelLang', labelTheme: 'labelTheme', labelOnlinePresence: 'labelOnlinePresence',
+                aeOpt0: 'autoExtendOff', labelSound: 'labelSound',
                 labelClickSound: 'labelClickSound',
                 soundHint: 'setClickSoundHint', soundHint2: 'setGoalSoundHint',
                 soundPickerTap: 'clickSoundPickerTitle', soundPickerGoal: 'goalSoundPickerTitle',
@@ -10017,6 +10038,7 @@
             if (cgSave) cgSave.innerText = t('customGoalSaveBtn');
             const cgCancel = document.getElementById('customGoalCancelBtn');
             if (cgCancel) cgCancel.innerText = t('btnCancel');
+            if (typeof updateAutoExtendBadge === 'function') updateAutoExtendBadge();
             const hintText = document.getElementById('hintToastText');
             if (hintText) hintText.innerText = t('hintToastText');
             // Refresh vibration label with new language
@@ -10654,7 +10676,7 @@
                 label.innerText = '+' + step;
             } else {
                 badge.classList.remove('on'); badge.classList.add('off');
-                label.innerText = 'Выкл';
+                label.innerText = t('autoExtendOffShort');
             }
             document.querySelectorAll('.auto-extend-option').forEach(opt => {
                 opt.classList.toggle('active', parseInt(opt.dataset.step, 10) === step);
