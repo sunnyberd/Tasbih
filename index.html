@@ -917,6 +917,34 @@
             to   { opacity: 1; transform: translateY(0) translateZ(0); }
         }
 
+        /* ===== ONLINE PRESENCE ===== */
+        .online-presence {
+            position: fixed;
+            top: calc(var(--safe-t) + 14px);
+            left: 16px;
+            z-index: 9998;
+            display: flex; align-items: center; gap: 6px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-dim);
+            letter-spacing: 0.1px;
+            pointer-events: none;
+            user-select: none;
+        }
+        .online-dot {
+            width: 7.2px; height: 7.2px;
+            border-radius: 50%;
+            background: var(--gold);
+            flex-shrink: 0;
+            animation: onlinePulse 3.1s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+        }
+        @keyframes onlinePulse {
+            0%, 100% { opacity: 0.55; transform: scale(0.86); }
+            50%      { opacity: 1;    transform: scale(1); }
+        }
+        .online-count { color: var(--text); font-weight: 700; }
+
         /* ===== HEADER ===== */
         .premium-header {
             position: relative;
@@ -4726,6 +4754,12 @@
 </head>
 <body>
 
+    <!-- Тихое анонимное присутствие: реальное число активных устройств -->
+    <div class="online-presence" id="onlinePresence" aria-hidden="true">
+        <span class="online-dot"></span>
+        <span class="online-count" id="onlinePresenceCount">0</span>
+    </div>
+
     <svg style="position:absolute; width:0; height:0;">
         <defs>
             <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -5600,6 +5634,12 @@
                 <span class="set-ic" id="themeIcon">🌙</span>
                 <div class="set-row-lbl"><b id="labelTheme">Тема</b><small id="setThemeHint">Удержите для выбора цвета</small></div>
                 <div class="toggle-switch" id="themeToggle"></div>
+            </div>
+            <!-- Online presence indicator -->
+            <div class="set-row" onclick="toggleSetting('onlinePresence')">
+                <span class="set-ic" id="onlinePresenceIcon">🟢</span>
+                <div class="set-row-lbl"><b id="labelOnlinePresence">Онлайн-индикатор</b></div>
+                <div class="toggle-switch" id="onlinePresenceToggle"></div>
             </div>
               </div>
             </div>
@@ -14393,7 +14433,12 @@
             document.getElementById('goalSoundPickerOverlay').classList.remove('show');
         }
 
-        function toggleSetting(key) { settings[key] = !settings[key]; saveDataDebounced(); updateSettingsUI(); }
+        function toggleSetting(key) {
+            settings[key] = !settings[key];
+            saveDataDebounced();
+            updateSettingsUI();
+            if (key === 'onlinePresence') onlinePresencePreferenceChanged();
+        }
 
         const GOOGLE_ACCOUNT_STORAGE_KEY = 'azkar_google_account_v1';
         const ACCOUNT_ICON_STORAGE_KEY = 'azkar_account_icon_v1';
@@ -14404,6 +14449,7 @@
         const FIREBASE_CONFIG = {
             apiKey: "AIzaSyCK08Vc1hxLM12fLUQM-Ipq3jnMfB4aY3U",
             authDomain: "azkar-pwa.firebaseapp.com",
+            databaseURL: "https://azkar-pwa-default-rtdb.europe-west1.firebasedatabase.app",
             projectId: "azkar-pwa",
             storageBucket: "azkar-pwa.firebasestorage.app",
             messagingSenderId: "939307317987",
@@ -14432,6 +14478,35 @@
         // into the pulled snapshot instead of being overwritten by it.
         let _firebaseBootLocalRevision = 0;
         let _firebaseBootLocalSnapshot = null;
+
+        // Realtime Database presence uses its own anonymous Firebase app so it
+        // never signs the user's Google account in or out.
+        const ONLINE_PRESENCE_APP_NAME = 'azkar-presence';
+        const ONLINE_PRESENCE_DEVICE_KEY = 'azkar_presence_device_id_v1';
+        const ONLINE_PRESENCE_LEASE_KEY = 'azkar_presence_leader_v1';
+        const ONLINE_PRESENCE_COUNT_KEY = 'azkar_presence_count_v1';
+        const ONLINE_PRESENCE_CHANNEL = 'azkar_presence_tabs_v1';
+        let onlinePresenceFirebasePromise = null;
+        let onlinePresenceFirebase = null;
+        let onlinePresenceCoordinatorStarted = false;
+        let onlinePresenceCoordinatorMode = '';
+        let onlinePresenceSharedWorker = null;
+        let onlinePresenceSharedReadyTimer = null;
+        let onlinePresenceChannel = null;
+        let onlinePresenceHeartbeatTimer = null;
+        let onlinePresenceLeaseTimer = null;
+        let onlinePresenceClaimTimer = null;
+        let onlinePresenceRetryTimer = null;
+        let onlinePresenceLeader = false;
+        let onlinePresenceWriterActive = false;
+        let onlinePresenceWriterEpoch = 0;
+        let onlinePresenceConnected = false;
+        let onlinePresenceWriteInFlight = false;
+        let onlinePresenceOwnRef = null;
+        let onlinePresenceDisconnect = null;
+        let onlinePresenceUnsubConnected = null;
+        let onlinePresenceUnsubRoot = null;
+        let onlinePresenceTabId = '';
 
         function googleAccountText() {
             const dict = {
@@ -14967,6 +15042,492 @@
             });
 
             return firebaseReadyPromise;
+        }
+
+        // ==================== REALTIME ONLINE PRESENCE ====================
+        function formatOnlineCount(num) {
+            num = Math.max(0, Number(num) || 0);
+            if (num < 1000) return String(num);
+            const short = (Math.round(num / 100) / 10).toFixed(1).replace(/\.0$/, '');
+            return short + 'к';
+        }
+        window.formatOnlineCount = formatOnlineCount;
+
+        function onlinePresenceEnabled() {
+            return settings.onlinePresence !== false;
+        }
+
+        function onlinePresenceActiveHere() {
+            return onlinePresenceEnabled() && document.visibilityState !== 'hidden';
+        }
+
+        function setOnlinePresenceCount(value, share) {
+            const countEl = document.getElementById('onlinePresenceCount');
+            const parsed = (value === null || value === undefined || value === '') ? NaN : Number(value);
+            const count = Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : null;
+            if (countEl) countEl.textContent = count === null ? '—' : formatOnlineCount(count);
+            if (!share || count === null) return;
+            try { localStorage.setItem(ONLINE_PRESENCE_COUNT_KEY, String(count)); } catch(e) {}
+            if (onlinePresenceCoordinatorMode === 'shared' && onlinePresenceSharedWorker) {
+                try { onlinePresenceSharedWorker.port.postMessage({ type: 'count', id: onlinePresenceTabId, value: count }); } catch(e) {}
+            } else if (onlinePresenceCoordinatorMode === 'broadcast' && onlinePresenceChannel) {
+                try { onlinePresenceChannel.postMessage({ type: 'count', id: onlinePresenceTabId, value: count }); } catch(e) {}
+            }
+        }
+
+        function getOnlinePresenceTabId() {
+            if (onlinePresenceTabId) return onlinePresenceTabId;
+            try { onlinePresenceTabId = sessionStorage.getItem('azkar_presence_tab_id_v1') || ''; } catch(e) {}
+            if (!onlinePresenceTabId) {
+                try {
+                    onlinePresenceTabId = crypto.randomUUID();
+                } catch(e) {
+                    onlinePresenceTabId = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+                }
+                try { sessionStorage.setItem('azkar_presence_tab_id_v1', onlinePresenceTabId); } catch(e) {}
+            }
+            return onlinePresenceTabId;
+        }
+
+        async function ensureOnlinePresenceFirebase() {
+            if (onlinePresenceFirebasePromise) return onlinePresenceFirebasePromise;
+            onlinePresenceFirebasePromise = (async function() {
+                const base = 'https://www.gstatic.com/firebasejs/' + FIREBASE_SDK_VERSION + '/';
+                const appApi = await import(base + 'firebase-app.js');
+                const authApi = await import(base + 'firebase-auth.js');
+                const databaseApi = await import(base + 'firebase-database.js');
+                let app = appApi.getApps().find(function(item) { return item.name === ONLINE_PRESENCE_APP_NAME; });
+                if (!app) app = appApi.initializeApp(FIREBASE_CONFIG, ONLINE_PRESENCE_APP_NAME);
+                const auth = authApi.getAuth(app);
+                try { await authApi.setPersistence(auth, authApi.browserLocalPersistence); } catch(e) {}
+                try {
+                    if (typeof auth.authStateReady === 'function') await auth.authStateReady();
+                } catch(e) {}
+                let user = auth.currentUser;
+                if (!user) {
+                    const result = await authApi.signInAnonymously(auth);
+                    user = result.user;
+                }
+                const deviceId = user.uid;
+                // The anonymous UID is stable for this browser and is also the
+                // only deviceId allowed to write by the published database rules.
+                try { localStorage.setItem(ONLINE_PRESENCE_DEVICE_KEY, deviceId); } catch(e) {}
+                const context = {
+                    auth: auth,
+                    database: databaseApi.getDatabase(app),
+                    databaseApi: databaseApi,
+                    deviceId: deviceId,
+                    idToken: ''
+                };
+                try { context.idToken = await user.getIdToken(); } catch(e) {}
+                authApi.onIdTokenChanged(auth, function(currentUser) {
+                    if (!currentUser) { context.idToken = ''; return; }
+                    currentUser.getIdToken().then(function(token) { context.idToken = token; }).catch(function() {});
+                });
+                return context;
+            })().then(function(ctx) {
+                onlinePresenceFirebase = ctx;
+                return ctx;
+            }).catch(function(error) {
+                onlinePresenceFirebasePromise = null;
+                throw error;
+            });
+            return onlinePresenceFirebasePromise;
+        }
+
+        async function writeOnlinePresenceRecord(epoch) {
+            if (onlinePresenceWriteInFlight || !onlinePresenceWriterActive || !onlinePresenceLeader || !onlinePresenceConnected) return;
+            const ctx = onlinePresenceFirebase;
+            if (!ctx || !onlinePresenceOwnRef) return;
+            onlinePresenceWriteInFlight = true;
+            try {
+                if (onlinePresenceDisconnect) {
+                    try { await onlinePresenceDisconnect.cancel(); } catch(e) {}
+                }
+                const disconnect = ctx.databaseApi.onDisconnect(onlinePresenceOwnRef);
+                await disconnect.remove();
+                if (epoch !== onlinePresenceWriterEpoch || !onlinePresenceWriterActive || !onlinePresenceLeader || !onlinePresenceActiveHere()) {
+                    try { await disconnect.cancel(); } catch(e) {}
+                    return;
+                }
+                onlinePresenceDisconnect = disconnect;
+                await ctx.databaseApi.set(onlinePresenceOwnRef, {
+                    uid: ctx.deviceId,
+                    online: true,
+                    connectedAt: ctx.databaseApi.serverTimestamp(),
+                    updatedAt: ctx.databaseApi.serverTimestamp()
+                });
+            } catch(error) {
+                console.warn('[Presence] Could not register device:', error);
+            } finally {
+                onlinePresenceWriteInFlight = false;
+            }
+        }
+
+        async function startOnlinePresenceWriter() {
+            if (onlinePresenceWriterActive || !onlinePresenceLeader || !onlinePresenceActiveHere()) return;
+            clearTimeout(onlinePresenceRetryTimer);
+            onlinePresenceRetryTimer = null;
+            const epoch = ++onlinePresenceWriterEpoch;
+            onlinePresenceWriterActive = true;
+            try {
+                const ctx = await ensureOnlinePresenceFirebase();
+                if (epoch !== onlinePresenceWriterEpoch || !onlinePresenceWriterActive || !onlinePresenceLeader || !onlinePresenceActiveHere()) return;
+                const api = ctx.databaseApi;
+                onlinePresenceOwnRef = api.ref(ctx.database, 'presence/' + ctx.deviceId);
+                const connectedRef = api.ref(ctx.database, '.info/connected');
+                const rootRef = api.ref(ctx.database, 'presence');
+
+                onlinePresenceUnsubConnected = api.onValue(connectedRef, function(snapshot) {
+                    onlinePresenceConnected = snapshot.val() === true;
+                    if (onlinePresenceConnected) writeOnlinePresenceRecord(epoch);
+                }, function(error) {
+                    console.warn('[Presence] Connection listener failed:', error);
+                });
+
+                onlinePresenceUnsubRoot = api.onValue(rootRef, function(snapshot) {
+                    setOnlinePresenceCount(snapshot.size, true);
+                    // If a previous tab disconnected during a handoff and removed
+                    // the shared device record, the current leader repairs it.
+                    if (onlinePresenceConnected && !snapshot.hasChild(ctx.deviceId)) {
+                        setTimeout(function() { writeOnlinePresenceRecord(epoch); }, 180);
+                    }
+                }, function(error) {
+                    console.warn('[Presence] Count listener failed:', error);
+                    setOnlinePresenceCount(null, true);
+                });
+            } catch(error) {
+                onlinePresenceWriterActive = false;
+                console.warn('[Presence] Firebase init failed:', error);
+                setOnlinePresenceCount(null, true);
+                if (onlinePresenceLeader && onlinePresenceActiveHere()) {
+                    onlinePresenceRetryTimer = setTimeout(startOnlinePresenceWriter, 10000);
+                }
+            }
+        }
+
+        function sendOnlinePresenceKeepaliveDelete() {
+            const ctx = onlinePresenceFirebase;
+            if (!ctx || !ctx.deviceId || !ctx.idToken || typeof fetch !== 'function') return;
+            const url = FIREBASE_CONFIG.databaseURL + '/presence/' + encodeURIComponent(ctx.deviceId) + '.json?auth=' + encodeURIComponent(ctx.idToken);
+            try {
+                fetch(url, { method: 'DELETE', mode: 'cors', credentials: 'omit', keepalive: true }).catch(function() {});
+            } catch(e) {}
+        }
+
+        async function stopOnlinePresenceWriter(removeRecord) {
+            const shouldRemove = removeRecord !== false;
+            if (shouldRemove) sendOnlinePresenceKeepaliveDelete();
+            ++onlinePresenceWriterEpoch;
+            clearTimeout(onlinePresenceRetryTimer);
+            onlinePresenceRetryTimer = null;
+            onlinePresenceWriterActive = false;
+            onlinePresenceConnected = false;
+            onlinePresenceWriteInFlight = false;
+            if (onlinePresenceUnsubConnected) {
+                try { onlinePresenceUnsubConnected(); } catch(e) {}
+                onlinePresenceUnsubConnected = null;
+            }
+            if (onlinePresenceUnsubRoot) {
+                try { onlinePresenceUnsubRoot(); } catch(e) {}
+                onlinePresenceUnsubRoot = null;
+            }
+            const disconnect = onlinePresenceDisconnect;
+            onlinePresenceDisconnect = null;
+            if (disconnect) {
+                try { await disconnect.cancel(); } catch(e) {}
+            }
+            const ownRef = onlinePresenceOwnRef;
+            onlinePresenceOwnRef = null;
+            if (shouldRemove && ownRef && onlinePresenceFirebase) {
+                try { await onlinePresenceFirebase.databaseApi.remove(ownRef); } catch(e) {}
+            }
+        }
+
+        function setOnlinePresenceLeader(isLeader) {
+            isLeader = !!isLeader;
+            if (onlinePresenceLeader === isLeader) return;
+            onlinePresenceLeader = isLeader;
+            if (!isLeader) {
+                stopOnlinePresenceWriter(true);
+                return;
+            }
+            // Give the previous tab enough time to cancel its onDisconnect and
+            // remove the old record before this tab takes ownership.
+            setTimeout(function() {
+                if (onlinePresenceLeader && onlinePresenceActiveHere()) startOnlinePresenceWriter();
+            }, 350);
+        }
+
+        function onlinePresenceWorkerSource() {
+            return `(function(){
+                const tabs=new Map(); let leader=null; let count=0; let order=0;
+                function send(tab,msg){try{tab.port.postMessage(msg);}catch(e){}}
+                function all(msg){tabs.forEach(function(tab){send(tab,msg);});}
+                function elect(){
+                    const now=Date.now(); let next=null;
+                    tabs.forEach(function(tab,id){
+                        if(now-tab.last>12000)return;
+                        if(tab.active&&tab.enabled&&(!next||tab.order<next.tab.order))next={id:id,tab:tab};
+                    });
+                    const nextId=next?next.id:null;
+                    if(nextId===leader)return;
+                    if(leader&&tabs.has(leader))send(tabs.get(leader),{type:'leader',value:false});
+                    leader=nextId;
+                    if(leader&&tabs.has(leader))send(tabs.get(leader),{type:'leader',value:true});
+                }
+                onconnect=function(event){
+                    const port=event.ports[0]; port.start();
+                    port.onmessage=function(event){
+                        const m=event.data||{}; const now=Date.now();
+                        if(m.type==='hello'){
+                            const wasLeader=leader===m.id;
+                            tabs.set(m.id,{port:port,active:!!m.active,enabled:!!m.enabled,last:now,order:++order});
+                            send(tabs.get(m.id),{type:'ready',value:count});
+                            if(wasLeader)send(tabs.get(m.id),{type:'leader',value:true});else elect();
+                            return;
+                        }
+                        const tab=tabs.get(m.id); if(!tab)return; tab.last=now;
+                        if(m.type==='ping'){return;}
+                        if(m.type==='state'){tab.active=!!m.active;tab.enabled=!!m.enabled;elect();return;}
+                        if(m.type==='bye'){if(leader===m.id)leader=null;tabs.delete(m.id);elect();return;}
+                        if(m.type==='count'&&leader===m.id){count=Math.max(0,Number(m.value)||0);all({type:'count',value:count});return;}
+                        if(m.type==='preference'){
+                            tabs.forEach(function(item){item.enabled=!!m.enabled;});
+                            all({type:'preference',enabled:!!m.enabled}); elect();
+                        }
+                    };
+                };
+                setInterval(function(){
+                    const now=Date.now();
+                    tabs.forEach(function(tab,id){if(now-tab.last>12000){if(leader===id)leader=null;tabs.delete(id);}});
+                    elect();
+                },4000);
+            })();`;
+        }
+
+        function handleOnlinePresenceCoordinatorMessage(message) {
+            const data = message || {};
+            if (data.type === 'ready') {
+                if (onlinePresenceCoordinatorMode !== 'shared-pending') return;
+                clearTimeout(onlinePresenceSharedReadyTimer);
+                onlinePresenceCoordinatorMode = 'shared';
+                setOnlinePresenceCount(data.value, false);
+                return;
+            }
+            if (data.type === 'leader') {
+                setOnlinePresenceLeader(!!data.value);
+            } else if (data.type === 'count') {
+                setOnlinePresenceCount(data.value, false);
+            } else if (data.type === 'preference') {
+                const enabled = !!data.enabled;
+                if (settings.onlinePresence !== enabled) {
+                    settings.onlinePresence = enabled;
+                    updateSettingsUI();
+                }
+                postOnlinePresenceCoordinatorState();
+            }
+        }
+
+        function startOnlinePresenceSharedWorker() {
+            if (typeof SharedWorker === 'undefined') return false;
+            try {
+                const source = onlinePresenceWorkerSource();
+                const url = 'data:text/javascript;charset=utf-8,' + encodeURIComponent(source);
+                onlinePresenceSharedWorker = new SharedWorker(url, { name: 'azkar-presence-worker-v2' });
+                onlinePresenceCoordinatorMode = 'shared-pending';
+                onlinePresenceSharedWorker.port.start();
+                onlinePresenceSharedWorker.port.onmessage = function(event) {
+                    if (onlinePresenceCoordinatorMode === 'shared-pending' || onlinePresenceCoordinatorMode === 'shared') {
+                        handleOnlinePresenceCoordinatorMessage(event.data);
+                    }
+                };
+                onlinePresenceSharedWorker.port.postMessage({
+                    type: 'hello',
+                    id: getOnlinePresenceTabId(),
+                    active: onlinePresenceActiveHere(),
+                    enabled: onlinePresenceEnabled()
+                });
+                onlinePresenceHeartbeatTimer = setInterval(function() {
+                    if (!onlinePresenceSharedWorker) return;
+                    try { onlinePresenceSharedWorker.port.postMessage({ type: 'ping', id: onlinePresenceTabId }); } catch(e) {}
+                }, 3000);
+                onlinePresenceSharedReadyTimer = setTimeout(function() {
+                    if (onlinePresenceCoordinatorMode !== 'shared-pending') return;
+                    try { onlinePresenceSharedWorker.port.postMessage({ type: 'bye', id: onlinePresenceTabId }); } catch(e) {}
+                    try { onlinePresenceSharedWorker.port.close(); } catch(e) {}
+                    onlinePresenceSharedWorker = null;
+                    clearInterval(onlinePresenceHeartbeatTimer);
+                    startOnlinePresenceBroadcastFallback();
+                }, 1200);
+                return true;
+            } catch(error) {
+                onlinePresenceSharedWorker = null;
+                return false;
+            }
+        }
+
+        function readOnlinePresenceLease() {
+            try {
+                const value = JSON.parse(localStorage.getItem(ONLINE_PRESENCE_LEASE_KEY) || 'null');
+                return value && value.id ? value : null;
+            } catch(e) { return null; }
+        }
+
+        function releaseOnlinePresenceLease() {
+            const lease = readOnlinePresenceLease();
+            if (lease && lease.id === onlinePresenceTabId) {
+                try { localStorage.removeItem(ONLINE_PRESENCE_LEASE_KEY); } catch(e) {}
+                if (onlinePresenceChannel) {
+                    try { onlinePresenceChannel.postMessage({ type: 'release', id: onlinePresenceTabId }); } catch(e) {}
+                }
+            }
+            clearTimeout(onlinePresenceClaimTimer);
+            onlinePresenceClaimTimer = null;
+            setOnlinePresenceLeader(false);
+        }
+
+        function tickOnlinePresenceLease() {
+            if (onlinePresenceCoordinatorMode !== 'broadcast') return;
+            if (!onlinePresenceActiveHere()) {
+                releaseOnlinePresenceLease();
+                return;
+            }
+            const now = Date.now();
+            const lease = readOnlinePresenceLease();
+            if (onlinePresenceLeader && (!lease || lease.id !== onlinePresenceTabId)) {
+                setOnlinePresenceLeader(false);
+            }
+            if (lease && lease.id === onlinePresenceTabId) {
+                try { localStorage.setItem(ONLINE_PRESENCE_LEASE_KEY, JSON.stringify({ id: onlinePresenceTabId, expires: now + 7000 })); } catch(e) {}
+                setOnlinePresenceLeader(true);
+                return;
+            }
+            if (lease && Number(lease.expires) > now) return;
+            if (onlinePresenceClaimTimer) return;
+            onlinePresenceClaimTimer = setTimeout(function() {
+                onlinePresenceClaimTimer = null;
+                if (!onlinePresenceActiveHere() || onlinePresenceCoordinatorMode !== 'broadcast') return;
+                const latest = readOnlinePresenceLease();
+                if (latest && Number(latest.expires) > Date.now()) return;
+                try {
+                    localStorage.setItem(ONLINE_PRESENCE_LEASE_KEY, JSON.stringify({ id: onlinePresenceTabId, expires: Date.now() + 7000 }));
+                    const won = readOnlinePresenceLease();
+                    if (won && won.id === onlinePresenceTabId) {
+                        if (onlinePresenceChannel) onlinePresenceChannel.postMessage({ type: 'claim', id: onlinePresenceTabId });
+                        setOnlinePresenceLeader(true);
+                    }
+                } catch(e) {}
+            }, 30 + Math.floor(Math.random() * 120));
+        }
+
+        function startOnlinePresenceBroadcastFallback() {
+            onlinePresenceCoordinatorMode = 'broadcast';
+            try {
+                onlinePresenceChannel = new BroadcastChannel(ONLINE_PRESENCE_CHANNEL);
+                onlinePresenceChannel.onmessage = function(event) {
+                    const data = event.data || {};
+                    if (data.id === onlinePresenceTabId) return;
+                    if (data.type === 'count') setOnlinePresenceCount(data.value, false);
+                    else if (data.type === 'claim' || data.type === 'release') tickOnlinePresenceLease();
+                    else if (data.type === 'preference') {
+                        const enabled = !!data.enabled;
+                        if (settings.onlinePresence !== enabled) {
+                            settings.onlinePresence = enabled;
+                            updateSettingsUI();
+                        }
+                        tickOnlinePresenceLease();
+                    }
+                };
+            } catch(e) { onlinePresenceChannel = null; }
+            onlinePresenceLeaseTimer = setInterval(tickOnlinePresenceLease, 2000);
+            tickOnlinePresenceLease();
+        }
+
+        function postOnlinePresenceCoordinatorState() {
+            if (!onlinePresenceCoordinatorStarted) return;
+            const active = onlinePresenceActiveHere();
+            if (!active && onlinePresenceLeader) setOnlinePresenceLeader(false);
+            if ((onlinePresenceCoordinatorMode === 'shared' || onlinePresenceCoordinatorMode === 'shared-pending') && onlinePresenceSharedWorker) {
+                try {
+                    onlinePresenceSharedWorker.port.postMessage({
+                        type: 'state', id: onlinePresenceTabId, active: active, enabled: onlinePresenceEnabled()
+                    });
+                } catch(e) {}
+            } else if (onlinePresenceCoordinatorMode === 'broadcast') {
+                tickOnlinePresenceLease();
+            }
+        }
+
+        function sayOnlinePresenceGoodbye() {
+            if (!onlinePresenceCoordinatorStarted) return;
+            if (onlinePresenceSharedWorker) {
+                try { onlinePresenceSharedWorker.port.postMessage({ type: 'bye', id: onlinePresenceTabId }); } catch(e) {}
+            }
+            if (onlinePresenceCoordinatorMode === 'broadcast') releaseOnlinePresenceLease();
+            setOnlinePresenceLeader(false);
+        }
+
+        function helloOnlinePresenceAgain() {
+            if (!onlinePresenceCoordinatorStarted) return;
+            if (onlinePresenceSharedWorker && (onlinePresenceCoordinatorMode === 'shared' || onlinePresenceCoordinatorMode === 'shared-pending')) {
+                try {
+                    onlinePresenceSharedWorker.port.postMessage({
+                        type: 'hello', id: onlinePresenceTabId,
+                        active: onlinePresenceActiveHere(), enabled: onlinePresenceEnabled()
+                    });
+                } catch(e) {}
+            } else if (onlinePresenceCoordinatorMode === 'broadcast') {
+                tickOnlinePresenceLease();
+            }
+        }
+
+        function initOnlinePresence() {
+            if (onlinePresenceCoordinatorStarted) {
+                postOnlinePresenceCoordinatorState();
+                return;
+            }
+            onlinePresenceCoordinatorStarted = true;
+            getOnlinePresenceTabId();
+            try {
+                const savedCount = Number(localStorage.getItem(ONLINE_PRESENCE_COUNT_KEY));
+                if (Number.isFinite(savedCount)) setOnlinePresenceCount(savedCount, false);
+            } catch(e) {}
+            if (!startOnlinePresenceSharedWorker()) startOnlinePresenceBroadcastFallback();
+
+            document.addEventListener('visibilitychange', postOnlinePresenceCoordinatorState);
+            window.addEventListener('pagehide', sayOnlinePresenceGoodbye);
+            window.addEventListener('beforeunload', sayOnlinePresenceGoodbye);
+            window.addEventListener('pageshow', helloOnlinePresenceAgain);
+            window.addEventListener('storage', function(event) {
+                if (event.key === ONLINE_PRESENCE_LEASE_KEY && onlinePresenceCoordinatorMode === 'broadcast') {
+                    tickOnlinePresenceLease();
+                } else if (event.key === ONLINE_PRESENCE_COUNT_KEY && event.newValue !== null) {
+                    setOnlinePresenceCount(event.newValue, false);
+                } else if (event.key === 'azkar_settings' && event.newValue) {
+                    try {
+                        const otherSettings = JSON.parse(event.newValue);
+                        if (typeof otherSettings.onlinePresence === 'boolean' && otherSettings.onlinePresence !== settings.onlinePresence) {
+                            settings.onlinePresence = otherSettings.onlinePresence;
+                            updateSettingsUI();
+                        }
+                    } catch(e) {}
+                }
+            });
+        }
+
+        function onlinePresencePreferenceChanged() {
+            if (!onlinePresenceCoordinatorStarted) initOnlinePresence();
+            const enabled = onlinePresenceEnabled();
+            if (onlinePresenceSharedWorker && (onlinePresenceCoordinatorMode === 'shared' || onlinePresenceCoordinatorMode === 'shared-pending')) {
+                try { onlinePresenceSharedWorker.port.postMessage({ type: 'preference', id: onlinePresenceTabId, enabled: enabled }); } catch(e) {}
+            } else if (onlinePresenceCoordinatorMode === 'broadcast') {
+                if (onlinePresenceChannel) {
+                    try { onlinePresenceChannel.postMessage({ type: 'preference', id: onlinePresenceTabId, enabled: enabled }); } catch(e) {}
+                }
+                tickOnlinePresenceLease();
+            }
+            postOnlinePresenceCoordinatorState();
         }
 
         function firebaseProfileFromUser(user) {
@@ -15505,6 +16066,13 @@
             if (stealthIconEl) stealthIconEl.textContent = settings.stealthMode ? '🌑' : '🌕';
             const autoAdvanceToggleEl = document.getElementById('autoAdvanceToggle');
             if (autoAdvanceToggleEl) autoAdvanceToggleEl.classList.toggle('on', !!settings.autoAdvance);
+            // Real online presence indicator toggle + visibility
+            const onlinePresenceToggleEl = document.getElementById('onlinePresenceToggle');
+            const onlinePresenceOn = settings.onlinePresence !== false;
+            if (onlinePresenceToggleEl) onlinePresenceToggleEl.classList.toggle('on', onlinePresenceOn);
+            const onlinePresenceEl = document.getElementById('onlinePresence');
+            if (onlinePresenceEl) onlinePresenceEl.style.display = onlinePresenceOn ? '' : 'none';
+            if (onlinePresenceCoordinatorStarted) postOnlinePresenceCoordinatorState();
             if (typeof updateGoogleAccountUI === 'function') updateGoogleAccountUI();
         }
 
@@ -15833,6 +16401,7 @@
             if (settings.reminder === undefined) settings.reminder = false;
             if (settings.hadithEnabled === undefined) settings.hadithEnabled = false;
             if (settings.hadithFreq === undefined) settings.hadithFreq = 'medium';
+            if (settings.onlinePresence === undefined) settings.onlinePresence = true;
             updateSettingsUI();
             updateHadithUI();
             if (settings.hadithEnabled) scheduleHadith();            // Wake Lock — disabled for battery savings
@@ -18868,6 +19437,7 @@
         // вызываются через switchTab() по мере необходимости.
         updateSettingsUI();
         initFirebaseAccount().catch(function(e) { console.warn('[Firebase] Init failed:', e); });
+        initOnlinePresence();
         initReminder();
 
         // ===== PRAYER TIMES MODULE =====
