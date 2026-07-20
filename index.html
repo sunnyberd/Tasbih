@@ -15058,7 +15058,9 @@
         }
 
         function onlinePresenceActiveHere() {
-            return onlinePresenceEnabled() && document.visibilityState !== 'hidden';
+            // The setting controls only whether the local indicator is visible.
+            // Presence itself stays active while the app is open and visible.
+            return document.visibilityState !== 'hidden';
         }
 
         function setOnlinePresenceCount(value, share) {
@@ -15293,8 +15295,7 @@
                         if(m.type==='bye'){if(leader===m.id)leader=null;tabs.delete(m.id);elect();return;}
                         if(m.type==='count'&&leader===m.id){count=Math.max(0,Number(m.value)||0);all({type:'count',value:count});return;}
                         if(m.type==='preference'){
-                            tabs.forEach(function(item){item.enabled=!!m.enabled;});
-                            all({type:'preference',enabled:!!m.enabled}); elect();
+                            all({type:'preference',enabled:!!m.enabled});
                         }
                     };
                 };
@@ -15334,7 +15335,7 @@
             try {
                 const source = onlinePresenceWorkerSource();
                 const url = 'data:text/javascript;charset=utf-8,' + encodeURIComponent(source);
-                onlinePresenceSharedWorker = new SharedWorker(url, { name: 'azkar-presence-worker-v2' });
+                onlinePresenceSharedWorker = new SharedWorker(url, { name: 'azkar-presence-worker-v3' });
                 onlinePresenceCoordinatorMode = 'shared-pending';
                 onlinePresenceSharedWorker.port.start();
                 onlinePresenceSharedWorker.port.onmessage = function(event) {
@@ -15346,7 +15347,7 @@
                     type: 'hello',
                     id: getOnlinePresenceTabId(),
                     active: onlinePresenceActiveHere(),
-                    enabled: onlinePresenceEnabled()
+                    enabled: true
                 });
                 onlinePresenceHeartbeatTimer = setInterval(function() {
                     if (!onlinePresenceSharedWorker) return;
@@ -15451,7 +15452,7 @@
             if ((onlinePresenceCoordinatorMode === 'shared' || onlinePresenceCoordinatorMode === 'shared-pending') && onlinePresenceSharedWorker) {
                 try {
                     onlinePresenceSharedWorker.port.postMessage({
-                        type: 'state', id: onlinePresenceTabId, active: active, enabled: onlinePresenceEnabled()
+                        type: 'state', id: onlinePresenceTabId, active: active, enabled: true
                     });
                 } catch(e) {}
             } else if (onlinePresenceCoordinatorMode === 'broadcast') {
@@ -15474,7 +15475,7 @@
                 try {
                     onlinePresenceSharedWorker.port.postMessage({
                         type: 'hello', id: onlinePresenceTabId,
-                        active: onlinePresenceActiveHere(), enabled: onlinePresenceEnabled()
+                        active: onlinePresenceActiveHere(), enabled: true
                     });
                 } catch(e) {}
             } else if (onlinePresenceCoordinatorMode === 'broadcast') {
