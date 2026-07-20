@@ -573,16 +573,16 @@
         }
         #pipCounterBtn.drag-ready::before { opacity: 0.7; transform: scale(1); }
 
-        /* ===== AUTO-EXTEND +100 BADGE ===== */
+        /* ===== AUTO-EXTEND BADGE (+100 / +500 / +1000) ===== */
         .goal-modal-header {
             position: relative;
             display: flex; align-items: center; justify-content: center;
         }
+        .auto-extend-wrap { position: absolute; top: 0; right: 0; }
         #autoExtendBadge {
-            position: absolute;
-            top: 0; right: 0;
+            display: flex; align-items: center; gap: 3px;
             font-size: 0.72rem; font-weight: 700;
-            padding: 4px 9px;
+            padding: 4px 8px 4px 9px;
             border-radius: 20px;
             border: 1.5px solid;
             cursor: pointer;
@@ -591,6 +591,8 @@
             line-height: 1;
             user-select: none;
         }
+        #autoExtendBadge svg { width: 10px; height: 10px; flex-shrink: 0; transition: transform 0.2s ease; }
+        #autoExtendBadge.open svg { transform: rotate(180deg); }
         #autoExtendBadge.off {
             color: var(--danger);
             border-color: var(--danger);
@@ -602,6 +604,39 @@
             background: rgba(34, 197, 94, 0.1);
         }
         #autoExtendBadge:active { transform: scale(0.92); }
+        .auto-extend-dropdown {
+            position: absolute;
+            top: calc(100% + 6px);
+            right: 0;
+            min-width: 130px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.45), 0 0 0 1px var(--border);
+            overflow: hidden;
+            z-index: 10000;
+            opacity: 0;
+            transform: translateY(-6px) scale(0.97);
+            pointer-events: none;
+            transition: opacity 0.18s ease, transform 0.18s ease;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .auto-extend-dropdown.open {
+            opacity: 1; transform: translateY(0) scale(1); pointer-events: auto;
+        }
+        .auto-extend-option {
+            padding: 10px 14px;
+            font-size: 0.82rem; font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            transition: background 0.15s;
+            text-align: right;
+        }
+        .auto-extend-option:active { background: var(--accent-glow); }
+        .auto-extend-option.active { color: var(--gold); }
+        .auto-extend-option + .auto-extend-option { border-top: 1px solid var(--border); }
+        .auto-extend-option.off-option { color: var(--danger); }
 
         /* ===== HADITH POPUP ===== */
         #hadithPopupOverlay {
@@ -1161,13 +1196,6 @@
             border-color: var(--gold);
             background: linear-gradient(145deg, var(--accent-glow), var(--surface));
             box-shadow: 0 4px 14px var(--accent-glow);
-        }
-        .goal-chip.active::after {
-            content: '';
-            position: absolute; bottom: 5px; left: 50%;
-            transform: translateX(-50%);
-            width: 24px; height: 2px;
-            background: var(--gold); border-radius: 2px;
         }
         /* Flash on goal chip tap */
         /* Remove focus square on ring */
@@ -4764,11 +4792,22 @@
     </div>
 
     <div class="modal-overlay center" id="customGoalModal" onclick="closeCustomGoalModal()">
-        <div class="modal-sheet" onclick="event.stopPropagation()">
+        <div class="modal-sheet" onclick="event.stopPropagation(); _closeAutoExtendMenuOnce();">
             <div class="modal-handle"></div>
             <div class="goal-modal-header">
                 <div class="modal-title" id="customGoalModalTitle">⚡ Своя цель</div>
-                <div id="autoExtendBadge" class="off" onclick="toggleAutoExtend(event)">+100</div>
+                <div class="auto-extend-wrap">
+                    <div id="autoExtendBadge" class="off" onclick="toggleAutoExtendMenu(event)">
+                        <span id="autoExtendBadgeLabel">Выкл</span>
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <div class="auto-extend-dropdown" id="autoExtendDropdown">
+                        <div class="auto-extend-option off-option" data-step="0" onclick="setAutoExtendStep(event,0)" id="aeOpt0">Выключено</div>
+                        <div class="auto-extend-option" data-step="100" onclick="setAutoExtendStep(event,100)" id="aeOpt100">+100</div>
+                        <div class="auto-extend-option" data-step="500" onclick="setAutoExtendStep(event,500)" id="aeOpt500">+500</div>
+                        <div class="auto-extend-option" data-step="1000" onclick="setAutoExtendStep(event,1000)" id="aeOpt1000">+1000</div>
+                    </div>
+                </div>
             </div>
             <div class="form-group">
                 <label class="form-label" id="customGoalModalLabel">Введите число</label>
@@ -10481,7 +10520,7 @@
             document.getElementById('customGoalModal').classList.add('show');
             updateAutoExtendBadge();
         }
-        function closeCustomGoalModal() { document.getElementById('customGoalModal').classList.remove('show'); }
+        function closeCustomGoalModal() { document.getElementById('customGoalModal').classList.remove('show'); _closeAutoExtendMenuOnce(); }
 
         /* ===== LONG-PRESS для «Своя цель» ===== */
         let _customPressTimer = null;
@@ -10540,20 +10579,46 @@
             // toast removed
         }
 
-        function toggleAutoExtend(e) {
+        function toggleAutoExtendMenu(e) {
             e.stopPropagation();
-            settings.autoExtend = !settings.autoExtend;
+            const badge = document.getElementById('autoExtendBadge');
+            const dropdown = document.getElementById('autoExtendDropdown');
+            const willOpen = !dropdown.classList.contains('open');
+            dropdown.classList.toggle('open', willOpen);
+            badge.classList.toggle('open', willOpen);
+            if (willOpen) {
+                setTimeout(() => document.addEventListener('click', _closeAutoExtendMenuOnce), 0);
+            }
+        }
+        function _closeAutoExtendMenuOnce() {
+            const dropdown = document.getElementById('autoExtendDropdown');
+            const badge = document.getElementById('autoExtendBadge');
+            if (dropdown) dropdown.classList.remove('open');
+            if (badge) badge.classList.remove('open');
+            document.removeEventListener('click', _closeAutoExtendMenuOnce);
+        }
+        function setAutoExtendStep(e, step) {
+            e.stopPropagation();
+            settings.autoExtendStep = step;
             saveDataDebounced();
             updateAutoExtendBadge();
+            _closeAutoExtendMenuOnce();
         }
         function updateAutoExtendBadge() {
             const badge = document.getElementById('autoExtendBadge');
-            if (!badge) return;
-            if (settings.autoExtend) {
+            const label = document.getElementById('autoExtendBadgeLabel');
+            if (!badge || !label) return;
+            const step = settings.autoExtendStep || 0;
+            if (step > 0) {
                 badge.classList.remove('off'); badge.classList.add('on');
+                label.innerText = '+' + step;
             } else {
                 badge.classList.remove('on'); badge.classList.add('off');
+                label.innerText = 'Выкл';
             }
+            document.querySelectorAll('.auto-extend-option').forEach(opt => {
+                opt.classList.toggle('active', parseInt(opt.dataset.step, 10) === step);
+            });
         }
 
         function increment() {
@@ -10632,22 +10697,19 @@
                 }
             }
 
-            // ─── ФОНОВОЕ АВТО-ПРОДЛЕНИЕ «СВОЕЙ ЦЕЛИ» (+100) ──────────────────
-            // Если у «своей цели» включено +100, её порог срабатывает по общему
+            // ─── ФОНОВОЕ АВТО-ПРОДЛЕНИЕ «СВОЕЙ ЦЕЛИ» ─────────────────────────
+            // Если у «своей цели» включён шаг, её порог срабатывает по общему
             // счёту (count) ДАЖЕ когда сейчас активна другая цель (33/66/100).
-            // Пример: своя цель 1000 с +100, пользователь дошёл до 950, переключился
-            // на «33» и досчитал общий счёт до 1000 — срабатывает +100 (цель → 1100).
-            // Если +100 выключено — блок пропускается, всё работает как обычно.
-            if (settings.autoExtend && !isUnlimited && !isCustomGoalActive &&
+            const _aeStep = settings.autoExtendStep || 0;
+            if (_aeStep > 0 && !isUnlimited && !isCustomGoalActive &&
                 customGoal > 0 && count >= customGoal) {
-                // Поднимаем порог своей цели выше текущего счёта шагами по +100
-                // (на случай, если +100 включили, когда счёт уже перевалил за цель).
-                do { customGoal += 100; } while (customGoal <= count);
+                // Поднимаем порог своей цели выше текущего счёта выбранным шагом.
+                do { customGoal += _aeStep; } while (customGoal <= count);
                 localStorage.setItem('azkar_custom_goal', customGoal);
                 const _cgNum = document.getElementById('customGoalNum');
                 if (_cgNum) _cgNum.innerText = formatGoalShort(customGoal);
                 playGoalSound();
-                showToast('+100');
+                showToast('+' + _aeStep);
                 saveDataDebounced();
             }
         }
@@ -10669,10 +10731,11 @@
                 completeSpecialDhikr();
             } else {
                 isCompletionActive = false;
-                // Auto-extend: add +100 to goal if enabled (only for custom goal)
+                // Auto-extend by the selected step (only for custom goal)
                 const isCustomGoalActive = document.getElementById('customGoalChip').classList.contains('active');
-                if (settings.autoExtend && !isUnlimited && isCustomGoalActive) {
-                    goal += 100;
+                const _aeStep2 = settings.autoExtendStep || 0;
+                if (_aeStep2 > 0 && !isUnlimited && isCustomGoalActive) {
+                    goal += _aeStep2;
                     customGoal = goal;
                     goalTriggered = false;
                     localStorage.setItem('azkar_custom_goal', customGoal);
@@ -10681,7 +10744,7 @@
                     document.getElementById('customGoalChip').classList.add('active');
                     updateDisplay();
                     saveDataDebounced();
-                    showToast('+100');
+                    showToast('+' + _aeStep2);
                 }
             }
         }
@@ -15760,7 +15823,11 @@
             if (settings.vibrationLevel === undefined) settings.vibrationLevel = 3;
             if (settings.clickSoundVolume === undefined) settings.clickSoundVolume = 10;
             if (settings.goalSoundVolume === undefined) settings.goalSoundVolume = 10;
-            if (settings.autoExtend === undefined) settings.autoExtend = false;
+            if (settings.autoExtendStep === undefined) {
+                // Миграция прежнего переключателя: включено означало +100.
+                settings.autoExtendStep = settings.autoExtend ? 100 : 0;
+            }
+            delete settings.autoExtend;
             if (settings.autoAdvance === undefined) settings.autoAdvance = false;
             if (settings.stealthMode === undefined) settings.stealthMode = false;
             if (settings.reminder === undefined) settings.reminder = false;
