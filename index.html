@@ -899,7 +899,9 @@
         }
         #screen-special-counter .special-counter-header {
             position: absolute;
-            top: calc(12px + var(--safe-t));
+            /* Online presence starts at safe-t + 14px and is about 15px tall.
+               Keep the back button below it with a comfortable tap-safe gap. */
+            top: calc(var(--safe-t) + 38px);
             left: 0; width: 100%; z-index: 10; padding: 0 20px;
             pointer-events: none;
         }
@@ -1427,6 +1429,31 @@
         }
         .header-icon { width: 28px; height: 28px; stroke: var(--gold); fill: none; stroke-width: 1.8; }
         .screen-header p { font-size: clamp(0.7rem, 2.8vw, 0.75rem); color: var(--text-muted); margin-top: 6px; }
+
+        /* ===== STICKY SCREEN HEADS =====
+           Reusable shell for the part of a scrollable screen that must stay
+           visible. New screens can opt in by wrapping their fixed controls in
+           .screen-sticky-head; dynamically created checklist pages inherit it
+           automatically because they render below the shared shell. */
+        .screen-sticky-head {
+            position: sticky;
+            top: 0;
+            z-index: 80;
+            flex: 0 0 auto;
+            min-width: 0;
+            background: var(--bg);
+            isolation: isolate;
+            transform: translateZ(0);
+        }
+        /* Deliberately no shadow/fade below the sticky shell. As on the main
+           counter screen, an extending mask would dim the first content card
+           even before the user starts scrolling. The opaque shell itself is
+           enough to hide content that passes underneath while scrolling. */
+        /* The account block keeps the same horizontal rhythm after being moved
+           into the fixed settings shell. */
+        #screen-settings .settings-sticky-head .settings-list {
+            padding-bottom: 0;
+        }
 
         /* ===== INPUTS & TEXTAREAS: allow text selection ===== */
         input, textarea, [contenteditable="true"] {
@@ -5051,32 +5078,38 @@
     </div>
 
     <div class="screen" id="screen-dua">
-        <div class="screen-header">
-            <h2>
-                <span id="titleDua">Дуа</span>
-            </h2>
-            <p id="subtitleDua">Ваши личные молитвы и зикры</p>
-        </div>
-        <div class="search-wrap">
-            <input type="text" class="search-input" id="duaSearch" oninput="onDuaSearch()" placeholder="Поиск по дуа...">
+        <div class="screen-sticky-head">
+            <div class="screen-header">
+                <h2>
+                    <span id="titleDua">Дуа</span>
+                </h2>
+                <p id="subtitleDua">Ваши личные молитвы и зикры</p>
+            </div>
+            <div class="search-wrap">
+                <input type="text" class="search-input" id="duaSearch" oninput="onDuaSearch()" placeholder="Поиск по дуа...">
+            </div>
         </div>
         <div id="duaFoldersContainer"></div>
         <div class="dua-list" id="duaList"></div>
     </div>
 
     <div class="screen" id="screen-names">
-        <div class="names-header">
-            <div class="names-title" id="namesTitle">99 имён Аллаха</div>
+        <div class="screen-sticky-head">
+            <div class="names-header">
+                <div class="names-title" id="namesTitle">99 имён Аллаха</div>
+            </div>
         </div>
         <div class="names-list" id="namesList"></div>
     </div>
 
     <div class="screen" id="screen-favorites">
-        <div class="screen-header">
-            <h2>
-                <span id="titleFav">Избранное</span>
-            </h2>
-            <p id="subtitleFav">Любимые дуа под рукой</p>
+        <div class="screen-sticky-head">
+            <div class="screen-header">
+                <h2>
+                    <span id="titleFav">Избранное</span>
+                </h2>
+                <p id="subtitleFav">Любимые дуа под рукой</p>
+            </div>
         </div>
         <div class="dua-list" id="favList"></div>
     </div>
@@ -5153,33 +5186,35 @@
 
     <!-- CHECKLIST SCREEN -->
     <div class="screen" id="screen-checklist">
-        <div class="screen-header">
-            <h2><span id="titleChecklist">Задачи</span></h2>
-            <p id="subtitleChecklist">Отмечайте выполненные дела</p>
-        </div>
-
-        <!-- Переключатель СПИСКОВ (страниц) задач — справа сверху, как выбор языка -->
-        <div class="cl-list-bar">
-            <div class="cl-list-select-wrap" id="clListSelectWrap">
-                <button class="cl-list-select-btn" id="clListSelectBtn" onclick="toggleChecklistListDropdown(event)">
-                    <span class="clls-name" id="clListSelectName">Ежедневные</span>
-                    <svg class="clls-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <div class="cl-list-dropdown" id="clListDropdown"></div>
+        <div class="screen-sticky-head">
+            <div class="screen-header">
+                <h2><span id="titleChecklist">Задачи</span></h2>
+                <p id="subtitleChecklist">Отмечайте выполненные дела</p>
             </div>
-        </div>
 
-        <!-- Общий прогресс-бар (всегда виден) — клик открывает детальную статистику -->
-        <div class="checklist-overall-progress clickable" id="checklistOverallProgress" role="button" tabindex="0" onclick="openChecklistStats()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openChecklistStats();}">
-            <div class="cop-header">
-                <span class="cop-label" id="overallProgressLabel">Общий прогресс</span>
-                <span class="cop-right">
-                    <span class="cop-percent" id="checklistOverallPercent">0%</span>
-                    <svg class="cop-stats-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                </span>
+            <!-- Переключатель СПИСКОВ (страниц) задач — справа сверху, как выбор языка -->
+            <div class="cl-list-bar">
+                <div class="cl-list-select-wrap" id="clListSelectWrap">
+                    <button class="cl-list-select-btn" id="clListSelectBtn" onclick="toggleChecklistListDropdown(event)">
+                        <span class="clls-name" id="clListSelectName">Ежедневные</span>
+                        <svg class="clls-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="cl-list-dropdown" id="clListDropdown"></div>
+                </div>
             </div>
-            <div class="cop-bar-bg">
-                <div class="cop-bar-fill" id="checklistOverallFill"></div>
+
+            <!-- Общий прогресс-бар (всегда виден) — клик открывает детальную статистику -->
+            <div class="checklist-overall-progress clickable" id="checklistOverallProgress" role="button" tabindex="0" onclick="openChecklistStats()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openChecklistStats();}">
+                <div class="cop-header">
+                    <span class="cop-label" id="overallProgressLabel">Общий прогресс</span>
+                    <span class="cop-right">
+                        <span class="cop-percent" id="checklistOverallPercent">0%</span>
+                        <svg class="cop-stats-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    </span>
+                </div>
+                <div class="cop-bar-bg">
+                    <div class="cop-bar-fill" id="checklistOverallFill"></div>
+                </div>
             </div>
         </div>
 
@@ -5467,57 +5502,61 @@
     </div>
 
     <div class="screen" id="screen-settings">
-        <div class="screen-header">
-            <h2 id="titleSettings">Настройки</h2>
-        </div>
-        <div class="settings-list">
-            <!-- ===== Account ===== -->
-            <div class="set-section">
-              <div class="set-section-h" id="setSecAccount">Account</div>
-              <div class="set-group">
-            <div class="set-row set-row-col account-row" style="cursor:default;">
-                <div class="account-head" id="googleAccountHead">
-                    <div class="account-title-wrap">
-                        <button class="google-mark account-icon-picker" id="accountIconPickerBtn" type="button" onclick="openAccountIconPicker(event)" aria-label="Change account icon">
-                            <svg id="accountDefaultIcon" viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                                <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z"/>
-                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06L5.84 9.9C6.71 7.31 9.14 5.38 12 5.38z"/>
-                            </svg>
-                            <img class="account-custom-icon" id="accountCustomIcon" alt="" hidden>
-                        </button>
-                        <input type="file" id="accountIconInput" accept="image/*" hidden onchange="setAccountIconFromFile(event)">
-                        <div class="set-row-lbl">
-                            <b id="labelGoogleAccount">Google account</b>
+        <div class="screen-sticky-head settings-sticky-head">
+            <div class="screen-header">
+                <h2 id="titleSettings">Настройки</h2>
+            </div>
+            <div class="settings-list">
+                <!-- ===== Account ===== -->
+                <div class="set-section">
+                  <div class="set-section-h" id="setSecAccount">Account</div>
+                  <div class="set-group">
+                <div class="set-row set-row-col account-row" style="cursor:default;">
+                    <div class="account-head" id="googleAccountHead">
+                        <div class="account-title-wrap">
+                            <button class="google-mark account-icon-picker" id="accountIconPickerBtn" type="button" onclick="openAccountIconPicker(event)" aria-label="Change account icon">
+                                <svg id="accountDefaultIcon" viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                    <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z"/>
+                                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06L5.84 9.9C6.71 7.31 9.14 5.38 12 5.38z"/>
+                                </svg>
+                                <img class="account-custom-icon" id="accountCustomIcon" alt="" hidden>
+                            </button>
+                            <input type="file" id="accountIconInput" accept="image/*" hidden onchange="setAccountIconFromFile(event)">
+                            <div class="set-row-lbl">
+                                <b id="labelGoogleAccount">Google account</b>
+                            </div>
+                        </div>
+                        <span class="account-status" id="googleAccountStatus">Not connected</span>
+                    </div>
+                    <div class="account-profile" id="googleAccountProfile" hidden>
+                        <img class="account-avatar" id="googleAccountAvatar" alt="" referrerpolicy="no-referrer">
+                        <div class="account-profile-copy">
+                            <strong id="googleAccountName">Google user</strong>
+                            <span id="googleAccountEmail">user@gmail.com</span>
                         </div>
                     </div>
-                    <span class="account-status" id="googleAccountStatus">Not connected</span>
-                </div>
-                <div class="account-profile" id="googleAccountProfile" hidden>
-                    <img class="account-avatar" id="googleAccountAvatar" alt="" referrerpolicy="no-referrer">
-                    <div class="account-profile-copy">
-                        <strong id="googleAccountName">Google user</strong>
-                        <span id="googleAccountEmail">user@gmail.com</span>
+                    <div class="account-actions">
+                        <button class="google-signin-btn" id="googleSignInBtn" type="button" onclick="signInWithGoogle()">
+                            <span class="google-glyph" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" focusable="false">
+                                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                    <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z"/>
+                                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06L5.84 9.9C6.71 7.31 9.14 5.38 12 5.38z"/>
+                                </svg>
+                            </span>
+                            <span id="googleSignInText">Sign in with Google</span>
+                        </button>
+                        <button class="account-ghost-btn" id="googleSignOutBtn" type="button" onclick="signOutGoogleAccount()" hidden>Sign out</button>
                     </div>
                 </div>
-                <div class="account-actions">
-                    <button class="google-signin-btn" id="googleSignInBtn" type="button" onclick="signInWithGoogle()">
-                        <span class="google-glyph" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" focusable="false">
-                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                                <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z"/>
-                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06L5.84 9.9C6.71 7.31 9.14 5.38 12 5.38z"/>
-                            </svg>
-                        </span>
-                        <span id="googleSignInText">Sign in with Google</span>
-                    </button>
-                    <button class="account-ghost-btn" id="googleSignOutBtn" type="button" onclick="signOutGoogleAccount()" hidden>Sign out</button>
-                </div>
+                  </div>
             </div>
-              </div>
-            </div>
+        </div>
+        </div>
+        <div class="settings-list">
 
             <!-- ===== Внешний вид ===== -->
             <div class="set-section">
@@ -21286,4 +21325,3 @@
         </script>
 </body>
 </html>
-    
