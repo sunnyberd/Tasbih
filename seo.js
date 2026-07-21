@@ -160,12 +160,38 @@
 
         const title = document.getElementById('seoIntroTitle');
         const text = document.getElementById('seoIntroText');
+        const button = document.getElementById('seoAboutButton');
         if (title) title.textContent = content.introTitle;
         if (text) text.textContent = content.intro;
+        if (button) button.textContent = content.introTitle;
+    }
+
+    function openAboutApp() {
+        const overlay = document.getElementById('aboutAppOverlay');
+        if (!overlay) return;
+        overlay.classList.add('show');
+        overlay.setAttribute('aria-hidden', 'false');
+        const title = document.getElementById('seoIntroTitle');
+        if (title) window.setTimeout(function () { title.focus({ preventScroll: true }); }, 30);
+    }
+
+    function closeAboutApp() {
+        const overlay = document.getElementById('aboutAppOverlay');
+        if (!overlay) return;
+        overlay.classList.remove('show');
+        overlay.setAttribute('aria-hidden', 'true');
+        const button = document.getElementById('seoAboutButton');
+        if (button) button.focus({ preventScroll: true });
     }
 
     window.AZKAR_SEO = Object.freeze(SEO);
     window.applySeoLanguage = applySeoLanguage;
+    window.openAboutApp = openAboutApp;
+    window.closeAboutApp = closeAboutApp;
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') closeAboutApp();
+    });
 
     document.addEventListener('DOMContentLoaded', function () {
         let language = document.documentElement.lang || 'en';

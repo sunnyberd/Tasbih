@@ -1,7 +1,7 @@
 // ===== Azkar PWA Service Worker =====
-// Версия: v58 — добавлены SEO-метаданные, карта сайта и многоязычное описание.
+// Версия: v59 — карточка «О приложении Azkar» перенесена в нижнюю часть настроек.
 // Бампать CACHE_NAME при каждом релизе → activate-handler выкинет старый кэш.
-const CACHE_NAME = 'azkar-v58';
+const CACHE_NAME = 'azkar-v59';
 
 // ===== УСТАНОВКА И КЭШ =====
 self.addEventListener('install', (event) => {

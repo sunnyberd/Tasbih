@@ -4786,51 +4786,90 @@
             white-space: nowrap;
         }
 
-        /* Compact, optional introduction: useful to people and readable by search engines. */
-        .seo-intro-card {
-            width: min(92%, 520px);
-            margin: 0 auto clamp(6px, 1.8vw, 12px);
-            border: 1px solid color-mix(in srgb, var(--gold) 24%, transparent);
-            border-radius: 14px;
-            background: color-mix(in srgb, var(--surface) 88%, transparent);
-            color: var(--text-muted);
-            overflow: hidden;
-            flex: 0 0 auto;
+        /* ===== ABOUT AZKAR ===== */
+        .about-app-trigger {
+            display: block;
+            width: fit-content;
+            max-width: calc(100% - 24px);
+            margin: 0 auto 13px;
+            padding: 7px 13px;
+            border: 1px solid color-mix(in srgb, var(--gold) 34%, transparent);
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--surface-light) 72%, transparent);
+            color: var(--gold);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 600;
+            line-height: 1.2;
+            letter-spacing: 0.035em;
+            cursor: pointer;
+            transition: border-color .18s ease, background .18s ease, transform .15s ease;
         }
-        .seo-intro-card summary {
+        .about-app-trigger:active { transform: scale(.97); }
+        .about-app-trigger:focus-visible {
+            outline: 2px solid var(--gold);
+            outline-offset: 3px;
+        }
+        .about-app-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 5200;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 7px;
-            min-height: 34px;
-            padding: 7px 14px;
-            color: var(--gold);
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: .06em;
-            cursor: pointer;
-            list-style: none;
-            user-select: none;
+            padding: max(20px, var(--safe-t)) 18px max(20px, var(--safe-b));
+            background: rgba(0, 0, 0, .70);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            visibility: hidden;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s ease, visibility .2s ease;
         }
-        .seo-intro-card summary::-webkit-details-marker { display: none; }
-        .seo-intro-card summary::after {
-            content: '+';
-            font-size: 16px;
-            line-height: 1;
-            transition: transform .2s ease;
+        .about-app-overlay.show {
+            visibility: visible;
+            opacity: 1;
+            pointer-events: auto;
         }
-        .seo-intro-card[open] summary::after { transform: rotate(45deg); }
-        .seo-intro-card p {
-            margin: 0;
-            padding: 0 16px 13px;
+        .about-app-card {
+            position: relative;
+            width: min(100%, 410px);
+            padding: 28px 24px 25px;
+            border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+            border-radius: 27px;
+            background:
+                radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--gold) 13%, transparent), transparent 46%),
+                var(--surface);
+            box-shadow: 0 24px 80px rgba(0, 0, 0, .55), 0 0 35px var(--gold-glow);
             text-align: center;
-            font-size: 11px;
-            line-height: 1.55;
-            color: var(--text-muted);
+            transform: translateY(16px) scale(.97);
+            transition: transform .22s cubic-bezier(.2,.8,.2,1);
         }
-        @media (max-height: 690px) {
-            .seo-intro-card { margin-bottom: 4px; }
-            .seo-intro-card summary { min-height: 28px; padding-block: 4px; }
+        .about-app-overlay.show .about-app-card { transform: translateY(0) scale(1); }
+        .about-app-ornament {
+            width: 38px;
+            height: 1px;
+            margin: 0 auto 15px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            box-shadow: 0 0 10px var(--gold-glow);
+        }
+        .about-app-title {
+            display: inline-block;
+            margin: 0 0 13px;
+            padding: 3px 5px;
+            color: var(--gold);
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(1.45rem, 6vw, 1.8rem);
+            font-weight: 600;
+            line-height: 1.1;
+            cursor: pointer;
+        }
+        .about-app-text {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: clamp(.78rem, 3.2vw, .88rem);
+            line-height: 1.7;
+            overflow-wrap: anywhere;
         }
 
     </style>
@@ -4986,10 +5025,6 @@
             </div>
         </div>
         <div style="flex:1 1 0%;min-height:0;pointer-events:none;" aria-hidden="true"></div>
-        <details class="seo-intro-card" id="seoIntroCard">
-            <summary id="seoIntroTitle">About Azkar</summary>
-            <p id="seoIntroText">Azkar is a free multilingual dhikr and digital tasbih counter with duas, the 99 Names of Allah, personal goals, reminders and statistics. Install it on your phone and use it online or offline.</p>
-        </details>
         <div class="goals-area" style="margin-bottom: clamp(12px, 3.5vw, 20px);">
             <div class="goals-grid">
                 <div class="goal-chip" data-goal="33" onclick="setGoal(33)"><div class="goal-chip-num">33</div><div class="goal-chip-label" id="labelGoal">Цель</div></div>
@@ -5890,6 +5925,7 @@
             </div>
             </div>
             <div class="app-version" id="appVersion">
+                <button class="about-app-trigger" id="seoAboutButton" type="button" onclick="openAboutApp()">About Azkar</button>
                 <div class="app-version-love">
                     <span class="app-version-name">Azkar</span>
                     <span class="app-version-dot">✦</span>
@@ -5898,6 +5934,14 @@
             </div>
         </div>
 
+    </div>
+
+    <div class="about-app-overlay" id="aboutAppOverlay" aria-hidden="true" onclick="if(event.target===this)closeAboutApp()">
+        <section class="about-app-card" role="dialog" aria-modal="true" aria-labelledby="seoIntroTitle" onclick="event.stopPropagation()">
+            <div class="about-app-ornament" aria-hidden="true"></div>
+            <h2 class="about-app-title" id="seoIntroTitle" tabindex="0" onclick="closeAboutApp()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();closeAboutApp();}">About Azkar</h2>
+            <p class="about-app-text" id="seoIntroText">Azkar is a free multilingual dhikr and digital tasbih counter with duas, the 99 Names of Allah, personal goals, reminders and statistics. Install it on your phone and use it online or offline.</p>
+        </section>
     </div>
 
 
