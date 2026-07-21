@@ -12895,7 +12895,7 @@
             _dhikrDeltaSyncPromise = (async function() {
                 try {
                     const canonical = await Promise.race([
-                        remote.pushDhikrCumulative(getDhikrSyncDeviceId(), sentCumulative),
+                        remote.pushDhikrCumulative(getDhikrSyncDeviceId(), sentCumulative, state.acknowledged),
                         new Promise(function(resolve, reject) {
                             setTimeout(function() { reject(new Error('Dhikr sync timeout')); }, 12000);
                         })
@@ -12966,25 +12966,29 @@
                         saveFirebaseAccountLocalSnapshot(uid, snapshot, now, false);
                     }
                 },
-                async pushDhikrCumulative(deviceId, cumulative) {
-                    const now = Date.now();
-                    _firebaseLastPushMs = now;
+                async pushDhikrCumulative(deviceId, cumulative, acknowledged) {
                     const countRef = keyDoc('azkar_count');
                     const totalsRef = keyDoc('azkar_dhikr_totals');
                     const statsRef = keyDoc('azkar_stats_v2');
                     const deviceRef = keyDoc('__sync_device_' + deviceId);
 
-                    return api.runTransaction(db, async function(tx) {
+                    const commitDelta = async function(useDeviceMarker) {
+                        const now = Date.now();
+                        _firebaseLastPushMs = now;
+                        return api.runTransaction(db, async function(tx) {
                         const countSnap = await tx.get(countRef);
                         const totalsSnap = await tx.get(totalsRef);
                         const statsSnap = await tx.get(statsRef);
-                        const deviceSnap = await tx.get(deviceRef);
+                        const deviceSnap = useDeviceMarker ? await tx.get(deviceRef) : null;
                         const readStringValue = function(snap, fallback) {
                             if (!snap.exists()) return fallback;
                             const data = snap.data() || {};
                             return typeof data.value === 'string' ? data.value : fallback;
                         };
-                        const previous = normalizeDhikrDeltaPart(deviceSnap.exists() ? (deviceSnap.data() || {}).cumulative : null);
+                        const markerValue = deviceSnap && deviceSnap.exists()
+                            ? _parseSyncJsonObject(readStringValue(deviceSnap, '{}'))
+                            : null;
+                        const previous = normalizeDhikrDeltaPart(useDeviceMarker ? markerValue : acknowledged);
                         const sent = normalizeDhikrDeltaPart(cumulative);
                         const deltaFor = function(currentMap, previousMap) {
                             const out = {};
@@ -13032,10 +13036,22 @@
                         writeValue(countRef, canonical.azkar_count);
                         writeValue(totalsRef, canonical.azkar_dhikr_totals);
                         writeValue(statsRef, canonical.azkar_stats_v2);
-                        tx.set(deviceRef, { cumulative: appliedCumulative, internal: true, updatedAtMs: now }, { merge: true });
+                        if (useDeviceMarker) {
+                            writeValue(deviceRef, JSON.stringify(appliedCumulative));
+                        }
                         tx.set(metaDoc, { updatedAtMs: now, updatedAt: api.serverTimestamp(), app: 'azkar-pwa' }, { merge: true });
                         return canonical;
-                    });
+                        });
+                    };
+
+                    try {
+                        return await commitDelta(true);
+                    } catch(e) {
+                        const code = String(e && (e.code || e.message) || '').toLowerCase();
+                        if (!code.includes('permission-denied') && !code.includes('permission_denied')) throw e;
+                        console.warn('[Firebase dhikr sync] Device marker is not allowed; using compatible transaction.');
+                        return commitDelta(false);
+                    }
                 },
                 async replaceDhikrState(snapshot, keys) {
                     if (!snapshot) return;
