@@ -4817,19 +4817,12 @@
             background:
                 radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--gold) 13%, transparent), transparent 46%),
                 var(--surface);
-            box-shadow: 0 24px 80px rgba(0, 0, 0, .55), 0 0 35px var(--gold-glow);
+            box-shadow: 0 24px 80px rgba(0, 0, 0, .55);
             text-align: center;
             transform: translateY(16px) scale(.97);
             transition: transform .22s cubic-bezier(.2,.8,.2,1);
         }
         .about-app-overlay.show .about-app-card { transform: translateY(0) scale(1); }
-        .about-app-ornament {
-            width: 38px;
-            height: 1px;
-            margin: 0 auto 15px;
-            background: linear-gradient(90deg, transparent, var(--gold), transparent);
-            box-shadow: 0 0 10px var(--gold-glow);
-        }
         .about-app-title {
             display: inline-block;
             margin: 0 0 13px;
@@ -5931,7 +5924,6 @@
 
     <div class="about-app-overlay" id="aboutAppOverlay" aria-hidden="true" onclick="if(event.target===this)closeAboutApp()">
         <section class="about-app-card" role="dialog" aria-modal="true" aria-labelledby="seoIntroTitle" onclick="event.stopPropagation()">
-            <div class="about-app-ornament" aria-hidden="true"></div>
             <h2 class="about-app-title" id="seoIntroTitle" tabindex="0" onclick="closeAboutApp()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();closeAboutApp();}">About</h2>
             <p class="about-app-text" id="seoIntroText">Azkar is a free multilingual dhikr and digital tasbih counter with duas, the 99 Names of Allah, personal goals, reminders and statistics. Install it on your phone and use it online or offline.</p>
         </section>
