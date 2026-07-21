@@ -4787,29 +4787,6 @@
         }
 
         /* ===== ABOUT AZKAR ===== */
-        .about-app-trigger {
-            display: block;
-            width: fit-content;
-            max-width: calc(100% - 24px);
-            margin: 0 auto 13px;
-            padding: 7px 13px;
-            border: 1px solid color-mix(in srgb, var(--gold) 34%, transparent);
-            border-radius: 999px;
-            background: color-mix(in srgb, var(--surface-light) 72%, transparent);
-            color: var(--gold);
-            font-family: 'Montserrat', sans-serif;
-            font-size: 0.72rem;
-            font-weight: 600;
-            line-height: 1.2;
-            letter-spacing: 0.035em;
-            cursor: pointer;
-            transition: border-color .18s ease, background .18s ease, transform .15s ease;
-        }
-        .about-app-trigger:active { transform: scale(.97); }
-        .about-app-trigger:focus-visible {
-            outline: 2px solid var(--gold);
-            outline-offset: 3px;
-        }
         .about-app-overlay {
             position: fixed;
             inset: 0;
@@ -5901,6 +5878,23 @@
               </div>
             </div>
 
+            <!-- ===== About the app ===== -->
+            <div class="set-section">
+              <div class="set-group">
+                <div class="set-row" role="button" tabindex="0" onclick="openAboutApp()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openAboutApp();}">
+                    <span class="set-ic" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="9"></circle>
+                            <line x1="12" y1="10.5" x2="12" y2="16"></line>
+                            <circle cx="12" cy="7.25" r="0.7" fill="var(--gold)" stroke="none"></circle>
+                        </svg>
+                    </span>
+                    <div class="set-row-lbl"><b id="seoAboutButton">О приложении</b></div>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--text-dim)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
+              </div>
+            </div>
+
             <!-- ===== Скрытые настройки (уведомления): сохранены в DOM для совместимости JS/локализации ===== -->
             <div style="display:none;">
             <!-- Reminder Notification -->
@@ -5925,7 +5919,6 @@
             </div>
             </div>
             <div class="app-version" id="appVersion">
-                <button class="about-app-trigger" id="seoAboutButton" type="button" onclick="openAboutApp()">About Azkar</button>
                 <div class="app-version-love">
                     <span class="app-version-name">Azkar</span>
                     <span class="app-version-dot">✦</span>
@@ -5939,7 +5932,7 @@
     <div class="about-app-overlay" id="aboutAppOverlay" aria-hidden="true" onclick="if(event.target===this)closeAboutApp()">
         <section class="about-app-card" role="dialog" aria-modal="true" aria-labelledby="seoIntroTitle" onclick="event.stopPropagation()">
             <div class="about-app-ornament" aria-hidden="true"></div>
-            <h2 class="about-app-title" id="seoIntroTitle" tabindex="0" onclick="closeAboutApp()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();closeAboutApp();}">About Azkar</h2>
+            <h2 class="about-app-title" id="seoIntroTitle" tabindex="0" onclick="closeAboutApp()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();closeAboutApp();}">About</h2>
             <p class="about-app-text" id="seoIntroText">Azkar is a free multilingual dhikr and digital tasbih counter with duas, the 99 Names of Allah, personal goals, reminders and statistics. Install it on your phone and use it online or offline.</p>
         </section>
     </div>
@@ -7519,6 +7512,7 @@
                 labelVibration: 'labelVibration', labelData: 'labelData',
                 btnExport: 'btnExport', btnImport: 'btnImport',
                 autoExportBadge: 'badgeAuto', madeWithText: 'madeWith',
+                seoAboutButton: 'aboutApp', seoIntroTitle: 'aboutApp', seoIntroText: 'aboutAppText',
                 deleteListNoBtn: 'btnNo', deleteListYesBtn: 'btnYes', listNameCancelBtn: 'addFolderCancel',
                 btnClearStats: 'btnClearStats',
                 clearStatsTitle: 'clearStatsTitle', clearStatsSub: 'clearStatsSub',
@@ -7698,6 +7692,26 @@
             if (typeof window._refreshGeoPermLang === 'function') window._refreshGeoPermLang();
             updateDisplay();
         }
+
+        function openAboutApp() {
+            const overlay = document.getElementById('aboutAppOverlay');
+            if (!overlay) return;
+            overlay.classList.add('show');
+            overlay.setAttribute('aria-hidden', 'false');
+            const title = document.getElementById('seoIntroTitle');
+            if (title) setTimeout(() => title.focus({ preventScroll: true }), 30);
+        }
+
+        function closeAboutApp() {
+            const overlay = document.getElementById('aboutAppOverlay');
+            if (!overlay) return;
+            overlay.classList.remove('show');
+            overlay.setAttribute('aria-hidden', 'true');
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') closeAboutApp();
+        });
 
         function changeLanguage(lang) { currentLang = lang; applyLanguage(lang); saveDataDebounced(); markDirty('dua','favorites','stats','names','special'); }
 
