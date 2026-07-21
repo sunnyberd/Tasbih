@@ -7905,6 +7905,7 @@
             pendingStatsSave = true; scheduleSave();
             markDirty('stats');
             markDataChanged();
+            return today;
         }
 
         function getAudioCtx() {
@@ -8279,7 +8280,8 @@
             count++;
             bumpDhikrTotal('main');
             _timerMain.onClick();
-            recordStat();
+            const statDay = recordStat();
+            recordDhikrCloudDelta('main', statDay, true);
             playClickSound();
             updateDisplay();
             requestAnimationFrame(() => {
@@ -8359,7 +8361,14 @@
         }
 
         function promptResetCounter() { document.getElementById('resetCounterOverlay').classList.add('show'); }
-        function confirmResetCounter() { count = 0; goalTriggered = false; _prevLap = 0; goalBaseline = 0; updateDisplay(); saveDataDebounced(); showToast(t('toastReset')); document.getElementById('resetCounterOverlay').classList.remove('show'); }
+        async function confirmResetCounter() {
+            await flushDhikrDeltaSync();
+            count = 0; goalTriggered = false; _prevLap = 0; goalBaseline = 0;
+            updateDisplay(); saveDataDebounced(); flushSave();
+            replaceFirebaseDhikrState(['azkar_count']);
+            showToast(t('toastReset'));
+            document.getElementById('resetCounterOverlay').classList.remove('show');
+        }
         function cancelResetCounter() { document.getElementById('resetCounterOverlay').classList.remove('show'); }
         function closeCompletion() {
             // Milestone (33/66/100): just continue counting
@@ -8649,7 +8658,10 @@
             lastSpecialIncrementTime = now;
             vibrate();
             specialCount++;
-            if (currentSpecialId) bumpDhikrTotal(currentSpecialId);
+            if (currentSpecialId) {
+                bumpDhikrTotal(currentSpecialId);
+                recordDhikrCloudDelta(currentSpecialId, null, false);
+            }
             _timerSpecial.onClick();
             playClickSound();
             updateSpecialDisplay();
@@ -9818,7 +9830,8 @@
 
         function promptClearStats() { document.getElementById('clearStatsOverlay').classList.add('show'); }
         function promptClearAll() { document.getElementById('clearStatsOverlay').classList.add('show'); }
-        function confirmClearStats() {
+        async function confirmClearStats() {
+            await flushDhikrDeltaSync();
             // Сброс основного счётчика зикра
             count = 0; goalTriggered = false; _prevLap = 0; goalBaseline = 0;
             // Сброс цели на 100 по умолчанию
@@ -9854,6 +9867,8 @@
                 specialCount = 0;
                 updateSpecialDisplay();
             }
+            flushSave();
+            replaceFirebaseDhikrState(['azkar_count', 'azkar_stats_v2', 'azkar_dhikr_totals']);
             renderStats();
             renderSpecialList();
             showToast(t('toastStatsCleared'));
@@ -11906,6 +11921,13 @@
         const firebasePendingPushes = {};
         let firebaseUnsubSnapshot = null;
         let _firebaseLastPushMs = 0;
+        const FIREBASE_ATOMIC_DHIKR_KEYS = new Set(['azkar_count', 'azkar_stats_v2', 'azkar_dhikr_totals']);
+        const DHIKR_DELTA_STORAGE_PREFIX = 'azkar_dhikr_delta_v1_';
+        const DHIKR_SYNC_DEVICE_KEY = 'azkar_dhikr_sync_device_v1';
+        const DHIKR_SYNC_IDLE_MS = 400;
+        const DHIKR_SYNC_BATCH_SIZE = 25;
+        let _dhikrDeltaSyncTimer = null;
+        let _dhikrDeltaSyncPromise = null;
         // Snapshot the local state before Firebase begins its asynchronous boot.
         // User taps made while the SDK/auth/cloud data are still loading are merged
         // into the pulled snapshot instead of being overwritten by it.
@@ -12151,9 +12173,9 @@
             ]);
         }
 
-        function pushFirebaseSnapshotWithTimeout(remote, snapshot, timeoutMs, label, uid) {
+        function pushFirebaseSnapshotWithTimeout(remote, snapshot, timeoutMs, label, uid, pushOptions) {
             if (!remote || typeof remote.push !== 'function' || !snapshot) return Promise.resolve();
-            const pushPromise = trackFirebasePush(uid, Promise.resolve(remote.push(snapshot)));
+            const pushPromise = trackFirebasePush(uid, Promise.resolve(remote.push(snapshot, pushOptions)));
             pushPromise.catch(function(e) {
                 console.warn(label || '[Firebase sync] Push failed:', e);
             });
@@ -12743,6 +12765,174 @@
             if (syncToken === firebaseSyncEpoch) saveGoogleAccount(firebaseProfileFromUser(user));
         }
 
+        function getDhikrSyncDeviceId() {
+            try {
+                let id = localStorage.getItem(DHIKR_SYNC_DEVICE_KEY);
+                if (!id) {
+                    id = (crypto && typeof crypto.randomUUID === 'function')
+                        ? crypto.randomUUID()
+                        : 'd-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+                    localStorage.setItem(DHIKR_SYNC_DEVICE_KEY, id);
+                }
+                return id.replace(/[^a-zA-Z0-9_-]/g, '_');
+            } catch(e) {
+                return 'device-' + Math.random().toString(36).slice(2);
+            }
+        }
+
+        function dhikrDeltaStorageKey(uid) {
+            return DHIKR_DELTA_STORAGE_PREFIX + String(uid || '').replace(/[^a-zA-Z0-9_-]/g, '_');
+        }
+
+        function emptyDhikrDeltaState() {
+            return {
+                cumulative: { main: 0, totals: {}, stats: {} },
+                acknowledged: { main: 0, totals: {}, stats: {} }
+            };
+        }
+
+        function normalizeDhikrDeltaPart(part) {
+            const source = part && typeof part === 'object' ? part : {};
+            const cleanMap = function(value) {
+                const out = {};
+                if (!value || typeof value !== 'object') return out;
+                Object.keys(value).forEach(function(key) {
+                    const n = Math.max(0, Math.floor(Number(value[key]) || 0));
+                    if (n) out[key] = n;
+                });
+                return out;
+            };
+            return {
+                main: Math.max(0, Math.floor(Number(source.main) || 0)),
+                totals: cleanMap(source.totals),
+                stats: cleanMap(source.stats)
+            };
+        }
+
+        function loadDhikrDeltaState(uid) {
+            try {
+                const parsed = JSON.parse(localStorage.getItem(dhikrDeltaStorageKey(uid)) || 'null');
+                if (!parsed || typeof parsed !== 'object') return emptyDhikrDeltaState();
+                return {
+                    cumulative: normalizeDhikrDeltaPart(parsed.cumulative),
+                    acknowledged: normalizeDhikrDeltaPart(parsed.acknowledged)
+                };
+            } catch(e) {
+                return emptyDhikrDeltaState();
+            }
+        }
+
+        function saveDhikrDeltaState(uid, state) {
+            try { localStorage.setItem(dhikrDeltaStorageKey(uid), JSON.stringify(state)); } catch(e) {}
+        }
+
+        function pendingDhikrDeltaCount(state) {
+            const current = state.cumulative;
+            const ack = state.acknowledged;
+            let total = Math.max(0, current.main - ack.main);
+            Object.keys(current.totals).forEach(function(key) {
+                if (key === 'main') return;
+                total += Math.max(0, (current.totals[key] || 0) - (ack.totals[key] || 0));
+            });
+            return total;
+        }
+
+        function recordDhikrCloudDelta(dhikrId, statDay, incrementsMainCounter) {
+            if (firebaseRemoteImporting) return;
+            const rememberedUid = getActiveDataOwnerUid();
+            const uid = (firebaseCurrentUid && localDataBelongsToFirebaseUser(firebaseCurrentUid))
+                ? firebaseCurrentUid
+                : (rememberedUid && googleAccount && String(googleAccount.uid || googleAccount.id || '') === rememberedUid ? rememberedUid : null);
+            if (!uid) return;
+            const state = loadDhikrDeltaState(uid);
+            if (incrementsMainCounter) state.cumulative.main++;
+            if (dhikrId) state.cumulative.totals[dhikrId] = (state.cumulative.totals[dhikrId] || 0) + 1;
+            if (statDay) state.cumulative.stats[statDay] = (state.cumulative.stats[statDay] || 0) + 1;
+            saveDhikrDeltaState(uid, state);
+            scheduleDhikrDeltaSync(pendingDhikrDeltaCount(state) >= DHIKR_SYNC_BATCH_SIZE ? 0 : DHIKR_SYNC_IDLE_MS);
+        }
+
+        function scheduleDhikrDeltaSync(delayMs) {
+            if (_dhikrDeltaSyncTimer) clearTimeout(_dhikrDeltaSyncTimer);
+            _dhikrDeltaSyncTimer = setTimeout(function() {
+                _dhikrDeltaSyncTimer = null;
+                flushDhikrDeltaSync();
+            }, Math.max(0, Number(delayMs) || 0));
+        }
+
+        function applyCanonicalDhikrSnapshot(canonical, beforeSnapshot) {
+            if (!canonical) return;
+            flushSave();
+            const currentSnapshot = AppStorage.exportAll();
+            const remoteLike = { ...currentSnapshot, ...canonical };
+            const merged = mergeSnapshotWithLocalActivity(remoteLike, beforeSnapshot, currentSnapshot);
+            firebaseRemoteImporting = true;
+            try {
+                FIREBASE_ATOMIC_DHIKR_KEYS.forEach(function(key) {
+                    if (Object.prototype.hasOwnProperty.call(merged, key)) localStorage.setItem(key, merged[key]);
+                });
+                reloadAppStateFromStorage();
+            } finally {
+                firebaseRemoteImporting = false;
+            }
+        }
+
+        async function flushDhikrDeltaSync() {
+            if (_dhikrDeltaSyncPromise) return _dhikrDeltaSyncPromise;
+            const uid = firebaseCurrentUid;
+            const remote = AppStorage.remote;
+            if (!uid || !localDataBelongsToFirebaseUser(uid) || !remote || typeof remote.pushDhikrCumulative !== 'function') return false;
+            const state = loadDhikrDeltaState(uid);
+            if (pendingDhikrDeltaCount(state) === 0) return true;
+            if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+                scheduleDhikrDeltaSync(5000);
+                return false;
+            }
+
+            const sentCumulative = JSON.parse(JSON.stringify(state.cumulative));
+            flushSave();
+            const beforeSnapshot = AppStorage.exportAll();
+            _dhikrDeltaSyncPromise = (async function() {
+                try {
+                    const canonical = await Promise.race([
+                        remote.pushDhikrCumulative(getDhikrSyncDeviceId(), sentCumulative),
+                        new Promise(function(resolve, reject) {
+                            setTimeout(function() { reject(new Error('Dhikr sync timeout')); }, 12000);
+                        })
+                    ]);
+                    if (firebaseCurrentUid !== uid) return false;
+                    const latest = loadDhikrDeltaState(uid);
+                    latest.acknowledged = sentCumulative;
+                    saveDhikrDeltaState(uid, latest);
+                    applyCanonicalDhikrSnapshot(canonical, beforeSnapshot);
+                    if (pendingDhikrDeltaCount(latest) > 0) scheduleDhikrDeltaSync(DHIKR_SYNC_IDLE_MS);
+                    return true;
+                } catch(e) {
+                    console.warn('[Firebase dhikr sync] Delta push failed:', e);
+                    scheduleDhikrDeltaSync(5000);
+                    return false;
+                } finally {
+                    _dhikrDeltaSyncPromise = null;
+                }
+            })();
+            return _dhikrDeltaSyncPromise;
+        }
+
+        async function replaceFirebaseDhikrState(keys) {
+            const uid = firebaseCurrentUid;
+            const remote = AppStorage.remote;
+            if (!uid || !localDataBelongsToFirebaseUser(uid) || !remote || typeof remote.replaceDhikrState !== 'function') return;
+            try {
+                flushSave();
+                const snapshot = AppStorage.exportAll();
+                await remote.replaceDhikrState(snapshot, keys);
+                saveFirebaseAccountLocalSnapshot(uid, snapshot, Date.now(), false);
+            } catch(e) {
+                console.warn('[Firebase dhikr sync] State replacement failed:', e);
+                markDataChanged();
+            }
+        }
+
         function createFirebaseRemoteAdapter(uid) {
             const db = firebaseDb;
             const api = firebaseFirestoreApi;
@@ -12750,12 +12940,13 @@
             const metaDoc = api.doc(db, 'users', uid, 'meta', 'sync');
 
             return {
-                async push(snapshot) {
+                async push(snapshot, options) {
                     if (!snapshot || firebaseRemoteImporting) return;
                     const now = Date.now();
                     _firebaseLastPushMs = now;
                     const batch = api.writeBatch(db);
                     APP_DATA_KEYS.forEach(function(key) {
+                        if (FIREBASE_ATOMIC_DHIKR_KEYS.has(key) && !(options && options.includeDhikrState)) return;
                         const hasValue = Object.prototype.hasOwnProperty.call(snapshot, key);
                         batch.set(keyDoc(key), {
                             value: hasValue ? snapshot[key] : null,
@@ -12774,6 +12965,94 @@
                         setActiveDataOwnerUid(uid);
                         saveFirebaseAccountLocalSnapshot(uid, snapshot, now, false);
                     }
+                },
+                async pushDhikrCumulative(deviceId, cumulative) {
+                    const now = Date.now();
+                    _firebaseLastPushMs = now;
+                    const countRef = keyDoc('azkar_count');
+                    const totalsRef = keyDoc('azkar_dhikr_totals');
+                    const statsRef = keyDoc('azkar_stats_v2');
+                    const deviceRef = keyDoc('__sync_device_' + deviceId);
+
+                    return api.runTransaction(db, async function(tx) {
+                        const countSnap = await tx.get(countRef);
+                        const totalsSnap = await tx.get(totalsRef);
+                        const statsSnap = await tx.get(statsRef);
+                        const deviceSnap = await tx.get(deviceRef);
+                        const readStringValue = function(snap, fallback) {
+                            if (!snap.exists()) return fallback;
+                            const data = snap.data() || {};
+                            return typeof data.value === 'string' ? data.value : fallback;
+                        };
+                        const previous = normalizeDhikrDeltaPart(deviceSnap.exists() ? (deviceSnap.data() || {}).cumulative : null);
+                        const sent = normalizeDhikrDeltaPart(cumulative);
+                        const deltaFor = function(currentMap, previousMap) {
+                            const out = {};
+                            Object.keys(currentMap).forEach(function(key) {
+                                const diff = (currentMap[key] || 0) - (previousMap[key] || 0);
+                                if (diff > 0) out[key] = diff;
+                            });
+                            return out;
+                        };
+                        const mainDelta = Math.max(0, sent.main - previous.main);
+                        const totalsDelta = deltaFor(sent.totals, previous.totals);
+                        const statsDelta = deltaFor(sent.stats, previous.stats);
+                        const appliedCumulative = {
+                            main: Math.max(previous.main, sent.main),
+                            totals: { ...previous.totals },
+                            stats: { ...previous.stats }
+                        };
+                        Object.keys(sent.totals).forEach(function(key) {
+                            appliedCumulative.totals[key] = Math.max(appliedCumulative.totals[key] || 0, sent.totals[key] || 0);
+                        });
+                        Object.keys(sent.stats).forEach(function(key) {
+                            appliedCumulative.stats[key] = Math.max(appliedCumulative.stats[key] || 0, sent.stats[key] || 0);
+                        });
+
+                        let remoteCount = Math.max(0, Number(readStringValue(countSnap, '0')) || 0);
+                        const remoteTotals = _parseSyncJsonObject(readStringValue(totalsSnap, '{}'));
+                        const remoteStats = _parseSyncJsonObject(readStringValue(statsSnap, '{}'));
+                        remoteCount += mainDelta;
+                        Object.keys(totalsDelta).forEach(function(key) {
+                            remoteTotals[key] = Math.max(0, Number(remoteTotals[key]) || 0) + totalsDelta[key];
+                        });
+                        Object.keys(statsDelta).forEach(function(day) {
+                            if (!_isPlainSyncObject(remoteStats[day])) remoteStats[day] = { count: 0 };
+                            remoteStats[day].count = Math.max(0, Number(remoteStats[day].count) || 0) + statsDelta[day];
+                        });
+
+                        const canonical = {
+                            azkar_count: String(remoteCount),
+                            azkar_dhikr_totals: JSON.stringify(remoteTotals),
+                            azkar_stats_v2: JSON.stringify(remoteStats)
+                        };
+                        const writeValue = function(ref, value) {
+                            tx.set(ref, { value: value, deleted: false, updatedAtMs: now }, { merge: true });
+                        };
+                        writeValue(countRef, canonical.azkar_count);
+                        writeValue(totalsRef, canonical.azkar_dhikr_totals);
+                        writeValue(statsRef, canonical.azkar_stats_v2);
+                        tx.set(deviceRef, { cumulative: appliedCumulative, internal: true, updatedAtMs: now }, { merge: true });
+                        tx.set(metaDoc, { updatedAtMs: now, updatedAt: api.serverTimestamp(), app: 'azkar-pwa' }, { merge: true });
+                        return canonical;
+                    });
+                },
+                async replaceDhikrState(snapshot, keys) {
+                    if (!snapshot) return;
+                    const now = Date.now();
+                    _firebaseLastPushMs = now;
+                    const batch = api.writeBatch(db);
+                    (keys || Array.from(FIREBASE_ATOMIC_DHIKR_KEYS)).forEach(function(key) {
+                        if (!FIREBASE_ATOMIC_DHIKR_KEYS.has(key)) return;
+                        const hasValue = Object.prototype.hasOwnProperty.call(snapshot, key);
+                        batch.set(keyDoc(key), {
+                            value: hasValue ? snapshot[key] : null,
+                            deleted: !hasValue,
+                            updatedAtMs: now
+                        }, { merge: true });
+                    });
+                    batch.set(metaDoc, { updatedAtMs: now, updatedAt: api.serverTimestamp(), app: 'azkar-pwa' }, { merge: true });
+                    await batch.commit();
                 },
                 async pull() {
                     const data = {};
@@ -12960,8 +13239,17 @@
                 startRealtimeListener(uid);
                 if (remoteUpdatedAtMs) localStorage.setItem(firebaseSyncStampKey(uid), String(remoteUpdatedAtMs));
                 if (shouldRepairRemote) {
-                    await pushFirebaseSnapshotWithTimeout(remoteAdapter, AppStorage.exportAll(), 3500, '[Firebase sync] Account repair push failed:', uid);
+                    const hasPendingAtomicDhikr = pendingDhikrDeltaCount(loadDhikrDeltaState(uid)) > 0;
+                    await pushFirebaseSnapshotWithTimeout(
+                        remoteAdapter,
+                        AppStorage.exportAll(),
+                        3500,
+                        '[Firebase sync] Account repair push failed:',
+                        uid,
+                        { includeDhikrState: !hasPendingAtomicDhikr }
+                    );
                 }
+                scheduleDhikrDeltaSync(0);
                 _firebaseBootLocalRevision = _localDataRevision;
                 _firebaseBootLocalSnapshot = null;
                 return token === firebaseSyncEpoch && localDataBelongsToFirebaseUser(uid);
@@ -13110,6 +13398,7 @@
             let accountSnapshot = null;
 
             try {
+                await flushDhikrDeltaSync();
                 flushSave();
                 if (localDataBelongsToFirebaseUser(signingOutUid)) {
                     accountSnapshot = AppStorage.exportAll();
@@ -14068,10 +14357,20 @@
                 syncReminderWithSW();
             }
             // При сворачивании/закрытии — сразу сохраняем, не ждём debounce
-            if (document.hidden) { flushSave(); }
+            if (document.hidden) {
+                flushSave();
+                persistRememberedAccountSnapshot();
+                flushDhikrDeltaSync();
+            } else {
+                scheduleDhikrDeltaSync(0);
+            }
         });
 
-        window.addEventListener('pagehide', () => { flushSave(); });
+        window.addEventListener('pagehide', () => { flushSave(); persistRememberedAccountSnapshot(); flushDhikrDeltaSync(); });
+        window.addEventListener('online', () => {
+            initFirebaseAccount().catch(function(e) { console.warn('[Firebase] Reconnect failed:', e); });
+            scheduleDhikrDeltaSync(0);
+        });
         window.addEventListener('beforeunload', () => { flushSave(); });
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space') {
@@ -14339,6 +14638,17 @@
         // so every existing save path can call it safely today.
         let _dataSyncTimer = null;
         let _localDataRevision = 0;
+        function persistRememberedAccountSnapshot() {
+            try {
+                const rememberedUid = getActiveDataOwnerUid();
+                const uid = (firebaseCurrentUid && localDataBelongsToFirebaseUser(firebaseCurrentUid))
+                    ? firebaseCurrentUid
+                    : (rememberedUid && googleAccount && String(googleAccount.uid || googleAccount.id || '') === rememberedUid ? rememberedUid : null);
+                if (!uid) return;
+                flushSave();
+                saveFirebaseAccountLocalSnapshot(uid, AppStorage.exportAll(), Date.now(), true);
+            } catch(e) {}
+        }
         function markDataChanged() {
             // Imports call updateDisplay(), which also reaches this function. They
             // are not user edits and must not be mistaken for activity made while a
@@ -14346,21 +14656,24 @@
             if (firebaseRemoteImporting) return;
             _localDataRevision++;
             try { localStorage.setItem('azkar_local_changed_at_v1', String(Date.now())); } catch (e) {}
-            if (!firebaseCurrentUid || !localDataBelongsToFirebaseUser(firebaseCurrentUid)) return;
-            if (!AppStorage.remote || typeof AppStorage.remote.push !== 'function') return;
+            const rememberedUid = getActiveDataOwnerUid();
+            const uid = (firebaseCurrentUid && localDataBelongsToFirebaseUser(firebaseCurrentUid))
+                ? firebaseCurrentUid
+                : (rememberedUid && googleAccount && String(googleAccount.uid || googleAccount.id || '') === rememberedUid ? rememberedUid : null);
+            if (!uid) return;
+            const canPushNow = firebaseCurrentUid === uid && AppStorage.remote && typeof AppStorage.remote.push === 'function';
             if (_dataSyncTimer) clearTimeout(_dataSyncTimer);
             _dataSyncTimer = setTimeout(() => {
                 _dataSyncTimer = null;
                 try {
-                    if (!firebaseCurrentUid || !localDataBelongsToFirebaseUser(firebaseCurrentUid)) return;
-                    if (!AppStorage.remote || typeof AppStorage.remote.push !== 'function') return;
-                    const uid = firebaseCurrentUid;
+                    if (getActiveDataOwnerUid() !== uid) return;
                     flushSave();
                     const snapshot = AppStorage.exportAll();
                     saveFirebaseAccountLocalSnapshot(uid, snapshot, Date.now(), true);
+                    if (firebaseCurrentUid !== uid || !AppStorage.remote || typeof AppStorage.remote.push !== 'function') return;
                     pushFirebaseSnapshotWithTimeout(AppStorage.remote, snapshot, 12000, '[Firebase sync] Push failed:', uid);
                 } catch (e) {}
-            }, 900);
+            }, canPushNow ? 900 : 400);
         }
 
         // One-time cleanup: remove every trace of the former account / Firebase
