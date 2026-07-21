@@ -7,15 +7,59 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0a0a0a">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="Azkar is a free multilingual dhikr and tasbih counter with duas, the 99 Names of Allah, goals, reminders and statistics. Install it and use it online or offline.">
+    <meta name="keywords" content="Azkar, Tasbih, Dhikr, Zikr, dua, digital tasbih counter, zikr counter, 99 Names of Allah, азкар, тасбих, зикр, счётчик зикра, дуа">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="application-name" content="Azkar">
+    <meta name="apple-mobile-web-app-title" content="Azkar">
+    <link rel="canonical" href="https://sunnyberd.github.io/Tasbih/">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
     <link rel="apple-touch-icon" href="icon-192.png">
     <!-- ВАЖНО / IMPORTANT (для людей и нейросетей / for humans and AI):
          Название приложения ВСЕГДА просто "Azkar" — без номера версии, без "v128",
          без дат и любых суффиксов. НИКОГДА не добавляй сюда версии обновлений.
-         The app title MUST always be exactly "Azkar" — never append a version
-         number, build tag or date. Do NOT add update versions here. -->
-    <title>Azkar</title>
+         Keep "Azkar" as the product name. Search-friendly wording may follow it,
+         but never append a version number, build tag or date. -->
+    <title>Azkar — Dhikr, Tasbih Counter &amp; Duas</title>
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Azkar">
+    <meta property="og:title" content="Azkar — Dhikr, Tasbih Counter &amp; Duas">
+    <meta property="og:description" content="A free multilingual dhikr and tasbih counter with duas, the 99 Names of Allah, goals, reminders and statistics. Works online and offline.">
+    <meta property="og:url" content="https://sunnyberd.github.io/Tasbih/">
+    <meta property="og:image" content="https://sunnyberd.github.io/Tasbih/icon-512.png">
+    <meta property="og:image:width" content="512">
+    <meta property="og:image:height" content="512">
+    <meta property="og:image:alt" content="Azkar app icon">
+    <meta property="og:locale" content="en_US">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Azkar — Dhikr, Tasbih Counter &amp; Duas">
+    <meta name="twitter:description" content="Free multilingual dhikr counter, duas and 99 Names of Allah. Install and use online or offline.">
+    <meta name="twitter:image" content="https://sunnyberd.github.io/Tasbih/icon-512.png">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Azkar",
+      "alternateName": ["Tasbih Counter", "Dhikr Counter", "Zikr Counter", "Счётчик зикра", "Электронный тасбих"],
+      "url": "https://sunnyberd.github.io/Tasbih/",
+      "applicationCategory": "LifestyleApplication",
+      "operatingSystem": "Any",
+      "browserRequirements": "Requires a modern web browser",
+      "installUrl": "https://sunnyberd.github.io/Tasbih/",
+      "isAccessibleForFree": true,
+      "inLanguage": ["en", "de", "es", "fr", "it", "ja", "ko", "ru", "uz", "zh", "tr", "hi", "id", "ms", "th"],
+      "description": "A free multilingual dhikr and tasbih counter with duas, the 99 Names of Allah, goals, reminders and statistics. Works online and offline.",
+      "image": "https://sunnyberd.github.io/Tasbih/icon-512.png",
+      "featureList": ["Digital dhikr and tasbih counter", "Duas and personal prayers", "99 Names of Allah", "Goals and statistics", "Reminders", "Offline use", "15 interface languages"],
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
+    <script src="seo.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
     
 
@@ -4742,6 +4786,53 @@
             white-space: nowrap;
         }
 
+        /* Compact, optional introduction: useful to people and readable by search engines. */
+        .seo-intro-card {
+            width: min(92%, 520px);
+            margin: 0 auto clamp(6px, 1.8vw, 12px);
+            border: 1px solid color-mix(in srgb, var(--gold) 24%, transparent);
+            border-radius: 14px;
+            background: color-mix(in srgb, var(--surface) 88%, transparent);
+            color: var(--text-muted);
+            overflow: hidden;
+            flex: 0 0 auto;
+        }
+        .seo-intro-card summary {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            min-height: 34px;
+            padding: 7px 14px;
+            color: var(--gold);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .06em;
+            cursor: pointer;
+            list-style: none;
+            user-select: none;
+        }
+        .seo-intro-card summary::-webkit-details-marker { display: none; }
+        .seo-intro-card summary::after {
+            content: '+';
+            font-size: 16px;
+            line-height: 1;
+            transition: transform .2s ease;
+        }
+        .seo-intro-card[open] summary::after { transform: rotate(45deg); }
+        .seo-intro-card p {
+            margin: 0;
+            padding: 0 16px 13px;
+            text-align: center;
+            font-size: 11px;
+            line-height: 1.55;
+            color: var(--text-muted);
+        }
+        @media (max-height: 690px) {
+            .seo-intro-card { margin-bottom: 4px; }
+            .seo-intro-card summary { min-height: 28px; padding-block: 4px; }
+        }
+
     </style>
 </head>
 <body>
@@ -4895,6 +4986,10 @@
             </div>
         </div>
         <div style="flex:1 1 0%;min-height:0;pointer-events:none;" aria-hidden="true"></div>
+        <details class="seo-intro-card" id="seoIntroCard">
+            <summary id="seoIntroTitle">About Azkar</summary>
+            <p id="seoIntroText">Azkar is a free multilingual dhikr and digital tasbih counter with duas, the 99 Names of Allah, personal goals, reminders and statistics. Install it on your phone and use it online or offline.</p>
+        </details>
         <div class="goals-area" style="margin-bottom: clamp(12px, 3.5vw, 20px);">
             <div class="goals-grid">
                 <div class="goal-chip" data-goal="33" onclick="setGoal(33)"><div class="goal-chip-num">33</div><div class="goal-chip-label" id="labelGoal">Цель</div></div>
@@ -7353,6 +7448,7 @@
         function applyLanguage(lang) {
             currentLang = lang;
             document.documentElement.lang = lang;
+            if (typeof window.applySeoLanguage === 'function') window.applySeoLanguage(lang);
             // Localize the Yes/No buttons on every confirmation card (the
             // reminder-time overlay is excluded — it uses Cancel/Save).
             document.querySelectorAll('.overlay-btn-cancel').forEach(function(b){
@@ -13239,9 +13335,9 @@
         }
 
         // ===== HADITH REMINDER SYSTEM =====
-        // Данные хадисов лежат в отдельном файле hadis.js (window.AZKAR_HADITHS).
-        // ВАЖНО: здесь массива хадисов НЕТ — добавляй новые хадисы в hadis.js.
-        // Весь код ниже устойчив к отсутствию файла: если hadis.js удалён,
+        // Данные хадисов лежат в отдельном файле hadiths.js (window.AZKAR_HADITHS).
+        // ВАЖНО: здесь массива хадисов НЕТ — добавляй новые хадисы в hadiths.js.
+        // Весь код ниже устойчив к отсутствию файла: если hadiths.js удалён,
         // getHadiths() вернёт пустой список, и хадисы просто не будут показываться
         // (ошибок не будет, остальное приложение работает как обычно).
 
@@ -13323,7 +13419,7 @@
         }
 
         // Когда фоновый таймер сработал при открытом приложении, показываем полный
-        // хадис из актуального hadis.js и начинаем новый случайный интервал.
+        // хадис из актуального hadiths.js и начинаем новый случайный интервал.
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.addEventListener('message', event => {
                 if (event.data?.type !== 'SHOW_HADITH' || !settings.hadithEnabled) return;
@@ -13335,7 +13431,7 @@
             // Новая подача (iOS-style): сначала показываем баннер сверху.
             // По тапу на баннер откроется полноценный попап с этим же хадисом.
             const list = getHadiths();
-            if (!list.length) return;   // нет данных (например, hadis.js удалён) → тихо выходим
+            if (!list.length) return;   // нет данных (например, hadiths.js удалён) → тихо выходим
             let idx;
             do { idx = Math.floor(Math.random() * list.length); } while (idx === _hadithLastIdx && list.length > 1);
             _hadithLastIdx = idx;

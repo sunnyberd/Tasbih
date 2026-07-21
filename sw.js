@@ -1,273 +1,271 @@
-/**
- * Azkar PWA — Service Worker
- *
- * СТРАТЕГИЯ ТИХОГО АВТО-ОБНОВЛЕНИЯ:
- *  - Навигация (index.html — вся логика приложения внутри него) → Network-First.
- *    Онлайн-пользователи всегда получают свежий код при следующем открытии,
- *    БЕЗ всплывашек и без необходимости вручную менять версию кэша.
- *    Офлайн → отдаётся последняя сохранённая версия.
- *  - Локальные .js/.json (hadiths.js, manifest.json) → Stale-While-Revalidate:
- *    мгновенно из кэша + фоновое обновление к следующему запуску.
- *  - Иконки и Google Fonts → Cache-First (практически не меняются).
- *
- *  Новый SW активируется немедленно (skipWaiting + clients.claim) и тихо
- *  удаляет устаревшие кэши. Пользователь ничего не замечает — просто всегда
- *  работает с актуальной версией.
- */
+// ===== Azkar PWA Service Worker =====
+// Версия: v58 — добавлены SEO-метаданные, карта сайта и многоязычное описание.
+// Бампать CACHE_NAME при каждом релизе → activate-handler выкинет старый кэш.
+const CACHE_NAME = 'azkar-v58';
 
-// При каждом релизе можно (но НЕ обязательно) бампать версию — навигация
-// и так network-first. Версия гарантирует полную чистку устаревших кэшей.
-const CACHE_VERSION = 'v2';
-const CACHE_NAME = `azkar-${CACHE_VERSION}`;
-const OFFLINE_URL = './index.html';
-
-// Файлы, которые кешируем сразу при установке
-const PRECACHE_ASSETS = [
-  './index.html',
-  './manifest.json',
-  './hadiths.js',
-  './icon-192.png',
-  './icon-512.png'
-];
-
-// Внешние домены, которые кешируем по запросу (runtime cache)
-const CACHEABLE_ORIGINS = [
-  'https://fonts.googleapis.com',
-  'https://fonts.gstatic.com'
-];
-
-// ─── УСТАНОВКА ────────────────────────────────────────────────────────────────
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(PRECACHE_ASSETS))
-      // Немедленно становимся активным SW, не дожидаясь закрытия вкладок
-      .then(() => self.skipWaiting())
-  );
+// ===== УСТАНОВКА И КЭШ =====
+self.addEventListener('install', (event) => {
+    self.skipWaiting();
 });
 
-// ─── АКТИВАЦИЯ ────────────────────────────────────────────────────────────────
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys
-          .filter(key => key !== CACHE_NAME)
-          .map(key => {
-            console.log('[SW] Удаляю старый кеш:', key);
-            return caches.delete(key);
-          })
-      )
-    ).then(() => self.clients.claim())
-  );
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
+        caches.keys().then(keys =>
+            Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+        ).then(() => self.clients.claim())
+    );
 });
 
-// ─── FETCH ────────────────────────────────────────────────────────────────────
-self.addEventListener('fetch', event => {
-  const { request } = event;
-  const url = new URL(request.url);
+// ===== REMINDER ALARM SYSTEM =====
+// SW хранит таймер в своём контексте — живёт дольше, чем страница.
+// На Android Chrome SW может жить в фоне и реально показывать уведомление.
 
-  // Пропускаем не-GET и chrome-extension запросы
-  if (request.method !== 'GET') return;
-  if (url.protocol === 'chrome-extension:') return;
+let _reminderTimer = null;
+let _reminderConfig = null; // { delayMs, title, body, icon, badge, reminderTime }
 
-  // Шрифты Google — Cache-First с долгим хранением
-  if (CACHEABLE_ORIGINS.some(origin => request.url.startsWith(origin))) {
-    event.respondWith(cacheFirst(request));
-    return;
-  }
+function clearReminderTimer() {
+    if (_reminderTimer !== null) {
+        clearTimeout(_reminderTimer);
+        _reminderTimer = null;
+    }
+}
 
-  // Запросы к внешним API (Aladhan и др.) — Network-Only, без кеша
-  if (url.hostname !== self.location.hostname && !CACHEABLE_ORIGINS.some(o => request.url.startsWith(o))) {
-    event.respondWith(networkOnly(request));
-    return;
-  }
+function scheduleReminder(config) {
+    clearReminderTimer();
+    _reminderConfig = config;
 
-  // ── Главный документ приложения (навигация) → Network-First ──
-  // Гарантирует, что после обновления кода ВСЕ онлайн-пользователи
-  // получают свежую версию при следующем открытии. Тихо, без всплывашек.
-  if (request.mode === 'navigate' || url.pathname.endsWith('/') || url.pathname.endsWith('index.html')) {
-    event.respondWith(networkFirst(request));
-    return;
-  }
+    const { delayMs, title, body, icon, badge, reminderTime } = config;
 
-  // ── Локальные JS/JSON (hadiths.js, manifest.json) → Stale-While-Revalidate ──
-  if (url.pathname.endsWith('.js') || url.pathname.endsWith('.json')) {
-    event.respondWith(staleWhileRevalidate(request));
-    return;
-  }
+    // Защита: не ставим таймер более чем на 25 часов (лимит некоторых браузеров)
+    const safeDelay = Math.min(delayMs, 25 * 60 * 60 * 1000);
 
-  // Остальная локальная статика (иконки и т.п.) — Cache-First
-  event.respondWith(cacheFirst(request));
+    _reminderTimer = setTimeout(async () => {
+        _reminderTimer = null;
+
+        // Показываем уведомление через SW — работает без открытой вкладки
+        try {
+            await self.registration.showNotification(title, {
+                body,
+                icon,
+                badge,
+                tag: 'azkar-reminder',
+                renotify: true,
+                requireInteraction: false,
+                vibrate: [200, 100, 200],
+                data: { url: self.registration.scope }
+            });
+        } catch(e) {}
+
+        // Перепланируем на следующий день автоматически
+        if (_reminderConfig) {
+            const [h, m] = (reminderTime || '14:00').split(':').map(Number);
+            const now = new Date();
+            const target = new Date(now);
+            target.setHours(h, m, 0, 0);
+            target.setDate(target.getDate() + 1); // всегда завтра после срабатывания
+            const nextDelay = target - now;
+            scheduleReminder({ ..._reminderConfig, delayMs: nextDelay });
+        }
+    }, safeDelay);
+}
+
+// ===== HADITH RANDOM NOTIFICATIONS =====
+// Случайный показ хадиса раз в 2–4 часа. Если приложение открыто — шлём
+// сообщение странице (баннер). Если свёрнуто/закрыто и SW ещё жив — системное
+// уведомление. ВАЖНО (PWA): когда приложение полностью закрыто надолго, ОС
+// может усыпить SW, поэтому фоновые уведомления — «по возможности», без гарантии.
+let _hadithTimer = null;
+let _hadithCfg = null; // { items, title, minMs, maxMs, icon, badge }
+
+function clearHadithTimer() {
+    if (_hadithTimer !== null) { clearTimeout(_hadithTimer); _hadithTimer = null; }
+}
+
+function scheduleHadith(cfg) {
+    clearHadithTimer();
+    if (cfg) _hadithCfg = cfg;
+    const c = _hadithCfg;
+    if (!c || !Array.isArray(c.items) || !c.items.length) return;
+    const min = c.minMs || (2 * 60 * 60 * 1000);
+    const max = c.maxMs || (4 * 60 * 60 * 1000);
+    let delay = min + Math.floor(Math.random() * Math.max(1, max - min));
+    delay = Math.min(delay, 25 * 60 * 60 * 1000);
+    _hadithTimer = setTimeout(fireHadith, delay);
+}
+
+function fireHadith() {
+    _hadithTimer = null;
+    const c = _hadithCfg;
+    if (!c || !c.items || !c.items.length) return;
+    const text = c.items[Math.floor(Math.random() * c.items.length)];
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
+        const visible = clients.find(cl => cl.visibilityState === 'visible');
+        if (visible) {
+            clients.forEach(cl => cl.postMessage({ type: 'SHOW_HADITH', text: text }));
+        } else {
+            self.registration.showNotification(c.title || 'Hadith', {
+                body: text,
+                icon: c.icon,
+                badge: c.badge,
+                tag: 'azkar-hadith',
+                renotify: true,
+                requireInteraction: false,
+                data: { url: self.registration.scope }
+            }).catch(() => {});
+        }
+        scheduleHadith(); // перепланируем следующий случайный интервал 2–4 ч
+    }).catch(() => { scheduleHadith(); });
+}
+
+// ===== ПРИЁМ СООБЩЕНИЙ ОТ СТРАНИЦЫ =====
+self.addEventListener('message', (event) => {
+    const { type } = event.data || {};
+
+    if (type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
+
+    if (type === 'SCHEDULE_REMINDER') {
+        scheduleReminder(event.data);
+    }
+
+    if (type === 'CANCEL_REMINDER') {
+        clearReminderTimer();
+        _reminderConfig = null;
+    }
+
+    if (type === 'SCHEDULE_HADITH') {
+        scheduleHadith(event.data);
+    }
+
+    if (type === 'CANCEL_HADITH') {
+        clearHadithTimer();
+        _hadithCfg = null;
+    }
 });
 
-// ─── СТРАТЕГИИ ────────────────────────────────────────────────────────────────
+// ===== КЛИК ПО УВЕДОМЛЕНИЮ — открыть приложение =====
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
 
-/**
- * Network-First: всегда пробуем сеть (свежая версия), кэш — только офлайн-фолбэк.
- * Обновляет кэш свежим ответом, чтобы офлайн была доступна последняя версия.
- */
-async function networkFirst(request) {
-  const cache = await caches.open(CACHE_NAME);
-  try {
-    const response = await fetch(request);
-    if (response && response.status === 200) {
-      cache.put(request, response.clone());
+    const targetUrl = (event.notification.data && event.notification.data.url)
+        ? event.notification.data.url
+        : self.registration.scope;
+
+    event.waitUntil(
+        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
+            // Если приложение уже открыто — фокусируемся на нём
+            const existing = clients.find(c => c.url.startsWith(self.registration.scope));
+            if (existing) {
+                return existing.focus();
+            }
+            // Иначе открываем новую вкладку
+            return self.clients.openWindow(targetUrl);
+        })
+    );
+});
+
+// ===== FETCH — гибридная стратегия =====
+// HTML / навигационные запросы: network-first (свежий контент всегда выигрывает,
+//   кэш остаётся как fallback на случай оффлайна). Так пользователь сразу
+//   видит новые версии после деплоя без необходимости вручную чистить кэш.
+// Остальная статика (картинки, манифест, иконки): cache-first для скорости.
+self.addEventListener('fetch', (event) => {
+    if (event.request.method !== 'GET') return;
+    if (!event.request.url.startsWith(self.registration.scope)) return;
+
+    const isHtml = event.request.mode === 'navigate'
+        || (event.request.headers.get('accept') || '').includes('text/html');
+
+    if (isHtml) {
+        // Network-first: пробуем сеть, при неудаче — кэш.
+        event.respondWith(
+            fetch(event.request).then(response => {
+                if (response && response.status === 200) {
+                    const copy = response.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+                }
+                return response;
+            }).catch(() =>
+                caches.open(CACHE_NAME).then(cache => cache.match(event.request))
+            )
+        );
+        return;
     }
-    return response;
-  } catch (err) {
-    const cached = await cache.match(request);
-    if (cached) return cached;
-    const fallback = await cache.match(OFFLINE_URL);
-    if (fallback) return fallback;
-    throw err;
-  }
+
+    // Cache-first для статики: мгновенный ответ, фоновое обновление.
+    event.respondWith(
+        caches.open(CACHE_NAME).then(cache =>
+            cache.match(event.request).then(cached => {
+                const fetchPromise = fetch(event.request).then(response => {
+                    if (response && response.status === 200) {
+                        cache.put(event.request, response.clone());
+                    }
+                    return response;
+                }).catch(() => cached);
+                return cached || fetchPromise;
+            })
+        )
+    );
+});
+
+// Хранит время фаджра которое прислало приложение
+let _fajrMs = null;
+let _fajrToday = null;
+let _fajrTimer = null;
+
+// Слушаем сообщения от приложения
+self.addEventListener('message', function(e) {
+    if (!e.data) return;
+
+    // Существующие обработчики (SKIP_WAITING, SCHEDULE_REMINDER и т.д.) — не трогаем
+
+    if (e.data.type === 'SCHEDULE_FAJR_BACKUP') {
+        _fajrMs = e.data.fajrMs;
+        _fajrToday = e.data.today;
+        _scheduleFajrBackup();
+    }
+});
+
+function _scheduleFajrBackup() {
+    if (_fajrTimer) { clearTimeout(_fajrTimer); _fajrTimer = null; }
+    if (!_fajrMs) return;
+
+    const now = Date.now();
+    let fajrMs = _fajrMs;
+
+    // Если фаджр уже прошёл — ставим на завтра
+    if (fajrMs <= now) {
+        fajrMs += 86400000;
+    }
+
+    const delay = fajrMs - now;
+    console.log('[SW Backup] Next fajr backup in', Math.round(delay / 60000), 'min');
+
+    _fajrTimer = setTimeout(function() {
+        _doFajrBackup();
+        // Планируем следующий день
+        _fajrMs = fajrMs + 86400000;
+        _fajrToday = new Date(fajrMs).toISOString().slice(0, 10);
+        _scheduleFajrBackup();
+    }, delay);
 }
 
-/**
- * Stale-While-Revalidate: мгновенно отдаём из кэша, в фоне качаем свежее
- * и обновляем кэш к следующему запуску.
- */
-async function staleWhileRevalidate(request) {
-  const cache = await caches.open(CACHE_NAME);
-  const cached = await cache.match(request);
-
-  const networkFetch = fetch(request)
-    .then(response => {
-      if (response && response.status === 200) {
-        cache.put(request, response.clone());
-      }
-      return response;
-    })
-    .catch(() => null);
-
-  return cached || (await networkFetch) || fetch(request);
-}
-
-/**
- * Cache-First: берём из кеша, если нет — качаем и кешируем
- */
-async function cacheFirst(request) {
-  const cached = await caches.match(request);
-  if (cached) return cached;
-
-  try {
-    const response = await fetch(request);
-    // Кешируем только успешные ответы
-    if (response && response.status === 200) {
-      const cache = await caches.open(CACHE_NAME);
-      cache.put(request, response.clone());
-    }
-    return response;
-  } catch (err) {
-    // Офлайн-фолбэк: вернуть главную страницу для навигационных запросов
-    if (request.mode === 'navigate') {
-      const fallback = await caches.match(OFFLINE_URL);
-      if (fallback) return fallback;
-    }
-    throw err;
-  }
-}
-
-/**
- * Network-Only: всегда идём в сеть (для API запросов)
- */
-async function networkOnly(request) {
-  try {
-    return await fetch(request);
-  } catch (err) {
-    // API недоступно офлайн — возвращаем пустой JSON
-    return new Response(JSON.stringify({ error: 'offline' }), {
-      status: 503,
-      headers: { 'Content-Type': 'application/json' }
+function _doFajrBackup() {
+    const today = new Date().toISOString().slice(0, 10);
+    // Резервная копия делается только когда приложение открыто (в нём живут данные).
+    // Если приложение открыто — просим его сохранить бэкап.
+    // Если закрыто — ничего не показываем: копия сохранится сама при следующем заходе.
+    return self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clients) {
+        clients.forEach(function(client) {
+            client.postMessage({ type: 'FAJR_BACKUP_DATA', today: today });
+        });
     });
-  }
 }
 
-// ─── PUSH-УВЕДОМЛЕНИЯ ─────────────────────────────────────────────────────────
-self.addEventListener('push', event => {
-  if (!event.data) return;
-
-  let data = {};
-  try {
-    data = event.data.json();
-  } catch {
-    data = { title: 'Azkar', body: event.data.text() };
-  }
-
-  const options = {
-    body: data.body || '',
-    icon: './icon-192.png',
-    badge: './icon-192.png',
-    vibrate: [200, 100, 200],
-    tag: data.tag || 'azkar-notification',
-    renotify: true,
-    data: { url: data.url || './' }
-  };
-
-  event.waitUntil(
-    self.registration.showNotification(data.title || 'Azkar', options)
-  );
-});
-
-// ─── КЛИК ПО УВЕДОМЛЕНИЮ ──────────────────────────────────────────────────────
-self.addEventListener('notificationclick', event => {
-  event.notification.close();
-  const targetUrl = event.notification.data?.url || './';
-
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then(windowClients => {
-        // Если приложение уже открыто — фокусируемся на нём
-        for (const client of windowClients) {
-          if (client.url.includes(self.location.origin) && 'focus' in client) {
-            return client.focus();
-          }
-        }
-        // Иначе открываем новое окно
-        if (clients.openWindow) {
-          return clients.openWindow(targetUrl);
-        }
-      })
-  );
-});
-
-// ─── ФОНОВАЯ СИНХРОНИЗАЦИЯ (BackgroundSync API) ───────────────────────────────
-self.addEventListener('sync', event => {
-  if (event.tag === 'azkar-backup') {
-    event.waitUntil(handleBackgroundSync());
-  }
-});
-
-async function handleBackgroundSync() {
-  console.log('[SW] Background sync: azkar-backup');
-  // Уведомляем все открытые вкладки, чтобы они инициировали backup
-  const allClients = await clients.matchAll({ includeUncontrolled: true });
-  allClients.forEach(client => {
-    client.postMessage({ type: 'BACKGROUND_SYNC', tag: 'azkar-backup' });
-  });
-}
-
-// ─── СООБЩЕНИЯ ОТ ПРИЛОЖЕНИЯ ──────────────────────────────────────────────────
-self.addEventListener('message', event => {
-  if (!event.data) return;
-
-  switch (event.data.type) {
-    // Принудительно обновить SW (вызывать при выходе новой версии)
-    case 'SKIP_WAITING':
-      self.skipWaiting();
-      break;
-
-    // Получить версию кеша
-    case 'GET_VERSION':
-      event.ports?.[0]?.postMessage({ version: CACHE_NAME });
-      break;
-
-    // Очистить кеш вручную
-    case 'CLEAR_CACHE':
-      caches.delete(CACHE_NAME).then(() => {
-        event.ports?.[0]?.postMessage({ ok: true });
-      });
-      break;
-  }
+// Periodic Background Sync (Android Chrome)
+self.addEventListener('periodicsync', function(e) {
+    if (e.tag === 'fajr-backup') {
+        e.waitUntil(_doFajrBackup());
+    }
 });

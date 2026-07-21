@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sunnyberd.github.io/Tasbih/sitemap.xml
+
