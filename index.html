@@ -135,9 +135,11 @@
            Ноль пересчётов стилей во время анимации. */
         ::view-transition-old(root) {
             animation: 0.32s cubic-bezier(0.4, 0, 0.2, 1) both vt-fade-out;
+            pointer-events: none;
         }
         ::view-transition-new(root) {
             animation: 0.32s cubic-bezier(0.4, 0, 0.2, 1) both vt-fade-in;
+            pointer-events: none;
         }
         @keyframes vt-fade-out {
             from { opacity: 1; }
@@ -11561,7 +11563,12 @@
             return DARK_THEMES.some(t => t.id === (th || settings.theme));
         }
 
-        function applyTheme(theme) {
+        function shouldAnimateThemeChange(currentTheme, nextTheme, options) {
+            if (options && options.animate === false) return false;
+            return String(currentTheme || '') !== String(nextTheme || '');
+        }
+
+        function applyTheme(theme, options) {
             settings.theme = theme;
             // Запоминаем последнюю выбранную тему для каждой группы
             if (isDarkTheme(theme)) {
@@ -11576,6 +11583,21 @@
                 document.querySelector('meta[name="theme-color"]').content = isLight ? '#f4f7fb' : '#0a0a0a';
                 updateSettingsUI();
             };
+
+            const root = document.documentElement;
+            const currentTheme = root.getAttribute('data-theme') || '';
+            if (!shouldAnimateThemeChange(currentTheme, theme, options)) {
+                if (currentTheme !== theme) {
+                    const alreadySilent = root.classList.contains('no-transition');
+                    root.classList.add('no-transition');
+                    root.setAttribute('data-theme', theme);
+                    if (!alreadySilent) {
+                        requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('no-transition')));
+                    }
+                }
+                afterApply();
+                return;
+            }
 
             if (document.startViewTransition) {
                 // === View Transitions API — ультра-плавный путь ===
@@ -11958,6 +11980,8 @@
         const ONLINE_PRESENCE_LEASE_KEY = 'azkar_presence_leader_v1';
         const ONLINE_PRESENCE_COUNT_KEY = 'azkar_presence_count_v1';
         const ONLINE_PRESENCE_CHANNEL = 'azkar_presence_tabs_v1';
+        const ONLINE_PRESENCE_HEARTBEAT_MS = 15000;
+        const ONLINE_PRESENCE_STALE_MS = 60000;
         let onlinePresenceFirebasePromise = null;
         let onlinePresenceFirebase = null;
         let onlinePresenceCoordinatorStarted = false;
@@ -11966,6 +11990,7 @@
         let onlinePresenceSharedReadyTimer = null;
         let onlinePresenceChannel = null;
         let onlinePresenceHeartbeatTimer = null;
+        let onlinePresenceRecordHeartbeatTimer = null;
         let onlinePresenceLeaseTimer = null;
         let onlinePresenceClaimTimer = null;
         let onlinePresenceRetryTimer = null;
@@ -12291,6 +12316,18 @@
             return document.visibilityState !== 'hidden';
         }
 
+        function countFreshOnlinePresenceRecords(records, nowMs, staleMs) {
+            const now = Number(nowMs) || Date.now();
+            const maxAge = Math.max(1000, Number(staleMs) || ONLINE_PRESENCE_STALE_MS);
+            return (Array.isArray(records) ? records : []).reduce(function(total, record) {
+                if (!record || record.online !== true) return total;
+                const timestamp = Number(record.updatedAt || record.connectedAt || 0);
+                if (!Number.isFinite(timestamp) || timestamp <= 0) return total;
+                const age = now - timestamp;
+                return total + (age >= -5000 && age <= maxAge ? 1 : 0);
+            }, 0);
+        }
+
         function setOnlinePresenceCount(value, share) {
             const countEl = document.getElementById('onlinePresenceCount');
             const parsed = (value === null || value === undefined || value === '') ? NaN : Number(value);
@@ -12387,11 +12424,32 @@
                     connectedAt: ctx.databaseApi.serverTimestamp(),
                     updatedAt: ctx.databaseApi.serverTimestamp()
                 });
+                startOnlinePresenceRecordHeartbeat(epoch);
             } catch(error) {
                 console.warn('[Presence] Could not register device:', error);
             } finally {
                 onlinePresenceWriteInFlight = false;
             }
+        }
+
+        function startOnlinePresenceRecordHeartbeat(epoch) {
+            clearInterval(onlinePresenceRecordHeartbeatTimer);
+            onlinePresenceRecordHeartbeatTimer = setInterval(async function() {
+                if (epoch !== onlinePresenceWriterEpoch || !onlinePresenceWriterActive || !onlinePresenceLeader || !onlinePresenceConnected || !onlinePresenceActiveHere()) return;
+                const ctx = onlinePresenceFirebase;
+                if (!ctx || !onlinePresenceOwnRef || onlinePresenceWriteInFlight) return;
+                onlinePresenceWriteInFlight = true;
+                try {
+                    await ctx.databaseApi.update(onlinePresenceOwnRef, {
+                        online: true,
+                        updatedAt: ctx.databaseApi.serverTimestamp()
+                    });
+                } catch(error) {
+                    console.warn('[Presence] Heartbeat failed:', error);
+                } finally {
+                    onlinePresenceWriteInFlight = false;
+                }
+            }, ONLINE_PRESENCE_HEARTBEAT_MS);
         }
 
         async function startOnlinePresenceWriter() {
@@ -12416,7 +12474,12 @@
                 });
 
                 onlinePresenceUnsubRoot = api.onValue(rootRef, function(snapshot) {
-                    setOnlinePresenceCount(snapshot.size, true);
+                    const records = [];
+                    snapshot.forEach(function(child) { records.push(child.val()); });
+                    setOnlinePresenceCount(
+                        countFreshOnlinePresenceRecords(records, Date.now(), ONLINE_PRESENCE_STALE_MS),
+                        true
+                    );
                     // If a previous tab disconnected during a handoff and removed
                     // the shared device record, the current leader repairs it.
                     if (onlinePresenceConnected && !snapshot.hasChild(ctx.deviceId)) {
@@ -12454,6 +12517,8 @@
             onlinePresenceWriterActive = false;
             onlinePresenceConnected = false;
             onlinePresenceWriteInFlight = false;
+            clearInterval(onlinePresenceRecordHeartbeatTimer);
+            onlinePresenceRecordHeartbeatTimer = null;
             if (onlinePresenceUnsubConnected) {
                 try { onlinePresenceUnsubConnected(); } catch(e) {}
                 onlinePresenceUnsubConnected = null;
@@ -14561,7 +14626,7 @@
                 lastActiveSpecialId = localStorage.getItem('azkar_last_special_id') || null;
                 accountIconDataUrl = loadAccountIcon();
                 try { loadChecklist(); } catch(e) {}
-                applyTheme(settings.theme || 'dark');
+                applyTheme(settings.theme || 'dark', { animate: false });
                 applyLanguage(currentLang);
                 updateDisplay();
                 updateSettingsUI();

@@ -1,7 +1,7 @@
 // ===== Azkar PWA Service Worker =====
 // Версия: v61 — упрощено оформление карточки «О приложении».
 // Бампать CACHE_NAME при каждом релизе → activate-handler выкинет старый кэш.
-const CACHE_NAME = 'azkar-v61';
+const CACHE_NAME = 'azkar-v62';
 
 // ===== УСТАНОВКА И КЭШ =====
 self.addEventListener('install', (event) => {
