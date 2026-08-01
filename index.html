@@ -5855,20 +5855,13 @@
                 </div>
             </div>
             <!-- Voice dhikr: tap toggles listening, hold records the phrase -->
-            <div class="set-row set-row-col" id="voiceDhikrSettingItem">
+            <div class="set-row" id="voiceDhikrSettingItem">
                 <div class="set-row-main"
                      onmousedown="startVoiceDhikrPress(event)" onmouseup="cancelVoiceDhikrPress()" onmouseleave="cancelVoiceDhikrPress()"
                      ontouchstart="startVoiceDhikrPress(event)" ontouchend="cancelVoiceDhikrPress()" ontouchcancel="cancelVoiceDhikrPress()">
                     <span class="set-ic" id="voiceDhikrIcon">🎙️</span>
                     <div class="set-row-lbl"><b id="labelVoiceDhikr">Голосовой зикр</b><small id="voiceDhikrHint">Удержите, чтобы записать зикр</small></div>
                     <div class="toggle-switch" id="voiceDhikrToggle"></div>
-                </div>
-                <div id="voiceDhikrSliderBlock" style="display:none;">
-                    <div class="vibration-slider-wrap">
-                        <span style="font-size:15px;line-height:1" aria-hidden="true">◌</span>
-                        <input type="range" class="vibration-slider" id="voiceDhikrSensitivity" min="1" max="3" step="1" value="2" oninput="onVoiceDhikrSensitivity(this.value)">
-                        <span class="vibration-slider-label" id="voiceDhikrSensitivityLabel">Обычно</span>
-                    </div>
                 </div>
             </div>
               </div>
@@ -6069,9 +6062,10 @@
             <div class="voice-dhikr-status" id="voiceDhikrCardStatus">Нажмите «Записать», произнесите зикр и остановите запись.</div>
             <div class="voice-dhikr-phrase" id="voiceDhikrPhrase">Зикр ещё не записан</div>
             <div class="voice-dhikr-actions">
-                <button class="cl-modal-btn cl-modal-cancel" type="button" onclick="closeVoiceDhikrCard()" id="voiceDhikrCloseBtn">Готово</button>
+                <button class="cl-modal-btn cl-modal-cancel" type="button" onclick="document.getElementById('voiceDhikrFileInput').click()" id="voiceDhikrUploadBtn">Загрузить с телефона</button>
                 <button class="cl-modal-btn cl-modal-confirm" type="button" onclick="toggleVoiceDhikrRecording()" id="voiceDhikrRecordBtn">Записать</button>
             </div>
+            <input id="voiceDhikrFileInput" type="file" accept="audio/*" hidden onchange="loadVoiceDhikrFile(event)">
         </div>
     </div>
 
@@ -7865,7 +7859,7 @@
         // ==================== STATE ====================
         let count = 0, goal = 33, isUnlimited = false;
         const UNLIMITED_GOAL = 999999999;
-        let settings = { autosave: true, theme: 'dark', language: 'en', sound: true, clickSound: true, clickSoundVolume: 10, goalSoundVolume: 10, vibration: false, vibrationLevel: 3, voiceDhikr: false, voiceDhikrSensitivity: 2, voiceDhikrPhrase: '', timerEnabled: false, autoExport: false };
+        let settings = { autosave: true, theme: 'dark', language: 'en', sound: true, clickSound: true, clickSoundVolume: 10, goalSoundVolume: 10, vibration: false, vibrationLevel: 3, voiceDhikr: false, voiceDhikrPhrase: '', timerEnabled: false, autoExport: false };
         let duas = [], deleteId = null;
         const CIRCUMFERENCE = 848;
         let lastIncrementTime = 0;
@@ -11538,6 +11532,7 @@
         let _voiceDhikrMode = null;
         let _voiceDhikrPressTimer = null;
         let _voiceDhikrRestartTimer = null;
+        let _voiceDhikrLastHitAt = 0;
 
         function voiceDhikrCopy() {
             const ru = currentLang === 'ru';
@@ -11546,14 +11541,14 @@
                 unrecorded: 'Зикр ещё не записан', ready: 'Слушаю зикр…',
                 idle: 'Нажмите «Записать», произнесите зикр и остановите запись.',
                 recording: 'Слушаю… произнесите зикр один раз.', record: 'Записать',
-                stop: 'Остановить', done: 'Готово', saved: 'Зикр сохранён. Теперь включите голосовой зикр.',
+                stop: 'Остановить', upload: 'Загрузить с телефона', saved: 'Зикр сохранён. Теперь включите голосовой зикр.',
                 unsupported: 'Голосовое распознавание не поддерживается этим браузером.'
             } : {
                 title: 'Voice dhikr', hint: 'Hold to record your dhikr',
                 unrecorded: 'No dhikr recorded yet', ready: 'Listening for dhikr…',
                 idle: 'Tap “Record”, say your dhikr, then stop recording.',
                 recording: 'Listening… say your dhikr once.', record: 'Record',
-                stop: 'Stop', done: 'Done', saved: 'Dhikr saved. You can now enable voice dhikr.',
+                stop: 'Stop', upload: 'Upload from phone', saved: 'Dhikr saved. You can now enable voice dhikr.',
                 unsupported: 'Speech recognition is not supported in this browser.'
             };
         }
@@ -11565,29 +11560,33 @@
             const label = document.getElementById('labelVoiceDhikr');
             const hint = document.getElementById('voiceDhikrHint');
             const title = document.getElementById('voiceDhikrCardTitle');
-            const close = document.getElementById('voiceDhikrCloseBtn');
+            const upload = document.getElementById('voiceDhikrUploadBtn');
             if (label) label.textContent = copy.title;
             if (hint) hint.textContent = copy.hint;
             if (title) title.textContent = copy.title;
-            if (close) close.textContent = copy.done;
-            const sensitivity = document.getElementById('voiceDhikrSensitivityLabel');
-            if (sensitivity) sensitivity.textContent = ({ 1: currentLang === 'ru' ? 'Мягко' : 'Gentle', 2: currentLang === 'ru' ? 'Обычно' : 'Normal', 3: currentLang === 'ru' ? 'Строго' : 'Strict' })[settings.voiceDhikrSensitivity || 2];
+            if (upload) upload.textContent = copy.upload;
             const phrase = document.getElementById('voiceDhikrPhrase');
             if (phrase) phrase.textContent = settings.voiceDhikrPhrase || copy.unrecorded;
         }
         function normalizeVoiceDhikr(text) {
             return (text || '').toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/\s+/g, ' ');
         }
+        function canonicalVoiceDhikr(text) {
+            const normalized = normalizeVoiceDhikr(text);
+            // Russian speech recognition often hears «Астагфируллах» as «оставила».
+            if (/^(астагфир|астафир|остафир|оставил|оставила|астафил)/u.test(normalized) || normalized.includes('أستغفر')) return 'астагфируллах';
+            return normalized;
+        }
         function voiceDhikrMatches(heard) {
-            const a = normalizeVoiceDhikr(heard), b = normalizeVoiceDhikr(settings.voiceDhikrPhrase);
+            const a = canonicalVoiceDhikr(heard), b = canonicalVoiceDhikr(settings.voiceDhikrPhrase);
             if (!a || !b) return false;
-            if (a.includes(b) || b.includes(a)) return true;
+            if (a === b) return true;
+            if (a.includes(b) || b.includes(a)) return Math.min(a.length, b.length) >= Math.max(4, Math.ceil(Math.max(a.length, b.length) * .55));
             const grams = s => { const p = `  ${s}  `; const out = []; for (let i = 0; i < p.length - 2; i++) out.push(p.slice(i, i + 3)); return out; };
             const ga = grams(a), gb = grams(b); let common = 0; const pool = gb.slice();
             ga.forEach(g => { const i = pool.indexOf(g); if (i >= 0) { common++; pool.splice(i, 1); } });
             const score = (2 * common) / (ga.length + gb.length);
-            const required = ({ 1: .46, 2: .64, 3: .78 })[settings.voiceDhikrSensitivity || 2];
-            return score >= required;
+            return score >= .64;
         }
         function setVoiceDhikrStatus(text, recording) {
             const status = document.getElementById('voiceDhikrCardStatus');
@@ -11605,17 +11604,20 @@
             _voiceDhikrMode = mode;
             recognition.lang = currentLang === 'ru' ? 'ru-RU' : currentLang === 'ar' ? 'ar-SA' : currentLang;
             recognition.continuous = mode === 'listen';
-            recognition.interimResults = false;
+            // Interim results arrive while the word is being said, rather than
+            // after the browser waits for a long pause.
+            recognition.interimResults = mode === 'listen';
             recognition.onresult = event => {
                 for (let i = event.resultIndex; i < event.results.length; i++) {
-                    if (!event.results[i].isFinal) continue;
+                    if (mode === 'record' && !event.results[i].isFinal) continue;
                     const heard = event.results[i][0].transcript.trim();
                     if (mode === 'record') {
-                        settings.voiceDhikrPhrase = heard;
+                        settings.voiceDhikrPhrase = canonicalVoiceDhikr(heard);
                         saveDataDebounced(); updateVoiceDhikrText();
                         setVoiceDhikrStatus(voiceDhikrCopy().saved, false);
                         try { recognition.stop(); } catch(e) {}
-                    } else if (settings.voiceDhikr && voiceDhikrMatches(heard)) {
+                    } else if (settings.voiceDhikr && voiceDhikrMatches(heard) && Date.now() - _voiceDhikrLastHitAt > 550) {
+                        _voiceDhikrLastHitAt = Date.now();
                         const ring = document.querySelector('.counter-ring-wrap');
                         if (ring) { ring.classList.remove('voice-hit'); void ring.offsetWidth; ring.classList.add('voice-hit'); setTimeout(() => ring.classList.remove('voice-hit'), 260); }
                         increment();
@@ -11652,11 +11654,13 @@
             } else stopVoiceDhikrRecognition();
             saveDataDebounced(); updateSettingsUI();
         }
-        function onVoiceDhikrSensitivity(value) {
-            settings.voiceDhikrSensitivity = parseInt(value, 10);
-            saveDataDebounced(); updateVoiceDhikrText();
-            const slider = document.getElementById('voiceDhikrSensitivity');
-            if (slider) slider.style.setProperty('--slider-pct', ((settings.voiceDhikrSensitivity - 1) / 2 * 100).toFixed(0) + '%');
+        function loadVoiceDhikrFile(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            setVoiceDhikrStatus(currentLang === 'ru'
+                ? 'Файл выбран. Браузер не может распознать речь из аудиофайла напрямую — произнесите зикр через «Записать». '
+                : 'File selected. Browsers cannot transcribe an audio file directly — please say the dhikr using “Record”.', false);
+            event.target.value = '';
         }
         function startVoiceDhikrPress(event) {
             event.preventDefault();
@@ -13921,17 +13925,9 @@
             }
             // Voice dhikr toggle and sensitivity slider
             const voiceToggle = document.getElementById('voiceDhikrToggle');
-            const voiceSliderBlock = document.getElementById('voiceDhikrSliderBlock');
             const voiceIcon = document.getElementById('voiceDhikrIcon');
             if (voiceToggle) voiceToggle.classList.toggle('on', !!settings.voiceDhikr);
-            if (voiceSliderBlock) voiceSliderBlock.style.display = settings.voiceDhikr ? '' : 'none';
             if (voiceIcon) voiceIcon.textContent = settings.voiceDhikr ? '🎙️' : '🎤';
-            const voiceSlider = document.getElementById('voiceDhikrSensitivity');
-            if (voiceSlider) {
-                const level = settings.voiceDhikrSensitivity || 2;
-                voiceSlider.value = level;
-                voiceSlider.style.setProperty('--slider-pct', ((level - 1) / 2 * 100).toFixed(0) + '%');
-            }
             if (typeof updateVoiceDhikrText === 'function') updateVoiceDhikrText();
             // PiP toggle
             const pipToggleEl = document.getElementById('pipToggle');
@@ -14270,7 +14266,6 @@
             if (settings.vibration === undefined) settings.vibration = false;
             if (settings.vibrationLevel === undefined) settings.vibrationLevel = 3;
             if (settings.voiceDhikr === undefined) settings.voiceDhikr = false;
-            if (settings.voiceDhikrSensitivity === undefined) settings.voiceDhikrSensitivity = 2;
             if (settings.voiceDhikrPhrase === undefined) settings.voiceDhikrPhrase = '';
             if (settings.clickSoundVolume === undefined) settings.clickSoundVolume = 10;
             if (settings.goalSoundVolume === undefined) settings.goalSoundVolume = 10;
