@@ -3410,6 +3410,27 @@
         }
         .sound-option.active .sound-hold-hint { color: var(--gold); opacity: 0.7; }
 
+        /* ===== VOICE DHIKR ===== */
+        .voice-dhikr-card { text-align: center; }
+        .voice-dhikr-icon {
+            width: 58px; height: 58px; margin: 2px auto 12px; border-radius: 50%;
+            display: grid; place-items: center; font-size: 1.55rem;
+            background: var(--accent-glow); border: 1px solid var(--gold);
+            box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent-glow) 55%, transparent);
+        }
+        .voice-dhikr-status { min-height: 2.7em; color: var(--text-muted); font-size: .82rem; line-height: 1.4; margin: 4px 0 16px; }
+        .voice-dhikr-phrase {
+            margin: 0 0 14px; padding: 12px 14px; border-radius: 16px;
+            border: 1px solid var(--border); background: var(--bg);
+            color: var(--text); font-size: .94rem; font-weight: 600; overflow-wrap: anywhere;
+        }
+        .voice-dhikr-actions { display: flex; gap: 9px; }
+        .voice-dhikr-actions button { flex: 1; }
+        .counter-ring-wrap.voice-hit .counter-center {
+            animation: voiceCounterHit .22s cubic-bezier(.2, 1.5, .4, 1);
+        }
+        @keyframes voiceCounterHit { 50% { transform: scale(.93); } }
+
         /* ================================================================
            RESPONSIVE SYSTEM — единый источник истины
            Принцип: CSS-переменные масштабируют ВСЁ.
@@ -5833,6 +5854,23 @@
                     </div>
                 </div>
             </div>
+            <!-- Voice dhikr: tap toggles listening, hold records the phrase -->
+            <div class="set-row set-row-col" id="voiceDhikrSettingItem">
+                <div class="set-row-main"
+                     onmousedown="startVoiceDhikrPress(event)" onmouseup="cancelVoiceDhikrPress()" onmouseleave="cancelVoiceDhikrPress()"
+                     ontouchstart="startVoiceDhikrPress(event)" ontouchend="cancelVoiceDhikrPress()" ontouchcancel="cancelVoiceDhikrPress()">
+                    <span class="set-ic" id="voiceDhikrIcon">🎙️</span>
+                    <div class="set-row-lbl"><b id="labelVoiceDhikr">Голосовой зикр</b><small id="voiceDhikrHint">Удержите, чтобы записать зикр</small></div>
+                    <div class="toggle-switch" id="voiceDhikrToggle"></div>
+                </div>
+                <div id="voiceDhikrSliderBlock" style="display:none;">
+                    <div class="vibration-slider-wrap">
+                        <span style="font-size:15px;line-height:1" aria-hidden="true">◌</span>
+                        <input type="range" class="vibration-slider" id="voiceDhikrSensitivity" min="1" max="3" step="1" value="2" oninput="onVoiceDhikrSensitivity(this.value)">
+                        <span class="vibration-slider-label" id="voiceDhikrSensitivityLabel">Обычно</span>
+                    </div>
+                </div>
+            </div>
               </div>
             </div>
 
@@ -6019,6 +6057,21 @@
             <div class="sound-picker-handle"></div>
             <div class="sound-picker-title" id="goalSoundPickerTitle">Звук достижения</div>
             <div class="sound-grid" id="goalSoundGrid"></div>
+        </div>
+    </div>
+
+    <!-- Voice dhikr recording card -->
+    <div class="sound-picker-overlay" id="voiceDhikrOverlay" onclick="if(event.target===this)closeVoiceDhikrCard()">
+        <div class="sound-picker-sheet voice-dhikr-card" onclick="event.stopPropagation()">
+            <div class="sound-picker-handle"></div>
+            <div class="voice-dhikr-icon" id="voiceDhikrCardIcon">🎙️</div>
+            <div class="sound-picker-title" id="voiceDhikrCardTitle">Голосовой зикр</div>
+            <div class="voice-dhikr-status" id="voiceDhikrCardStatus">Нажмите «Записать», произнесите зикр и остановите запись.</div>
+            <div class="voice-dhikr-phrase" id="voiceDhikrPhrase">Зикр ещё не записан</div>
+            <div class="voice-dhikr-actions">
+                <button class="cl-modal-btn cl-modal-cancel" type="button" onclick="closeVoiceDhikrCard()" id="voiceDhikrCloseBtn">Готово</button>
+                <button class="cl-modal-btn cl-modal-confirm" type="button" onclick="toggleVoiceDhikrRecording()" id="voiceDhikrRecordBtn">Записать</button>
+            </div>
         </div>
     </div>
 
@@ -7660,6 +7713,7 @@
             // Refresh vibration label with new language
             const vLabelEl = document.getElementById('vibrationSliderLabel');
             if (vLabelEl) vLabelEl.textContent = getVibLabel(settings.vibrationLevel || 3);
+            if (typeof updateVoiceDhikrText === 'function') updateVoiceDhikrText();
             applySettingsSectionLabels(lang);
             if (typeof updateGoogleAccountUI === 'function') updateGoogleAccountUI();
             // Хадисы: пересылаем расписание в SW с текстами на текущем языке
@@ -7811,7 +7865,7 @@
         // ==================== STATE ====================
         let count = 0, goal = 33, isUnlimited = false;
         const UNLIMITED_GOAL = 999999999;
-        let settings = { autosave: true, theme: 'dark', language: 'en', sound: true, clickSound: true, clickSoundVolume: 10, goalSoundVolume: 10, vibration: false, vibrationLevel: 3, timerEnabled: false, autoExport: false };
+        let settings = { autosave: true, theme: 'dark', language: 'en', sound: true, clickSound: true, clickSoundVolume: 10, goalSoundVolume: 10, vibration: false, vibrationLevel: 3, voiceDhikr: false, voiceDhikrSensitivity: 2, voiceDhikrPhrase: '', timerEnabled: false, autoExport: false };
         let duas = [], deleteId = null;
         const CIRCUMFERENCE = 848;
         let lastIncrementTime = 0;
@@ -11477,6 +11531,158 @@
             return map[lvl] || t('vibHigh');
         }
 
+        /* ===== VOICE DHIKR =====
+           The browser's speech-recognition service converts a short sample to
+           text; only that phrase is stored locally, never microphone audio. */
+        let _voiceDhikrRecognition = null;
+        let _voiceDhikrMode = null;
+        let _voiceDhikrPressTimer = null;
+        let _voiceDhikrRestartTimer = null;
+
+        function voiceDhikrCopy() {
+            const ru = currentLang === 'ru';
+            return ru ? {
+                title: 'Голосовой зикр', hint: 'Удержите, чтобы записать зикр',
+                unrecorded: 'Зикр ещё не записан', ready: 'Слушаю зикр…',
+                idle: 'Нажмите «Записать», произнесите зикр и остановите запись.',
+                recording: 'Слушаю… произнесите зикр один раз.', record: 'Записать',
+                stop: 'Остановить', done: 'Готово', saved: 'Зикр сохранён. Теперь включите голосовой зикр.',
+                unsupported: 'Голосовое распознавание не поддерживается этим браузером.'
+            } : {
+                title: 'Voice dhikr', hint: 'Hold to record your dhikr',
+                unrecorded: 'No dhikr recorded yet', ready: 'Listening for dhikr…',
+                idle: 'Tap “Record”, say your dhikr, then stop recording.',
+                recording: 'Listening… say your dhikr once.', record: 'Record',
+                stop: 'Stop', done: 'Done', saved: 'Dhikr saved. You can now enable voice dhikr.',
+                unsupported: 'Speech recognition is not supported in this browser.'
+            };
+        }
+        function getVoiceRecognition() {
+            return window.SpeechRecognition || window.webkitSpeechRecognition;
+        }
+        function updateVoiceDhikrText() {
+            const copy = voiceDhikrCopy();
+            const label = document.getElementById('labelVoiceDhikr');
+            const hint = document.getElementById('voiceDhikrHint');
+            const title = document.getElementById('voiceDhikrCardTitle');
+            const close = document.getElementById('voiceDhikrCloseBtn');
+            if (label) label.textContent = copy.title;
+            if (hint) hint.textContent = copy.hint;
+            if (title) title.textContent = copy.title;
+            if (close) close.textContent = copy.done;
+            const sensitivity = document.getElementById('voiceDhikrSensitivityLabel');
+            if (sensitivity) sensitivity.textContent = ({ 1: currentLang === 'ru' ? 'Мягко' : 'Gentle', 2: currentLang === 'ru' ? 'Обычно' : 'Normal', 3: currentLang === 'ru' ? 'Строго' : 'Strict' })[settings.voiceDhikrSensitivity || 2];
+            const phrase = document.getElementById('voiceDhikrPhrase');
+            if (phrase) phrase.textContent = settings.voiceDhikrPhrase || copy.unrecorded;
+        }
+        function normalizeVoiceDhikr(text) {
+            return (text || '').toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/\s+/g, ' ');
+        }
+        function voiceDhikrMatches(heard) {
+            const a = normalizeVoiceDhikr(heard), b = normalizeVoiceDhikr(settings.voiceDhikrPhrase);
+            if (!a || !b) return false;
+            if (a.includes(b) || b.includes(a)) return true;
+            const grams = s => { const p = `  ${s}  `; const out = []; for (let i = 0; i < p.length - 2; i++) out.push(p.slice(i, i + 3)); return out; };
+            const ga = grams(a), gb = grams(b); let common = 0; const pool = gb.slice();
+            ga.forEach(g => { const i = pool.indexOf(g); if (i >= 0) { common++; pool.splice(i, 1); } });
+            const score = (2 * common) / (ga.length + gb.length);
+            const required = ({ 1: .46, 2: .64, 3: .78 })[settings.voiceDhikrSensitivity || 2];
+            return score >= required;
+        }
+        function setVoiceDhikrStatus(text, recording) {
+            const status = document.getElementById('voiceDhikrCardStatus');
+            const icon = document.getElementById('voiceDhikrCardIcon');
+            const button = document.getElementById('voiceDhikrRecordBtn');
+            if (status) status.textContent = text;
+            if (icon) icon.textContent = recording ? '🔴' : '🎙️';
+            if (button) button.textContent = recording ? voiceDhikrCopy().stop : voiceDhikrCopy().record;
+        }
+        function startVoiceDhikrRecognition(mode) {
+            const Recognition = getVoiceRecognition();
+            if (!Recognition) { setVoiceDhikrStatus(voiceDhikrCopy().unsupported, false); return false; }
+            if (_voiceDhikrRecognition) { try { _voiceDhikrRecognition.stop(); } catch(e) {} }
+            const recognition = _voiceDhikrRecognition = new Recognition();
+            _voiceDhikrMode = mode;
+            recognition.lang = currentLang === 'ru' ? 'ru-RU' : currentLang === 'ar' ? 'ar-SA' : currentLang;
+            recognition.continuous = mode === 'listen';
+            recognition.interimResults = false;
+            recognition.onresult = event => {
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    if (!event.results[i].isFinal) continue;
+                    const heard = event.results[i][0].transcript.trim();
+                    if (mode === 'record') {
+                        settings.voiceDhikrPhrase = heard;
+                        saveDataDebounced(); updateVoiceDhikrText();
+                        setVoiceDhikrStatus(voiceDhikrCopy().saved, false);
+                        try { recognition.stop(); } catch(e) {}
+                    } else if (settings.voiceDhikr && voiceDhikrMatches(heard)) {
+                        const ring = document.querySelector('.counter-ring-wrap');
+                        if (ring) { ring.classList.remove('voice-hit'); void ring.offsetWidth; ring.classList.add('voice-hit'); setTimeout(() => ring.classList.remove('voice-hit'), 260); }
+                        increment();
+                    }
+                }
+            };
+            recognition.onerror = event => {
+                if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                    settings.voiceDhikr = false;
+                    saveDataDebounced(); updateSettingsUI();
+                }
+                if (mode === 'record' && event.error !== 'aborted') setVoiceDhikrStatus(event.error === 'not-allowed' ? (currentLang === 'ru' ? 'Разрешите доступ к микрофону в настройках браузера.' : 'Allow microphone access in your browser settings.') : voiceDhikrCopy().idle, false);
+            };
+            recognition.onend = () => {
+                if (_voiceDhikrRecognition === recognition) _voiceDhikrRecognition = null;
+                if (mode === 'listen' && settings.voiceDhikr) {
+                    clearTimeout(_voiceDhikrRestartTimer);
+                    _voiceDhikrRestartTimer = setTimeout(() => startVoiceDhikrRecognition('listen'), 250);
+                }
+            };
+            try { recognition.start(); return true; } catch(e) { return false; }
+        }
+        function stopVoiceDhikrRecognition() {
+            clearTimeout(_voiceDhikrRestartTimer);
+            const rec = _voiceDhikrRecognition; _voiceDhikrRecognition = null;
+            if (rec) try { rec.onend = null; rec.stop(); } catch(e) {}
+            _voiceDhikrMode = null;
+        }
+        function toggleVoiceDhikr() {
+            if (!settings.voiceDhikrPhrase) { openVoiceDhikrCard(); return; }
+            settings.voiceDhikr = !settings.voiceDhikr;
+            if (settings.voiceDhikr) {
+                if (!startVoiceDhikrRecognition('listen')) { settings.voiceDhikr = false; openVoiceDhikrCard(); }
+            } else stopVoiceDhikrRecognition();
+            saveDataDebounced(); updateSettingsUI();
+        }
+        function onVoiceDhikrSensitivity(value) {
+            settings.voiceDhikrSensitivity = parseInt(value, 10);
+            saveDataDebounced(); updateVoiceDhikrText();
+            const slider = document.getElementById('voiceDhikrSensitivity');
+            if (slider) slider.style.setProperty('--slider-pct', ((settings.voiceDhikrSensitivity - 1) / 2 * 100).toFixed(0) + '%');
+        }
+        function startVoiceDhikrPress(event) {
+            event.preventDefault();
+            _voiceDhikrPressTimer = setTimeout(() => { _voiceDhikrPressTimer = null; openVoiceDhikrCard(); }, 800);
+        }
+        function cancelVoiceDhikrPress() {
+            if (_voiceDhikrPressTimer) { clearTimeout(_voiceDhikrPressTimer); _voiceDhikrPressTimer = null; toggleVoiceDhikr(); }
+        }
+        function openVoiceDhikrCard() {
+            stopVoiceDhikrRecognition();
+            const copy = voiceDhikrCopy(); updateVoiceDhikrText();
+            setVoiceDhikrStatus(settings.voiceDhikrPhrase ? copy.idle : copy.idle, false);
+            document.getElementById('voiceDhikrOverlay').classList.add('show');
+            _initSheetDrag(document.getElementById('voiceDhikrOverlay'), document.querySelector('#voiceDhikrOverlay .sound-picker-sheet'), closeVoiceDhikrCard);
+        }
+        function closeVoiceDhikrCard() {
+            document.getElementById('voiceDhikrOverlay').classList.remove('show');
+            if (settings.voiceDhikr && settings.voiceDhikrPhrase) startVoiceDhikrRecognition('listen');
+            updateSettingsUI();
+        }
+        function toggleVoiceDhikrRecording() {
+            if (_voiceDhikrMode === 'record') { stopVoiceDhikrRecognition(); setVoiceDhikrStatus(voiceDhikrCopy().idle, false); return; }
+            setVoiceDhikrStatus(voiceDhikrCopy().recording, true);
+            startVoiceDhikrRecognition('record');
+        }
+
         /* ===== EXPORT / IMPORT DATA ===== */
         function exportData() {
             try {
@@ -13713,6 +13919,20 @@
                 const pct = ((lvl - 1) / 2 * 100).toFixed(0) + '%';
                 vSlider.style.setProperty('--slider-pct', pct);
             }
+            // Voice dhikr toggle and sensitivity slider
+            const voiceToggle = document.getElementById('voiceDhikrToggle');
+            const voiceSliderBlock = document.getElementById('voiceDhikrSliderBlock');
+            const voiceIcon = document.getElementById('voiceDhikrIcon');
+            if (voiceToggle) voiceToggle.classList.toggle('on', !!settings.voiceDhikr);
+            if (voiceSliderBlock) voiceSliderBlock.style.display = settings.voiceDhikr ? '' : 'none';
+            if (voiceIcon) voiceIcon.textContent = settings.voiceDhikr ? '🎙️' : '🎤';
+            const voiceSlider = document.getElementById('voiceDhikrSensitivity');
+            if (voiceSlider) {
+                const level = settings.voiceDhikrSensitivity || 2;
+                voiceSlider.value = level;
+                voiceSlider.style.setProperty('--slider-pct', ((level - 1) / 2 * 100).toFixed(0) + '%');
+            }
+            if (typeof updateVoiceDhikrText === 'function') updateVoiceDhikrText();
             // PiP toggle
             const pipToggleEl = document.getElementById('pipToggle');
             if (pipToggleEl) pipToggleEl.classList.toggle('on', !!settings.pipCounter);
@@ -14049,6 +14269,9 @@
             // Restore vibration defaults if not set
             if (settings.vibration === undefined) settings.vibration = false;
             if (settings.vibrationLevel === undefined) settings.vibrationLevel = 3;
+            if (settings.voiceDhikr === undefined) settings.voiceDhikr = false;
+            if (settings.voiceDhikrSensitivity === undefined) settings.voiceDhikrSensitivity = 2;
+            if (settings.voiceDhikrPhrase === undefined) settings.voiceDhikrPhrase = '';
             if (settings.clickSoundVolume === undefined) settings.clickSoundVolume = 10;
             if (settings.goalSoundVolume === undefined) settings.goalSoundVolume = 10;
             if (settings.autoExtendStep === undefined) {
