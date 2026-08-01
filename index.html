@@ -1364,6 +1364,15 @@
         .overlay-btn-cancel {
             background: transparent; border: 1px solid rgba(128,128,128,0.2); color: var(--text-muted);
         }
+        .special-resume-actions { flex-direction: column; }
+        .special-resume-actions button { width: 100%; flex: none; }
+        .special-resume-continue {
+            background: linear-gradient(145deg, var(--accent-glow), var(--surface));
+            border: 1px solid var(--gold); color: var(--gold);
+        }
+        .special-resume-start-over {
+            background: transparent; border: 1px solid rgba(128,128,128,0.2); color: var(--text-muted);
+        }
 
         /* ===== SPECIAL ACHIEVEMENT OVERLAY — full brightness, tap-to-continue ===== */
         #specialAchievementOverlay {
@@ -6214,6 +6223,16 @@
         </div>
     </div>
 
+    <div class="overlay" id="specialResumeOverlay">
+        <div class="overlay-card">
+            <div class="overlay-title" id="specialResumeTitle"></div>
+            <div class="overlay-btns special-resume-actions">
+                <button class="special-resume-continue" id="specialResumeContinueBtn" onclick="continueSpecialResume()"></button>
+                <button class="special-resume-start-over" id="specialResumeStartOverBtn" onclick="startSpecialResumeOver()"></button>
+            </div>
+        </div>
+    </div>
+
     <div class="stats-detail-overlay" id="statsDetailOverlay" onclick="closeStatsDetail()">
         <div class="stats-detail-card" id="statsDetailCard"></div>
     </div>
@@ -7293,7 +7312,7 @@
             if (_deleteSpecialId) {
                 markDefaultDeleted(_deleteSpecialId);
                 specialDhikrs = specialDhikrs.filter(d => d.id !== _deleteSpecialId);
-                delete completedSpecial[_deleteSpecialId]; delete specialProgress[_deleteSpecialId];
+                delete completedSpecial[_deleteSpecialId]; delete specialProgress[_deleteSpecialId]; delete specialResumeSessions[_deleteSpecialId];
                 saveSpecialDhikrsToStorage(); saveDataDebounced(); markDirty('special'); renderSpecialList(); _dirty.special = false; showToast(t('toastDeleted'));
                 _deleteSpecialId = null;
             }
@@ -7814,6 +7833,7 @@
         let openSpecialFolderIdx = null;
         let _duaDragSrcId = null; // tracks dua id during drag-into-folder
         let specialProgress = {};
+        let specialResumeSessions = {};
         // Накопленный (lifetime) счётчик по каждому зикру — НЕ сбрасывается
         // каждый день, растёт бесконечно. 'main' = основной счётчик,
         // остальные ключи = id специальных зикров. Используется только для
@@ -7864,6 +7884,7 @@
             localStorage.setItem('azkar_custom_goal', customGoal);
             localStorage.setItem('azkar_special_completed', JSON.stringify(completedSpecial));
             localStorage.setItem('azkar_special_progress', JSON.stringify(specialProgress));
+            localStorage.setItem('azkar_special_resume_sessions', JSON.stringify(specialResumeSessions));
             if (pendingStatsSave && _statsCache !== null) { localStorage.setItem('azkar_stats_v2', JSON.stringify(_statsCache)); pendingStatsSave = false; }
         }
         function saveDataDebounced() { scheduleSave(); pendingStatsSave = true; markDataChanged(); }
@@ -8610,11 +8631,19 @@
 
         function startSpecialDhikr(id) {
             closeSpecialDetail();
+            if (shouldOfferSpecialResume(id)) {
+                showSpecialResume(id);
+                return;
+            }
+            openSpecialDhikrCounter(id);
+        }
+
+        function openSpecialDhikrCounter(id, resumedCount) {
             currentSpecialId = id;
             lastActiveSpecialId = id;
             _swipeSpecialId = id;
             localStorage.setItem('azkar_last_special_id', id);
-            specialCount = specialProgress[id] || 0;
+            specialCount = resumedCount === undefined ? (specialProgress[id] || 0) : resumedCount;
             isSpecialActive = true;
             _specialGoalShown = (specialCount >= (specialDhikrs.find(d => d.id === id)?.goal || 100));
             const dhikr = specialDhikrs.find(d => d.id === id);
@@ -8670,6 +8699,57 @@
             }
         }
 
+        function updateSpecialResumeSession(id) {
+            const dhikr = specialDhikrs.find(d => d.id === id);
+            const goal = dhikr ? (dhikr.goal || 100) : 100;
+            if (specialCount > 0 && specialCount < goal) {
+                specialResumeSessions[id] = { count: specialCount, day: _localDayKey(new Date()) };
+            } else {
+                delete specialResumeSessions[id];
+            }
+            localStorage.setItem('azkar_special_resume_sessions', JSON.stringify(specialResumeSessions));
+        }
+
+        function shouldOfferSpecialResume(id) {
+            const session = specialResumeSessions[id];
+            const dhikr = specialDhikrs.find(d => d.id === id);
+            if (!session || session.chosen || !dhikr || !Number.isFinite(session.count) || session.count <= 0 || session.count >= (dhikr.goal || 100)) return false;
+            return typeof session.day === 'string' && session.day < _localDayKey(new Date());
+        }
+
+        function showSpecialResume(id) {
+            const overlay = document.getElementById('specialResumeOverlay');
+            overlay.dataset.specialId = id;
+            document.getElementById('specialResumeTitle').textContent = t('specialResumeTitle');
+            document.getElementById('specialResumeContinueBtn').textContent = t('specialResumeContinue');
+            document.getElementById('specialResumeStartOverBtn').textContent = t('specialResumeStartOver');
+            overlay.classList.add('show');
+        }
+
+        function continueSpecialResume() {
+            const overlay = document.getElementById('specialResumeOverlay');
+            const id = overlay.dataset.specialId;
+            const session = specialResumeSessions[id];
+            overlay.classList.remove('show');
+            if (!id || !session) return;
+            specialResumeSessions[id] = { ...session, chosen: true };
+            localStorage.setItem('azkar_special_resume_sessions', JSON.stringify(specialResumeSessions));
+            specialProgress[id] = session.count;
+            openSpecialDhikrCounter(id, session.count);
+        }
+
+        function startSpecialResumeOver() {
+            const overlay = document.getElementById('specialResumeOverlay');
+            const id = overlay.dataset.specialId;
+            overlay.classList.remove('show');
+            if (!id) return;
+            delete specialResumeSessions[id];
+            specialProgress[id] = 0;
+            localStorage.setItem('azkar_special_resume_sessions', JSON.stringify(specialResumeSessions));
+            localStorage.setItem('azkar_special_progress', JSON.stringify(specialProgress));
+            openSpecialDhikrCounter(id, 0);
+        }
+
         let _specialGoalShown = false;
         function incrementSpecial() {
             const now = Date.now();
@@ -8678,6 +8758,7 @@
             vibrate();
             specialCount++;
             if (currentSpecialId) {
+                updateSpecialResumeSession(currentSpecialId);
                 bumpDhikrTotal(currentSpecialId);
                 recordDhikrCloudDelta(currentSpecialId, null, false);
             }
@@ -8721,6 +8802,7 @@
             if (currentSpecialId) {
                 const today = _islamicDayKey();
                 completedSpecial[currentSpecialId] = today;
+                delete specialResumeSessions[currentSpecialId];
                 
                 const folderIdx = specialFolders.findIndex(folder => folder.dhikrIds.includes(currentSpecialId));
                 if (folderIdx !== -1) {
@@ -8771,6 +8853,7 @@
             if (currentSpecialId) {
                 const today = _islamicDayKey();
                 completedSpecial[currentSpecialId] = today;
+                delete specialResumeSessions[currentSpecialId];
                 
                 const folderIdx = specialFolders.findIndex(folder => folder.dhikrIds.includes(currentSpecialId));
                 if (folderIdx !== -1) {
@@ -9122,6 +9205,10 @@
 
         // Запускает специальный зикр напрямую без открытия detail-карточки
         function startSpecialDhikrDirect(id) {
+            if (shouldOfferSpecialResume(id)) {
+                showSpecialResume(id);
+                return;
+            }
             currentSpecialId = id;
             lastActiveSpecialId = id;
             _swipeSpecialId = id;
@@ -9877,8 +9964,10 @@
             // конца) и пометки "выполнено сегодня" — пишем синхронно, без
             // debounce, чтобы сброс точно сохранился.
             specialProgress = {};
+            specialResumeSessions = {};
             completedSpecial = {};
             localStorage.setItem('azkar_special_progress', JSON.stringify(specialProgress));
+            localStorage.setItem('azkar_special_resume_sessions', JSON.stringify(specialResumeSessions));
             localStorage.setItem('azkar_special_completed', JSON.stringify(completedSpecial));
             // Если прямо сейчас открыт экран специального зикра — сбрасываем
             // его живой счётчик на экране тоже.
@@ -11418,6 +11507,7 @@
                     dhikrTotals: JSON.parse(localStorage.getItem('azkar_dhikr_totals') || '{}'),
                     completedSpecial: completedSpecial,
                     specialProgress: specialProgress,
+                    specialResumeSessions: specialResumeSessions,
                     specialDhikrs: specialDhikrs
                 };
                 const json = JSON.stringify(data, null, 2);
@@ -11464,6 +11554,7 @@
                             _statsCache = JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}');
                             completedSpecial = JSON.parse(localStorage.getItem('azkar_special_completed') || '{}');
                             specialProgress = JSON.parse(localStorage.getItem('azkar_special_progress') || '{}');
+                            specialResumeSessions = JSON.parse(localStorage.getItem('azkar_special_resume_sessions') || '{}');
                             // Перечитываем общий прогресс зикров (azkar_dhikr_totals) в память —
                             // иначе экран «Прогресс» останется пустым после импорта, пока
                             // страница не будет перезагружена.
@@ -11517,6 +11608,7 @@
                     // Restore special
                     if (data.completedSpecial) completedSpecial = data.completedSpecial;
                     if (data.specialProgress) specialProgress = data.specialProgress;
+                    if (data.specialResumeSessions) specialResumeSessions = data.specialResumeSessions;
                     // Restore all special dhikrs (including order of built-ins and custom ones)
                     if (Array.isArray(data.specialDhikrs) && data.specialDhikrs.length > 0) {
                         specialDhikrs = data.specialDhikrs;
@@ -13948,6 +14040,7 @@
             _statsCache = JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}');
             completedSpecial = JSON.parse(localStorage.getItem('azkar_special_completed') || '{}');
             specialProgress = JSON.parse(localStorage.getItem('azkar_special_progress') || '{}');
+            specialResumeSessions = JSON.parse(localStorage.getItem('azkar_special_resume_sessions') || '{}');
             loadDhikrTotals();
             // Сбрасываем completedSpecial и specialProgress прошлых дней сразу при загрузке.
             pruneCompletedSpecial();
@@ -14511,6 +14604,7 @@
             'azkar_count', 'azkar_goal', 'azkar_goal_baseline', 'azkar_custom_goal',
             'azkar_duas', 'azkar_dua_folders', 'azkar_checklist_lists_v5', 'azkar_checklist_v4', 'azkar_stats_v2',
             'azkar_special_completed', 'azkar_special_progress', 'azkar_custom_special_dhikrs',
+            'azkar_special_resume_sessions',
             'azkar_special_deleted_defaults', 'azkar_last_special_id', 'azkar_settings',
             'azkar_special_history', 'azkar_task_history', 'azkar_dhikr_totals', 'azkar_account_icon_v1'
         ];
@@ -14593,6 +14687,7 @@
                 azkar_stats_v2: '{}',
                 azkar_special_completed: '{}',
                 azkar_special_progress: '{}',
+                azkar_special_resume_sessions: '{}',
                 azkar_custom_special_dhikrs: '[]',
                 azkar_special_deleted_defaults: '[]',
                 azkar_dhikr_totals: '{}'
@@ -14620,6 +14715,7 @@
                 _statsCache = JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}');
                 completedSpecial = JSON.parse(localStorage.getItem('azkar_special_completed') || '{}');
                 specialProgress = JSON.parse(localStorage.getItem('azkar_special_progress') || '{}');
+                specialResumeSessions = JSON.parse(localStorage.getItem('azkar_special_resume_sessions') || '{}');
                 loadDhikrTotals();
                 loadCustomSpecialDhikrs();
                 pruneCompletedSpecial();
@@ -18391,6 +18487,7 @@
                             _statsCache = JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}');
                             completedSpecial = JSON.parse(localStorage.getItem('azkar_special_completed') || '{}');
                             specialProgress = JSON.parse(localStorage.getItem('azkar_special_progress') || '{}');
+                            specialResumeSessions = JSON.parse(localStorage.getItem('azkar_special_resume_sessions') || '{}');
                             // Перечитываем общий прогресс зикров в память (см. importData).
                             if (typeof loadDhikrTotals === 'function') loadDhikrTotals();
                             if (typeof loadCustomSpecialDhikrs === 'function') loadCustomSpecialDhikrs();
@@ -18418,6 +18515,7 @@
                     if (data.duas) { duas = data.duas; localStorage.setItem('azkar_duas', JSON.stringify(duas)); }
                     if (data.completedSpecial) { completedSpecial = data.completedSpecial; localStorage.setItem('azkar_special_completed', JSON.stringify(completedSpecial)); }
                     if (data.specialProgress) { specialProgress = data.specialProgress; localStorage.setItem('azkar_special_progress', JSON.stringify(specialProgress)); }
+                    if (data.specialResumeSessions) { specialResumeSessions = data.specialResumeSessions; localStorage.setItem('azkar_special_resume_sessions', JSON.stringify(specialResumeSessions)); }
                     if (Array.isArray(data.specialDhikrs) && data.specialDhikrs.length > 0) {
                         specialDhikrs = data.specialDhikrs;
                         if (typeof saveSpecialDhikrsToStorage === 'function') saveSpecialDhikrsToStorage();
@@ -18544,6 +18642,7 @@
                 dhikrTotals: JSON.parse(localStorage.getItem('azkar_dhikr_totals') || '{}'),
                 completedSpecial: completedSpecial,
                 specialProgress: specialProgress,
+                specialResumeSessions: specialResumeSessions,
                 specialDhikrs: specialDhikrs
             };
         };
