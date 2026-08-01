@@ -1913,6 +1913,15 @@
         .set-row.set-row-col { flex-direction: column; align-items: stretch; gap: 10px; cursor: default; }
         .set-row.set-row-col .set-row-main { display: flex; align-items: center; gap: 13px; cursor: pointer; }
         .set-row.set-row-col .set-row-main .set-row-lbl { display: flex; flex-direction: column; }
+        /* Voice dhikr has no secondary slider, so its press area must retain
+           the same one-line flex layout as the other setting rows. */
+        #voiceDhikrSettingItem { display: block; padding: 0; }
+        #voiceDhikrSettingItem .set-row-main {
+            display: flex; align-items: center; gap: 13px; width: 100%;
+            box-sizing: border-box; padding: 13px 15px; cursor: pointer;
+        }
+        #voiceDhikrSettingItem .set-row-main:active { background: var(--accent-glow); }
+        #voiceDhikrSettingItem .set-row-lbl { display: flex; flex-direction: column; }
 
         .account-row {
             gap: 12px;
@@ -11573,8 +11582,11 @@
         }
         function canonicalVoiceDhikr(text) {
             const normalized = normalizeVoiceDhikr(text);
-            // Russian speech recognition often hears «Астагфируллах» as «оставила».
-            if (/^(астагфир|астафир|остафир|оставил|оставила|астафил)/u.test(normalized) || normalized.includes('أستغفر')) return 'астагфируллах';
+            const compact = normalized.replace(/\s+/g, '');
+            // Russian recognition frequently renders «Астагфируллах» as a
+            // near-sounding word (for example «оставила»). Treat these common
+            // phonetic variants as one dhikr, including split-word results.
+            if (/(?:астагфир|астафир|астогфир|астакир|астахфир|остафир|оставил|истагфир|истафир)/u.test(compact) || normalized.includes('أستغفر')) return 'астагфируллах';
             return normalized;
         }
         function voiceDhikrMatches(heard) {
@@ -11586,7 +11598,7 @@
             const ga = grams(a), gb = grams(b); let common = 0; const pool = gb.slice();
             ga.forEach(g => { const i = pool.indexOf(g); if (i >= 0) { common++; pool.splice(i, 1); } });
             const score = (2 * common) / (ga.length + gb.length);
-            return score >= .64;
+            return score >= .52;
         }
         function setVoiceDhikrStatus(text, recording) {
             const status = document.getElementById('voiceDhikrCardStatus');
