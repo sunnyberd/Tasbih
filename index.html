@@ -1262,6 +1262,24 @@
         .goal-chip-num { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.2rem, 5vw, 1.6rem); font-weight: 600; color: var(--gold); }
         .goal-chip-label { font-size: clamp(0.5rem, 1.8vw, 0.6rem); font-weight: 500; color: var(--text-dim); letter-spacing: 0.8px; text-transform: uppercase; margin-top: 3px; }
 
+        /* ===== MANUAL ADD MODE TOGGLE (+ / −) ===== */
+        .manual-add-mode-wrap { display: flex; justify-content: center; margin-top: 4px; }
+        .manual-add-mode-btn {
+            width: 52px; height: 52px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Cormorant Garamond', serif; font-size: 1.9rem; font-weight: 600; line-height: 1;
+            cursor: pointer; user-select: none; -webkit-user-select: none;
+            border: 1px solid var(--success, #4ade80); color: var(--success, #4ade80);
+            background: linear-gradient(145deg, rgba(74,222,128,0.14), var(--surface));
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+        }
+        .manual-add-mode-btn:active { transform: scale(0.92) translateZ(0); }
+        .manual-add-mode-btn.subtract {
+            border-color: #f87171; color: #f87171;
+            background: linear-gradient(145deg, rgba(248,113,113,0.16), var(--surface));
+        }
+
         /* ===== RESET BTN ===== */
         .reset-area, .setting-btn-row {
             width: 100%; max-width: 380px;
@@ -6131,7 +6149,9 @@
     <div class="overlay" id="manualAddOverlay" onclick="if(event.target===this)cancelManualAdd()">
         <div class="overlay-card">
             <div class="overlay-title" id="manualAddTitle">Добавить зикры вручную</div>
-            <div class="overlay-sub" id="manualAddSub">Если считали без приложения — впишите число, оно добавится к счётчику и статистике как обычные тапы</div>
+            <div class="manual-add-mode-wrap">
+                <div class="manual-add-mode-btn" id="manualAddModeBtn" onclick="toggleManualAddMode()" role="button" tabindex="0" aria-label="Режим: добавить">+</div>
+            </div>
             <input class="cl-modal-input" id="manualAddInput" type="number" inputmode="numeric" min="1" max="100000" placeholder="Например, 500" style="margin-top:14px;">
             <div class="overlay-btns">
                 <button class="overlay-btn-cancel" onclick="cancelManualAdd()" id="btnCancelManualAdd">Отмена</button>
@@ -8430,7 +8450,7 @@
         // не занимать место отдельной кнопкой на экране.
         let _manualAddPressTimer = null;
         let _manualAddTriggered = false;
-        const MANUAL_ADD_PRESS_MS = 550;
+        const MANUAL_ADD_PRESS_MS = 1000;
 
         function startManualAddPress(e) {
             _manualAddTriggered = false;
@@ -8456,9 +8476,36 @@
             increment();
         }
 
+        // 'add' | 'subtract' — режим кнопки над полем ввода. Сбрасывается
+        // на 'add' при каждом открытии оверлея.
+        let manualAddMode = 'add';
+
+        function toggleManualAddMode() {
+            manualAddMode = (manualAddMode === 'add') ? 'subtract' : 'add';
+            _applyManualAddModeUI();
+            if (navigator.vibrate) { try { navigator.vibrate(10); } catch(err) {} }
+        }
+        function _applyManualAddModeUI() {
+            const btn = document.getElementById('manualAddModeBtn');
+            const confirmBtn = document.getElementById('btnConfirmManualAdd');
+            if (manualAddMode === 'subtract') {
+                btn.classList.add('subtract');
+                btn.innerText = '−';
+                btn.setAttribute('aria-label', 'Режим: отнять');
+                confirmBtn.innerText = 'Отнять';
+            } else {
+                btn.classList.remove('subtract');
+                btn.innerText = '+';
+                btn.setAttribute('aria-label', 'Режим: добавить');
+                confirmBtn.innerText = 'Добавить';
+            }
+        }
+
         function promptManualAdd() {
             const input = document.getElementById('manualAddInput');
             input.value = '';
+            manualAddMode = 'add';
+            _applyManualAddModeUI();
             document.getElementById('manualAddOverlay').classList.add('show');
             // Поле ввода намеренно НЕ получает автофокус при открытии —
             // клавиатура не должна выскакивать сама; пользователь сам
@@ -8476,7 +8523,51 @@
             }
             const amount = Math.min(n, 100000);
             document.getElementById('manualAddOverlay').classList.remove('show');
-            addManualDhikr(amount);
+            if (manualAddMode === 'subtract') {
+                subtractManualDhikr(amount);
+            } else {
+                addManualDhikr(amount);
+            }
+        }
+        // Отнимает ранее добавленное количество зикров — та же дельта, что и
+        // addManualDhikr, только с обратным знаком. Не уводит счётчик и
+        // статистику ниже нуля.
+        function subtractManualDhikr(amount) {
+            if (isCompletionActive) return;
+            if (!amount || amount <= 0) return;
+
+            const applied = Math.min(amount, count);
+            if (applied <= 0) { showToast('0'); return; }
+
+            // 1) Общий счётчик.
+            count -= applied;
+
+            // 2) Накопленная статистика по основному зикру — не ниже нуля.
+            dhikrTotals['main'] = Math.max(0, (dhikrTotals['main'] || 0) - applied);
+            saveDhikrTotals();
+
+            // 3) Дневная статистика (тот же Fajr-anchored день) — не ниже нуля.
+            const statDay = _islamicDayKey();
+            const stats = getStats();
+            if (stats[statDay]) {
+                stats[statDay].count = Math.max(0, (stats[statDay].count || 0) - applied);
+            }
+            pendingStatsSave = true; scheduleSave();
+            markDirty('stats');
+            markDataChanged();
+
+            // 4) Облачная синхронизация — та же дельта, но со знаком минус.
+            recordDhikrCloudDelta('main', statDay, true, -applied);
+
+            // Если счёт опустился ниже цели — разрешаем достижению сработать
+            // снова при следующем пересечении порога обычными тапами.
+            if (!isUnlimited && goal > 0 && count < goal) {
+                goalTriggered = false;
+            }
+
+            updateDisplay();
+            showToast('-' + applied);
+            saveDataDebounced();
         }
         function addManualDhikr(amount) {
             if (isCompletionActive) return;
@@ -14017,10 +14108,25 @@
             if (pipBtn && settings.pipCounter) pipBtn.classList.add('show');
         }
 
-        function showToast(msg) {
+        function showToast(msg, duration) {
             const t = document.getElementById('toast');
             t.innerText = msg; t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2000);
+            clearTimeout(t._hideTimer);
+            t._hideTimer = setTimeout(() => t.classList.remove('show'), duration || 2000);
+        }
+
+        // ===== ONE-TIME HINT: скрытый жест долгого нажатия на кольцо =====
+        // Долгое удержание кольца счётчика открывает "Добавить зикры вручную"
+        // (+ / −), но это неочевидный жест — без подсказки о нём никто не
+        // узнает. Показываем один раз, при самом первом заходе в приложение.
+        function initManualAddHint() {
+            try {
+                if (localStorage.getItem('azkar_manual_add_hint_shown')) return;
+                localStorage.setItem('azkar_manual_add_hint_shown', '1');
+            } catch (err) { return; }
+            setTimeout(() => {
+                showToast('Долгое нажатие на кольцо — добавить или отнять зикры вручную', 4500);
+            }, 1600);
         }
 
         // ===== HADITH REMINDER SYSTEM =====
@@ -17286,6 +17392,7 @@
         initDOMCache();
         initDraggable();
         updateDisplay();
+        initManualAddHint();
         // Разделы теперь рендерятся лениво — только при первом переходе в них.
         // renderDuas / renderFavorites / renderStats / renderNames / renderSpecialList
         // вызываются через switchTab() по мере необходимости.
