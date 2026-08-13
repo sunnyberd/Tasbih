@@ -5003,7 +5003,13 @@
             </div>
         </div>
         <div class="counter-area">
-            <div class="counter-ring-wrap" onclick="increment()" ontouchstart="" role="button" tabindex="0" aria-label="Увеличить счетчик">
+            <div class="counter-ring-wrap" onclick="handleRingClick(event)" role="button" tabindex="0" aria-label="Увеличить счетчик"
+                 onmousedown="startManualAddPress(event)"
+                 onmouseup="cancelManualAddPress()"
+                 onmouseleave="cancelManualAddPress()"
+                 ontouchstart="startManualAddPress(event)"
+                 ontouchend="cancelManualAddPress()"
+                 ontouchcancel="cancelManualAddPress()">
                 <div class="ring-outer-glow" aria-hidden="true"></div>
                 <svg class="progress-ring-svg" viewBox="0 0 280 280" aria-hidden="true">
                     <circle class="pr-bg" cx="140" cy="140" r="135" />
@@ -6118,6 +6124,18 @@
             <div class="overlay-btns">
                 <button class="overlay-btn-cancel" onclick="cancelResetCounter()" id="btnNoReset">Нет</button>
                 <button class="overlay-btn-confirm" onclick="confirmResetCounter()" id="btnYesReset">Да</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="manualAddOverlay" onclick="if(event.target===this)cancelManualAdd()">
+        <div class="overlay-card">
+            <div class="overlay-title" id="manualAddTitle">Добавить зикры вручную</div>
+            <div class="overlay-sub" id="manualAddSub">Если считали без приложения — впишите число, оно добавится к счётчику и статистике как обычные тапы</div>
+            <input class="cl-modal-input" id="manualAddInput" type="number" inputmode="numeric" min="1" max="100000" placeholder="Например, 500" style="margin-top:14px;">
+            <div class="overlay-btns">
+                <button class="overlay-btn-cancel" onclick="cancelManualAdd()" id="btnCancelManualAdd">Отмена</button>
+                <button class="overlay-btn-confirm" onclick="confirmManualAdd()" id="btnConfirmManualAdd">Добавить</button>
             </div>
         </div>
     </div>
@@ -7847,8 +7865,8 @@
         function saveDhikrTotals() {
             try { localStorage.setItem('azkar_dhikr_totals', JSON.stringify(dhikrTotals)); } catch (e) {}
         }
-        function bumpDhikrTotal(id) {
-            dhikrTotals[id] = (dhikrTotals[id] || 0) + 1;
+        function bumpDhikrTotal(id, amount) {
+            dhikrTotals[id] = (dhikrTotals[id] || 0) + (amount || 1);
             saveDhikrTotals();
         }
         let lastSpecialIncrementTime = 0;
@@ -7934,14 +7952,14 @@
                    String(d.getMonth() + 1).padStart(2, '0') + '-' +
                    String(d.getDate()).padStart(2, '0');
         }
-        function recordStat() {
+        function recordStat(amount) {
             // The "day" rolls over at Fajr (Islamic day), not at midnight — so
             // the daily counter (and the "Today" stat) resets only when the next
             // Fajr arrives. Falls back to local midnight if Fajr is unknown.
             let today = _islamicDayKey();
             let stats = getStats();
             if (!stats[today]) stats[today] = { count: 0 };
-            stats[today].count++;
+            stats[today].count += (amount || 1);
             pendingStatsSave = true; scheduleSave();
             markDirty('stats');
             markDataChanged();
@@ -8398,6 +8416,147 @@
                 showToast('+' + _aeStep);
                 saveDataDebounced();
             }
+        }
+
+        // ==================== MANUAL ADD (зикр, сделанный без приложения) ====================
+        // Позволяет добавить пачку зикров одним числом (например, если считали
+        // отдельно, пока телефон заряжался), так, будто пользователь всё это
+        // время тапал по одному: счётчик, dhikrTotals, дневная статистика,
+        // облачная синхронизация и цели обновляются ровно так же, как при N
+        // обычных нажатиях increment().
+        //
+        // Открывается долгим удержанием (long-press) самого кольца счётчика —
+        // по тому же принципу, что и long-press на чипе «Своя цель» — чтобы
+        // не занимать место отдельной кнопкой на экране.
+        let _manualAddPressTimer = null;
+        let _manualAddTriggered = false;
+        const MANUAL_ADD_PRESS_MS = 550;
+
+        function startManualAddPress(e) {
+            _manualAddTriggered = false;
+            clearTimeout(_manualAddPressTimer);
+            _manualAddPressTimer = setTimeout(() => {
+                _manualAddTriggered = true;
+                _manualAddPressTimer = null;
+                if (navigator.vibrate) { try { navigator.vibrate(15); } catch(err) {} }
+                promptManualAdd();
+            }, MANUAL_ADD_PRESS_MS);
+        }
+        function cancelManualAddPress() {
+            clearTimeout(_manualAddPressTimer);
+            _manualAddPressTimer = null;
+        }
+        // Обычный клик по кольцу — но только если это НЕ был long-press
+        // (иначе после открытия модалки ещё и засчитался бы обычный тап).
+        function handleRingClick(e) {
+            if (_manualAddTriggered) {
+                _manualAddTriggered = false;
+                return;
+            }
+            increment();
+        }
+
+        function promptManualAdd() {
+            const input = document.getElementById('manualAddInput');
+            input.value = '';
+            document.getElementById('manualAddOverlay').classList.add('show');
+            // Поле ввода намеренно НЕ получает автофокус при открытии —
+            // клавиатура не должна выскакивать сама; пользователь сам
+            // тапнет по полю, когда будет готов ввести число.
+        }
+        function cancelManualAdd() {
+            document.getElementById('manualAddOverlay').classList.remove('show');
+        }
+        function confirmManualAdd() {
+            const input = document.getElementById('manualAddInput');
+            const n = Math.floor(Number(input.value));
+            if (!n || n <= 0) {
+                input.focus();
+                return;
+            }
+            const amount = Math.min(n, 100000);
+            document.getElementById('manualAddOverlay').classList.remove('show');
+            addManualDhikr(amount);
+        }
+        function addManualDhikr(amount) {
+            if (isCompletionActive) return;
+            if (!amount || amount <= 0) return;
+
+            // 1) Общий счётчик — как N обычных инкрементов.
+            count += amount;
+
+            // 2) Накопленная статистика по основному зикру (карточка "Всего зикров").
+            bumpDhikrTotal('main', amount);
+
+            // 3) Дневная статистика (тот же Fajr-anchored день, что и у обычных тапов).
+            const statDay = recordStat(amount);
+
+            // 4) Облачная синхронизация — тот же дельта-механизм, что и у обычных тапов.
+            recordDhikrCloudDelta('main', statDay, true, amount);
+
+            updateDisplay();
+            showToast('+' + amount);
+
+            // 5) Логика целей: проверяем, не пересекли ли мы порог цели этой пачкой,
+            // так же, как если бы шли по одному тапу — если пересекли, показываем
+            // достижение один раз (не N раз подряд), затем продолжаем счёт с той
+            // же позиции, что была бы после N реальных тапов.
+            const isCustomGoalActive = document.getElementById('customGoalChip').classList.contains('active');
+            let crossedGoal = false;
+            if (!isUnlimited && !goalTriggered && goal > 0) {
+                if (isCustomGoalActive) {
+                    crossedGoal = count >= goal;
+                } else {
+                    const prevCount = count - amount;
+                    crossedGoal = Math.floor((count - goalBaseline) / goal) > Math.floor((prevCount - goalBaseline) / goal);
+                }
+            }
+
+            if (crossedGoal) {
+                goalTriggered = true;
+                const isStealthActive = typeof window._stealthIsActive === 'function' && window._stealthIsActive();
+                if (isStealthActive) {
+                    // Тёмный режим: без карточки достижения — просто продолжаем.
+                    vibrateAdvance();
+                    if (isCustomGoalActive) {
+                        isCompletionActive = true;
+                        closeCompletion();
+                    } else {
+                        window._azkarMilestoneActive = true;
+                        goalTriggered = false;
+                        updateDisplay();
+                    }
+                } else {
+                    playGoalSound();
+                    document.getElementById('specialAchieveTitle').innerText = t('completionTitle');
+                    document.getElementById('specialAchieveName').innerText = '';
+                    document.getElementById('specialAchieveSub').innerText = t('completionSub');
+                    if (isCustomGoalActive) {
+                        isCompletionActive = true;
+                        document.getElementById('completionOverlay').classList.add('show');
+                    } else {
+                        window._azkarMilestoneActive = true;
+                        document.getElementById('completionOverlay').classList.add('show');
+                    }
+                }
+            }
+
+            // ─── ФОНОВОЕ АВТО-ПРОДЛЕНИЕ «СВОЕЙ ЦЕЛИ» ─────────────────────────
+            // Аналогично increment(): если у «своей цели» включён шаг, её порог
+            // срабатывает по общему счёту (count), даже когда сейчас активна
+            // другая цель (33/66/100).
+            const _aeStep = settings.autoExtendStep || 0;
+            if (_aeStep > 0 && !isUnlimited && !isCustomGoalActive &&
+                customGoal > 0 && count >= customGoal && !crossedGoal) {
+                do { customGoal += _aeStep; } while (customGoal <= count);
+                localStorage.setItem('azkar_custom_goal', customGoal);
+                const _cgNum = document.getElementById('customGoalNum');
+                if (_cgNum) _cgNum.innerText = formatGoalShort(customGoal);
+                playGoalSound();
+                showToast('+' + _aeStep);
+            }
+
+            saveDataDebounced();
         }
 
         function promptResetCounter() { document.getElementById('resetCounterOverlay').classList.add('show'); }
@@ -13011,17 +13170,18 @@
             return total;
         }
 
-        function recordDhikrCloudDelta(dhikrId, statDay, incrementsMainCounter) {
+        function recordDhikrCloudDelta(dhikrId, statDay, incrementsMainCounter, amount) {
             if (firebaseRemoteImporting) return;
+            const n = amount || 1;
             const rememberedUid = getActiveDataOwnerUid();
             const uid = (firebaseCurrentUid && localDataBelongsToFirebaseUser(firebaseCurrentUid))
                 ? firebaseCurrentUid
                 : (rememberedUid && googleAccount && String(googleAccount.uid || googleAccount.id || '') === rememberedUid ? rememberedUid : null);
             if (!uid) return;
             const state = loadDhikrDeltaState(uid);
-            if (incrementsMainCounter) state.cumulative.main++;
-            if (dhikrId) state.cumulative.totals[dhikrId] = (state.cumulative.totals[dhikrId] || 0) + 1;
-            if (statDay) state.cumulative.stats[statDay] = (state.cumulative.stats[statDay] || 0) + 1;
+            if (incrementsMainCounter) state.cumulative.main += n;
+            if (dhikrId) state.cumulative.totals[dhikrId] = (state.cumulative.totals[dhikrId] || 0) + n;
+            if (statDay) state.cumulative.stats[statDay] = (state.cumulative.stats[statDay] || 0) + n;
             saveDhikrDeltaState(uid, state);
             scheduleDhikrDeltaSync(pendingDhikrDeltaCount(state) >= DHIKR_SYNC_BATCH_SIZE ? 0 : DHIKR_SYNC_IDLE_MS);
         }
