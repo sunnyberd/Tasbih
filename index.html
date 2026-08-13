@@ -1262,22 +1262,23 @@
         .goal-chip-num { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.2rem, 5vw, 1.6rem); font-weight: 600; color: var(--gold); }
         .goal-chip-label { font-size: clamp(0.5rem, 1.8vw, 0.6rem); font-weight: 500; color: var(--text-dim); letter-spacing: 0.8px; text-transform: uppercase; margin-top: 3px; }
 
-        /* ===== MANUAL ADD MODE TOGGLE (+ / −) ===== */
-        .manual-add-mode-wrap { display: flex; justify-content: center; margin-top: 4px; }
+        /* ===== MANUAL ADD MODE TOGGLE (+100 / -100) — тот же размер и стиль, что у бейджа автопродления в «Своя цель» ===== */
+        .manual-add-input-wrap { position: relative; width: 100%; margin-top: 26px; }
         .manual-add-mode-btn {
-            width: 52px; height: 52px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-family: 'Cormorant Garamond', serif; font-size: 1.9rem; font-weight: 600; line-height: 1;
+            position: absolute; top: -24px; right: 2px;
+            display: flex; align-items: center; justify-content: center; gap: 3px;
+            font-size: 0.72rem; font-weight: 700; letter-spacing: 0.3px; line-height: 1;
+            padding: 4px 9px;
+            border-radius: 20px;
+            border: 1.5px solid var(--success, #4ade80); color: var(--success, #4ade80);
+            background: rgba(34, 197, 94, 0.1);
             cursor: pointer; user-select: none; -webkit-user-select: none;
-            border: 1px solid var(--success, #4ade80); color: var(--success, #4ade80);
-            background: linear-gradient(145deg, rgba(74,222,128,0.14), var(--surface));
-            box-shadow: var(--shadow-sm);
-            transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+            transition: background 0.18s, color 0.18s, border-color 0.18s, transform 0.12s;
         }
-        .manual-add-mode-btn:active { transform: scale(0.92) translateZ(0); }
+        .manual-add-mode-btn:active { transform: scale(0.92); }
         .manual-add-mode-btn.subtract {
             border-color: #f87171; color: #f87171;
-            background: linear-gradient(145deg, rgba(248,113,113,0.16), var(--surface));
+            background: rgba(248, 113, 113, 0.14);
         }
 
         /* ===== RESET BTN ===== */
@@ -6149,10 +6150,10 @@
     <div class="overlay" id="manualAddOverlay" onclick="if(event.target===this)cancelManualAdd()">
         <div class="overlay-card">
             <div class="overlay-title" id="manualAddTitle">Добавить зикры вручную</div>
-            <div class="manual-add-mode-wrap">
-                <div class="manual-add-mode-btn" id="manualAddModeBtn" onclick="toggleManualAddMode()" role="button" tabindex="0" aria-label="Режим: добавить">+</div>
+            <div class="manual-add-input-wrap">
+                <div class="manual-add-mode-btn" id="manualAddModeBtn" onclick="toggleManualAddMode()" role="button" tabindex="0" aria-label="Режим: добавить">+100</div>
+                <input class="cl-modal-input" id="manualAddInput" type="number" inputmode="numeric" min="1" max="100000" placeholder="Например, 500">
             </div>
-            <input class="cl-modal-input" id="manualAddInput" type="number" inputmode="numeric" min="1" max="100000" placeholder="Например, 500" style="margin-top:14px;">
             <div class="overlay-btns">
                 <button class="overlay-btn-cancel" onclick="cancelManualAdd()" id="btnCancelManualAdd">Отмена</button>
                 <button class="overlay-btn-confirm" onclick="confirmManualAdd()" id="btnConfirmManualAdd">Добавить</button>
@@ -8490,12 +8491,12 @@
             const confirmBtn = document.getElementById('btnConfirmManualAdd');
             if (manualAddMode === 'subtract') {
                 btn.classList.add('subtract');
-                btn.innerText = '−';
+                btn.innerText = '-100';
                 btn.setAttribute('aria-label', 'Режим: отнять');
                 confirmBtn.innerText = 'Отнять';
             } else {
                 btn.classList.remove('subtract');
-                btn.innerText = '+';
+                btn.innerText = '+100';
                 btn.setAttribute('aria-label', 'Режим: добавить');
                 confirmBtn.innerText = 'Добавить';
             }
@@ -14125,7 +14126,7 @@
                 localStorage.setItem('azkar_manual_add_hint_shown', '1');
             } catch (err) { return; }
             setTimeout(() => {
-                showToast('Долгое нажатие на кольцо — добавить или отнять зикры вручную', 4500);
+                showToast('Зажмите для добавления зикров вручную', 4500);
             }, 1600);
         }
 
