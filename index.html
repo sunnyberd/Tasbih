@@ -7578,6 +7578,10 @@
                 // Delete dua folder overlay
                 deleteDuaFolderYesBtn: 'btnYes',
                 deleteDuaFolderNoBtn: 'btnNo',
+                // Manual add zikr modal
+                manualAddTitle: 'manualAddTitle',
+                btnCancelManualAdd: 'btnCancel',
+                btnConfirmManualAdd: 'manualAddConfirm',
             };
             for (let [id, key] of Object.entries(els)) {
                 let el = document.getElementById(id);
@@ -7604,6 +7608,8 @@
             document.getElementById('duaName').placeholder = t('placeholderDuaName');
             document.getElementById('duaTrans').placeholder = t('placeholderTrans');
             document.getElementById('duaSearch').placeholder = t('placeholderSearch');
+            const _manualAddInput = document.getElementById('manualAddInput');
+            if (_manualAddInput) _manualAddInput.placeholder = t('manualAddPlaceholder');
             // Dua folder modal — inline dua fields (create dua without/into folder)
             const _dfName = document.getElementById('duaFolderDuaName');
             if (_dfName) _dfName.placeholder = t('placeholderDuaName');
@@ -14063,7 +14069,7 @@
                 localStorage.setItem('azkar_manual_add_hint_shown', '1');
             } catch (err) { return; }
             setTimeout(() => {
-                showToast('Зажмите для добавления зикров вручную', 4500);
+                showToast(t('manualAddHint'), 4500);
             }, 1600);
         }
 
