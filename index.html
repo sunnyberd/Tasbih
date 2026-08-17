@@ -7581,7 +7581,6 @@
                 // Manual add zikr modal
                 manualAddTitle: 'manualAddTitle',
                 btnCancelManualAdd: 'btnCancel',
-                btnConfirmManualAdd: 'manualAddConfirm',
             };
             for (let [id, key] of Object.entries(els)) {
                 let el = document.getElementById(id);
@@ -7610,6 +7609,17 @@
             document.getElementById('duaSearch').placeholder = t('placeholderSearch');
             const _manualAddInput = document.getElementById('manualAddInput');
             if (_manualAddInput) _manualAddInput.placeholder = t('manualAddPlaceholder');
+            const _manualAddModeBtn = document.getElementById('manualAddModeBtn');
+            const _btnConfirmManualAdd = document.getElementById('btnConfirmManualAdd');
+            if (_manualAddModeBtn && _btnConfirmManualAdd) {
+                if (typeof manualAddMode !== 'undefined' && manualAddMode === 'subtract') {
+                    _manualAddModeBtn.setAttribute('aria-label', t('manualAddModeSubtractAria'));
+                    _btnConfirmManualAdd.innerText = t('manualAddConfirmSubtract');
+                } else {
+                    _manualAddModeBtn.setAttribute('aria-label', t('manualAddModeAddAria'));
+                    _btnConfirmManualAdd.innerText = t('manualAddConfirm');
+                }
+            }
             // Dua folder modal — inline dua fields (create dua without/into folder)
             const _dfName = document.getElementById('duaFolderDuaName');
             if (_dfName) _dfName.placeholder = t('placeholderDuaName');
@@ -8435,13 +8445,13 @@
             if (manualAddMode === 'subtract') {
                 btn.classList.add('subtract');
                 btn.innerText = '-100';
-                btn.setAttribute('aria-label', 'Режим: отнять');
-                confirmBtn.innerText = 'Отнять';
+                btn.setAttribute('aria-label', t('manualAddModeSubtractAria'));
+                confirmBtn.innerText = t('manualAddConfirmSubtract');
             } else {
                 btn.classList.remove('subtract');
                 btn.innerText = '+100';
-                btn.setAttribute('aria-label', 'Режим: добавить');
-                confirmBtn.innerText = 'Добавить';
+                btn.setAttribute('aria-label', t('manualAddModeAddAria'));
+                confirmBtn.innerText = t('manualAddConfirm');
             }
         }
 
