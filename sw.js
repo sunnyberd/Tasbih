@@ -1,7 +1,7 @@
 // ===== Azkar PWA Service Worker =====
-// Версия: v61 — упрощено оформление карточки «О приложении».
+// Версия: v63 — таймер хадисов уменьшен с 2-4 часов до 1-5 минут (тест).
 // Бампать CACHE_NAME при каждом релизе → activate-handler выкинет старый кэш.
-const CACHE_NAME = 'azkar-v62';
+const CACHE_NAME = 'azkar-v63';
 
 // ===== УСТАНОВКА И КЭШ =====
 self.addEventListener('install', (event) => {
