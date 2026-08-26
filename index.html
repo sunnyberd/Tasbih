@@ -5029,7 +5029,7 @@
             <div class="header-divider" aria-hidden="true"></div>
             <div class="post-salah-select-wrap" id="postSalahSelectWrap">
                 <button class="post-salah-select-btn" id="postSalahSelectBtn" onclick="togglePostSalahDropdown(event)">
-                    <span class="post-salah-btn-text" id="postSalahBtnText">Зикр после намаза</span>
+                    <span class="post-salah-btn-text" id="postSalahBtnText">Основной зикр</span>
                     <svg class="post-salah-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
                 <div class="post-salah-dropdown" id="postSalahDropdown">
@@ -6298,7 +6298,6 @@
             <div class="special-achieve-title" id="postSalahAchieveTitle">✨ Ма шаа Аллах! ✨</div>
             <div class="special-achieve-name" id="postSalahAchieveName"></div>
             <div class="special-achieve-sub" id="postSalahAchieveSub">Цель достигнута</div>
-            <div class="special-achieve-hint" id="postSalahAchieveHint">Коснитесь экрана, чтобы продолжить</div>
         </div>
     </div>
 
@@ -7997,8 +7996,10 @@
             const btn = document.getElementById('postSalahSelectBtn');
             const btnText = document.getElementById('postSalahBtnText');
             const opt = document.getElementById('postSalahOption');
-            if (btnText) btnText.innerText = postSalahActive ? t('postSalahExitLabel') : t('postSalahOptionLabel');
-            if (opt) opt.innerText = postSalahActive ? t('postSalahExitLabel') : t('postSalahOptionLabel');
+            // Кнопка всегда показывает ТЕКУЩИЙ режим.
+            // Пункт в выпадающем списке — режим, НА КОТОРЫЙ можно переключиться (противоположный).
+            if (btnText) btnText.innerText = postSalahActive ? t('postSalahOptionLabel') : t('postSalahMainLabel');
+            if (opt) opt.innerText = postSalahActive ? t('postSalahMainLabel') : t('postSalahOptionLabel');
             if (btn) btn.classList.toggle('active-mode', postSalahActive);
         }
 
