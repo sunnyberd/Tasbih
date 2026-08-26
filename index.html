@@ -5972,18 +5972,6 @@
                 </div>
                 <div class="toggle-switch" id="reminderToggle"></div>
             </div>
-            <!-- Hadith Reminders -->
-            <div class="setting-item setting-item-col" id="hadithSettingItem">
-                <div class="setting-item" style="background:none;border:none;box-shadow:none;padding:0;cursor:pointer;" onclick="toggleHadithSetting()">
-                    <div style="display:flex;align-items:center;gap:10px;">
-                        <span style="font-size:1.25rem;line-height:1;">📖</span>
-                        <div>
-                            <div id="labelHadith">Хадисы</div>
-                        </div>
-                    </div>
-                    <div class="toggle-switch" id="hadithToggle"></div>
-                </div>
-            </div>
             </div>
             <div class="app-version" id="appVersion">
                 <div class="app-version-love">
@@ -7644,8 +7632,7 @@
                 labelTimer: 'labelTimer',
                 labelStealth: 'labelStealth',
                 labelAutoAdvance: 'labelAutoAdvance',
-                // Hadith UI
-                labelHadith: 'labelHadith',
+                // Hadith UI (сам переключатель убран — хадисы всегда включены)
                 hadithPopupLabel: 'hadithLabel',
                 hadithCloseHint: 'hadithCloseHint',
                 // Add-folder modal (tasks)
@@ -14408,17 +14395,14 @@
         let _hadithCurrent = null;     // хадис, выбранный для показа (для баннера → попап)
         let _hadithBannerTimer = null;
 
-        function toggleHadithSetting() {
-            settings.hadithEnabled = !settings.hadithEnabled;
-            saveDataDebounced();
-            updateHadithUI();
-            scheduleHadith(); // сам разрулит: включить (SW) или отменить (CANCEL_HADITH)
-        }
+        // Раньше здесь была toggleHadithSetting() для переключателя в настройках —
+        // теперь хадисы всегда включены (settings.hadithEnabled жёстко = true
+        // в loadData()), переключатель убран из UI.
         function clearHadithTimer() {
             if (_hadithTimer) { clearTimeout(_hadithTimer); _hadithTimer = null; }
         }
-        const HADITH_MIN_MS = 1 * 60 * 1000; // 1 минута
-        const HADITH_MAX_MS = 5 * 60 * 1000; // 5 минут
+        const HADITH_MIN_MS = 1 * 60 * 1000; // 1 минута — ТЕСТОВЫЙ режим (для проверки исправленной логики)
+        const HADITH_MAX_MS = 1 * 60 * 1000; // 1 минута — минимум = максимум, значит ровно каждую минуту
 
         // Передаёт расписание хадисов в Service Worker. SW показывает случайный
         // хадис раз в 2–4 часа: если приложение открыто — присылает сообщение и
@@ -14453,22 +14437,44 @@
                 sendHadithScheduleToSW();
                 return;
             }
-            // Service Worker отвечает за фон, а таймер страницы гарантирует показ,
-            // пока приложение открыто (браузер может усыпить таймер самого SW).
+            // Service Worker отвечает за фон (когда вкладка скрыта/свёрнута), а
+            // таймер страницы — единственный источник показа, пока приложение
+            // открыто и видимо. Раньше оба таймера показывали баннер независимо
+            // друг от друга и постоянно перезапускали друг друга — из-за этой
+            // гонки таймер страницы мог никогда не доходить до конца. Теперь SW
+            // просто держит расписание "про запас" на случай сворачивания.
             sendHadithScheduleToSW();
             const delay = HADITH_MIN_MS + Math.floor(Math.random() * (HADITH_MAX_MS - HADITH_MIN_MS));
             _hadithTimer = setTimeout(() => { showRandomHadith(); scheduleHadith(); }, delay);
         }
 
-        // Когда фоновый таймер сработал при открытом приложении, показываем полный
-        // хадис из актуального hadiths.js и начинаем новый случайный интервал.
+        // Сообщение от Service Worker приходит, только если ОН сам решил, что
+        // вкладка видима (см. fireHadith() в sw.js) — но на практике SW может
+        // ошибиться (например, между двумя вкладками) или сработать почти
+        // одновременно с таймером страницы. Чтобы не показывать хадис дважды
+        // и не перезапускать таймер страницы впустую, реагируем на это
+        // сообщение ТОЛЬКО когда страница реально скрыта — иначе просто
+        // игнорируем: таймер страницы и так гарантированно доведёт дело до
+        // показа сам, без внешних толчков.
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.addEventListener('message', event => {
                 if (event.data?.type !== 'SHOW_HADITH' || !settings.hadithEnabled) return;
-                showRandomHadith();
-                scheduleHadith();
+                if (document.hidden) {
+                    showRandomHadith();
+                    scheduleHadith();
+                }
             });
         }
+        // Пока вкладка скрыта, браузер может полностью выбросить/заморозить
+        // JS-таймер страницы (_hadithTimer) — это нормально, тогда показом
+        // временно управляет Service Worker (системные уведомления). Как
+        // только пользователь возвращается на видимую вкладку, снова берём
+        // инициативу на себя и ставим свежий таймер страницы.
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && settings.hadithEnabled && getHadiths().length && !_hadithTimer) {
+                scheduleHadith();
+            }
+        });
         function showRandomHadith() {
             // Новая подача (iOS-style): сначала показываем баннер сверху.
             // По тапу на баннер откроется полноценный попап с этим же хадисом.
@@ -14521,10 +14527,11 @@
             overlay.classList.remove('show');
             setTimeout(() => { overlay.style.display = 'none'; }, 340);
         }
-        function updateHadithUI() {
-            const toggle = document.getElementById('hadithToggle');
-            if (toggle) toggle.classList.toggle('on', !!settings.hadithEnabled);
-        }
+        // Хадисы теперь всегда включены — отдельного переключателя в
+        // настройках больше нет (settings.hadithEnabled жёстко = true,
+        // см. loadData()). Функция оставлена как no-op, чтобы не трогать
+        // остальные вызовы updateHadithUI() по коду.
+        function updateHadithUI() {}
 
         function loadData() {
             const s = localStorage.getItem('azkar_settings');
@@ -14572,19 +14579,15 @@
             if (settings.autoAdvance === undefined) settings.autoAdvance = false;
             if (settings.stealthMode === undefined) settings.stealthMode = false;
             if (settings.reminder === undefined) settings.reminder = false;
-            // Однократно включаем новую рабочую схему показа для существующих
-            // установок, где старый скрытый переключатель сохранил значение false.
-            if (settings.hadithScheduleVersion !== 1) {
-                settings.hadithEnabled = true;
-                settings.hadithScheduleVersion = 1;
-                try { localStorage.setItem('azkar_settings', JSON.stringify(settings)); } catch(e) {}
-            } else if (settings.hadithEnabled === undefined) {
-                settings.hadithEnabled = true;
-            }
+            // Хадисы теперь ВСЕГДА включены — отдельного переключателя в
+            // настройках больше нет. Жёстко перезаписываем значение при каждой
+            // загрузке, чтобы старое сохранённое false (если у кого-то было
+            // выключено раньше) больше не имело силы.
+            settings.hadithEnabled = true;
             if (settings.onlinePresence === undefined) settings.onlinePresence = true;
             updateSettingsUI();
             updateHadithUI();
-            if (settings.hadithEnabled) scheduleHadith();            // Wake Lock — disabled for battery savings
+            scheduleHadith();
             // Restore PiP counter
             updatePipCounter();
             document.getElementById('customGoalNum').innerText = formatGoalShort(customGoal || 1000);
