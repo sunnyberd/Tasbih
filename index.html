@@ -5033,7 +5033,7 @@
                     <svg class="post-salah-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
                 <div class="post-salah-dropdown" id="postSalahDropdown">
-                    <div class="post-salah-option" id="postSalahOption" onclick="onPostSalahOptionClick(event)">Зикр после намаза</div>
+                    <div class="post-salah-option" id="postSalahOption" onclick="onPostSalahOptionClick(event)">Зикры после намаза</div>
                 </div>
             </div>
             <div class="header-clock-corner js-prayer-clock" id="headerClockCorner" aria-live="polite" role="button" tabindex="0" onclick="openPrayerModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openPrayerModal();}" aria-label="Время намаза">
@@ -7804,11 +7804,10 @@
             if (window.PrayerTimes && typeof window.PrayerTimes.applyLang === 'function') window.PrayerTimes.applyLang();
             // Re-localize geo permission overlay (only matters if it's visible / about to show)
             if (typeof window._refreshGeoPermLang === 'function') window._refreshGeoPermLang();
-            // Post-salah dhikr mode: keep its own header title / selector labels in sync with the new language
+            // Post-salah dhikr mode: keep its own header title (current step name) / selector labels in sync with the new language
             if (typeof updatePostSalahSelectorUI === 'function') updatePostSalahSelectorUI();
-            if (postSalahActive) {
-                const headerTitleEl = document.getElementById('headerTitle');
-                if (headerTitleEl) headerTitleEl.innerText = t('postSalahHeaderTitle');
+            if (postSalahActive && typeof updatePostSalahHeaderTitle === 'function') {
+                updatePostSalahHeaderTitle();
             }
             updateDisplay();
         }
@@ -7948,17 +7947,26 @@
         // 'main' | 'special' — к какому счётчику привязана плавающая кнопка
         let pipMode = 'main';
 
-        // ==================== POST-SALAH DHIKR («Зикр после намаза») ====================
-        // Полностью независимый режим главного экрана: отдельный счётчик 0/100,
-        // НЕ пишет в общую статистику (azkar_stats_v2), НЕ пишет в dhikrTotals,
-        // НЕ помечается как completedSpecial, НЕ входит в specialDhikrs/список
-        // специальных зикров, НЕ сохраняется между перезагрузками страницы —
-        // держится только в памяти на время открытой вкладки. При уходе на
-        // другую вкладку через navbar и возврате обратно просто продолжается
-        // с того же числа, без каких-либо вопросов "продолжить/заново".
+        // ==================== POST-SALAH DHIKR («Зикры после намаза») ====================
+        // Полностью независимый режим главного экрана: последовательность из
+        // 4 этапов (Субханаллах×33 → Альхамдулиллях×33 → Аллаху Акбар×33 →
+        // Ля иляха илляЛлах×1), с автопереключением между ними и сбросом
+        // кольца/счётчика на каждом этапе. НЕ пишет в общую статистику
+        // (azkar_stats_v2), НЕ пишет в dhikrTotals, НЕ помечается как
+        // completedSpecial, НЕ входит в specialDhikrs/список специальных
+        // зикров, НЕ сохраняется между перезагрузками страницы — держится
+        // только в памяти на время открытой вкладки. При уходе на другую
+        // вкладку через navbar и возврате обратно просто продолжается с
+        // того же места, без каких-либо вопросов "продолжить/заново".
+        const POST_SALAH_STEPS = [
+            { stepGoal: 33, title: { ru:'Субханаллах', en:'Subhanallah', uz:'Subhanalloh', de:'Subhanallah', es:'Subhanallah', fr:'Subhanallah', it:'Subhanallah', ja:'スブハーナッラー', ko:'수브하날라', zh:'赞主清净', tr:'Sübhanallah', hi:'सुब्हानल्लाह', ms:'Subhanallah', id:'Subhanallah', th:'สุบหานัลลอฮ์' } },
+            { stepGoal: 33, title: { ru:'Альхамдулиллях', en:'Alhamdulillah', uz:'Alhamdulillah', de:'Alhamdulillah', es:'Alhamdulillah', fr:'Alhamdulillah', it:'Alhamdulillah', ja:'アルハムドゥリッラー', ko:'알함두릴라', zh:'一切赞颂全归真主', tr:'Elhamdülillah', hi:'अल्हम्दुलिल्लाह', ms:'Alhamdulillah', id:'Alhamdulillah', th:'อัลฮัมดุลิลลาฮ์' } },
+            { stepGoal: 33, title: { ru:'Аллаху Акбар', en:'Allahu Akbar', uz:'Allohu Akbar', de:'Allahu Akbar', es:'Allahu Akbar', fr:'Allahu Akbar', it:'Allahu Akbar', ja:'アッラーフ・アクバル', ko:'알라후 아크바르', zh:'真主至大', tr:'Allahu Ekber', hi:'अल्लाहु अकबर', ms:'Allahu Akbar', id:'Allahu Akbar', th:'อัลลอฮุอักบัร' } },
+            { stepGoal: 1,  title: { ru:'Ля иляха илляЛлах', en:'La ilaha illallah', uz:'La ilaha illalloh', de:'La ilaha illallah', es:'La ilaha illallah', fr:'La ilaha illallah', it:'La ilaha illallah', ja:'ラー・イラーハ・イッラッラー', ko:'라 일라하 일랄라', zh:'万物非主唯有真主', tr:'La ilahe illallah', hi:'ला इलाहा इल्लल्लाह', ms:'La ilaha illallah', id:'La ilaha illallah', th:'ลาอิลาฮะอิลลัลลอฮ์' } }
+        ];
         let postSalahActive = false;
-        let postSalahCount = 0;
-        const POST_SALAH_GOAL = 100;
+        let postSalahStepIndex = 0;   // 0..3 — текущий этап
+        let postSalahCount = 0;       // счётчик ВНУТРИ текущего этапа (сбрасывается на каждом этапе)
         let _postSalahGoalShown = false;
         function togglePostSalahDropdown(e) {
             e.stopPropagation();
@@ -7993,11 +8001,11 @@
         }
 
         // Аварийный fallback на случай, если внешний i18n.js закэширован
-        // старой версией без ключей postSalahMainLabel/postSalahOptionLabel —
-        // t() тогда вернёт сам ключ вместо текста; подстраховываемся здесь.
+        // старой версией без нужных ключей — t() тогда вернёт сам ключ
+        // вместо текста; подстраховываемся здесь.
         const _postSalahFallback = {
             postSalahMainLabel: { ru:'Основной зикр', en:'Main dhikr', uz:"Asosiy zikr", de:'Haupt-Dhikr', es:'Dhikr principal', fr:'Dhikr principal', it:'Dhikr principale', ja:'通常のズィクル', ko:'기본 지크르', zh:'普通记主', tr:'Ana zikir', hi:'मुख्य ज़िक्र', ms:'Zikir utama', id:'Dzikir utama', th:'ซิกิรหลัก' },
-            postSalahOptionLabel: { ru:'Зикр после намаза', en:'Dhikr after prayer', uz:'Namozdan keyingi zikr', de:'Dhikr nach dem Gebet', es:'Dhikr después del salat', fr:'Dhikr après la prière', it:'Dhikr dopo la preghiera', ja:'礼拝後のズィクル', ko:'예배 후 지크르', zh:'礼拜后记主', tr:'Namazdan sonra zikir', hi:'नमाज़ के बाद ज़िक्र', ms:'Zikir selepas solat', id:'Dzikir setelah salat', th:'ซิกิรหลังละหมาด' }
+            postSalahOptionLabel: { ru:'Зикры после намаза', en:'Dhikrs after prayer', uz:'Namozdan keyingi zikrlar', de:'Dhikrs nach dem Gebet', es:'Dhikrs después del salat', fr:'Dhikrs après la prière', it:'Dhikr dopo la preghiera', ja:'礼拝後のズィクル集', ko:'예배 후 지크르들', zh:'礼拜后的记主词', tr:'Namazdan sonra zikirler', hi:'नमाज़ के बाद के ज़िक्र', ms:'Zikir-zikir selepas solat', id:'Dzikir-dzikir setelah salat', th:'บรรดาซิกิรหลังละหมาด' }
         };
         function _tPostSalah(key) {
             const val = t(key);
@@ -8017,15 +8025,14 @@
         }
 
         // Вход в режим: НИКОГДА не спрашивает "продолжить/заново" — просто
-        // показывает текущее (в рамках этой открытой страницы) значение
-        // postSalahCount. При первом входе за загрузку страницы это 0.
+        // показывает текущий этап и его счётчик (в рамках этой открытой
+        // страницы). При первом входе за загрузку страницы это этап 0 (0/33).
         function enterPostSalahMode() {
             postSalahActive = true;
-            const headerTitleEl = document.getElementById('headerTitle');
-            if (headerTitleEl) headerTitleEl.innerText = t('postSalahHeaderTitle');
             const goalsArea = document.getElementById('mainGoalsArea');
             if (goalsArea) goalsArea.style.display = 'none';
             updatePostSalahSelectorUI();
+            updatePostSalahHeaderTitle();
             updatePostSalahDisplay();
         }
 
@@ -8039,14 +8046,25 @@
             updateDisplay();
         }
 
+        // Заголовок над полоской = название ТЕКУЩЕГО этапа (Субханаллах / Альхамдулиллях / ...)
+        function updatePostSalahHeaderTitle() {
+            const headerTitleEl = document.getElementById('headerTitle');
+            if (!headerTitleEl) return;
+            const step = POST_SALAH_STEPS[postSalahStepIndex];
+            const title = step ? (step.title[currentLang] || step.title.ru) : '';
+            headerTitleEl.innerText = title;
+        }
+
         function updatePostSalahDisplay() {
+            const step = POST_SALAH_STEPS[postSalahStepIndex];
+            const stepGoal = step ? step.stepGoal : 33;
             const cd = document.getElementById('countDisplay');
             const td = document.getElementById('totalDisplay');
             const pf = document.getElementById('progressFill');
             const ib = document.getElementById('indicatorBall');
             if (cd) cd.innerText = postSalahCount;
-            if (td) td.innerHTML = `/ <span>${POST_SALAH_GOAL}</span>`;
-            const progress = Math.min(postSalahCount / POST_SALAH_GOAL, 1);
+            if (td) td.innerHTML = `/ <span>${stepGoal}</span>`;
+            const progress = Math.min(postSalahCount / stepGoal, 1);
             if (pf) pf.style.strokeDashoffset = CIRCUMFERENCE - (progress * CIRCUMFERENCE);
             if (ib) {
                 const ringRadius = getComputedStyle(document.documentElement).getPropertyValue('--ring-radius').trim() || '126px';
@@ -8079,18 +8097,32 @@
                     setTimeout(() => plus.remove(), 550);
                 }
             });
-            if (postSalahCount === POST_SALAH_GOAL && !_postSalahGoalShown) {
+            const step = POST_SALAH_STEPS[postSalahStepIndex];
+            const stepGoal = step ? step.stepGoal : 33;
+            if (postSalahCount >= stepGoal && !_postSalahGoalShown) {
                 _postSalahGoalShown = true;
-                playGoalSound();
-                document.getElementById('postSalahAchieveTitle').innerText = t('completionTitle');
-                document.getElementById('postSalahAchieveName').innerText = t('postSalahDhikrName');
-                document.getElementById('postSalahAchieveSub').innerText = t('completionSub');
-                document.getElementById('postSalahAchievementOverlay').classList.add('show');
+                const isLastStep = postSalahStepIndex === POST_SALAH_STEPS.length - 1;
+                if (isLastStep) {
+                    // Все 4 этапа пройдены (33+33+33+1=100) — поздравление и выход из режима.
+                    playGoalSound();
+                    document.getElementById('postSalahAchieveTitle').innerText = t('completionTitle');
+                    document.getElementById('postSalahAchieveName').innerText = _tPostSalah('postSalahOptionLabel');
+                    document.getElementById('postSalahAchieveSub').innerText = t('completionSub');
+                    document.getElementById('postSalahAchievementOverlay').classList.add('show');
+                } else {
+                    // Переход к следующему этапу — сразу, без поздравления, только звук клика уже сыгран.
+                    postSalahStepIndex++;
+                    postSalahCount = 0;
+                    _postSalahGoalShown = false;
+                    updatePostSalahHeaderTitle();
+                    updatePostSalahDisplay();
+                }
             }
         }
 
         function onPostSalahAchievementTap() {
             document.getElementById('postSalahAchievementOverlay').classList.remove('show');
+            postSalahStepIndex = 0;
             postSalahCount = 0;
             _postSalahGoalShown = false;
             // Цель выполнена — выходим из режима и возвращаемся на обычный тасбих.
