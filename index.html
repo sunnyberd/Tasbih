@@ -7992,14 +7992,27 @@
             }
         }
 
+        // Аварийный fallback на случай, если внешний i18n.js закэширован
+        // старой версией без ключей postSalahMainLabel/postSalahOptionLabel —
+        // t() тогда вернёт сам ключ вместо текста; подстраховываемся здесь.
+        const _postSalahFallback = {
+            postSalahMainLabel: { ru:'Основной зикр', en:'Main dhikr', uz:"Asosiy zikr", de:'Haupt-Dhikr', es:'Dhikr principal', fr:'Dhikr principal', it:'Dhikr principale', ja:'通常のズィクル', ko:'기본 지크르', zh:'普通记主', tr:'Ana zikir', hi:'मुख्य ज़िक्र', ms:'Zikir utama', id:'Dzikir utama', th:'ซิกิรหลัก' },
+            postSalahOptionLabel: { ru:'Зикр после намаза', en:'Dhikr after prayer', uz:'Namozdan keyingi zikr', de:'Dhikr nach dem Gebet', es:'Dhikr después del salat', fr:'Dhikr après la prière', it:'Dhikr dopo la preghiera', ja:'礼拝後のズィクル', ko:'예배 후 지크르', zh:'礼拜后记主', tr:'Namazdan sonra zikir', hi:'नमाज़ के बाद ज़िक्र', ms:'Zikir selepas solat', id:'Dzikir setelah salat', th:'ซิกิรหลังละหมาด' }
+        };
+        function _tPostSalah(key) {
+            const val = t(key);
+            if (val && val !== key) return val;
+            const fb = _postSalahFallback[key];
+            return (fb && (fb[currentLang] || fb.ru)) || val;
+        }
         function updatePostSalahSelectorUI() {
             const btn = document.getElementById('postSalahSelectBtn');
             const btnText = document.getElementById('postSalahBtnText');
             const opt = document.getElementById('postSalahOption');
             // Кнопка всегда показывает ТЕКУЩИЙ режим.
             // Пункт в выпадающем списке — режим, НА КОТОРЫЙ можно переключиться (противоположный).
-            if (btnText) btnText.innerText = postSalahActive ? t('postSalahOptionLabel') : t('postSalahMainLabel');
-            if (opt) opt.innerText = postSalahActive ? t('postSalahMainLabel') : t('postSalahOptionLabel');
+            if (btnText) btnText.innerText = postSalahActive ? _tPostSalah('postSalahOptionLabel') : _tPostSalah('postSalahMainLabel');
+            if (opt) opt.innerText = postSalahActive ? _tPostSalah('postSalahMainLabel') : _tPostSalah('postSalahOptionLabel');
             if (btn) btn.classList.toggle('active-mode', postSalahActive);
         }
 
