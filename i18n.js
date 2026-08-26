@@ -4,7 +4,7 @@
         const i18n = {
             ru: {
                 headerTitle: "Воистину, поминанием Аллаха утешаются сердца",
-                postSalahHeaderTitle: "Тасбих после намаза", postSalahOptionLabel: "Зикр после намаза", postSalahExitLabel: "Тасбих", postSalahDhikrName: "Тасбих после намаза",
+                postSalahHeaderTitle: "Тасбих после намаза", postSalahOptionLabel: "Зикр после намаза", postSalahExitLabel: "Тасбих", postSalahMainLabel: "Основной зикр", postSalahDhikrName: "Тасбих после намаза",
                 labelGoal: "Цель", labelCustom: "Своя цель", btnReset: "Очистить всё",
                 titleDua: "Дуа", subtitleDua: "Ваши личные молитвы и зикры",
                 titleFav: "Избранное", subtitleFav: "Любимые дуа под рукой",
@@ -137,7 +137,7 @@
             },
             en: {
                 headerTitle: "Verily, in the remembrance of Allah do hearts find rest",
-                postSalahHeaderTitle: "Tasbih after prayer", postSalahOptionLabel: "Dhikr after prayer", postSalahExitLabel: "Tasbih", postSalahDhikrName: "Tasbih after prayer",
+                postSalahHeaderTitle: "Tasbih after prayer", postSalahOptionLabel: "Dhikr after prayer", postSalahExitLabel: "Tasbih", postSalahMainLabel: "Main dhikr", postSalahDhikrName: "Tasbih after prayer",
                 labelGoal: "Goal", labelCustom: "Custom", btnReset: "Clear everything",
                 titleDua: "Duas", subtitleDua: "Your personal prayers and dhikrs",
                 titleFav: "Favorites", subtitleFav: "Favorite duas at hand",
@@ -269,7 +269,7 @@
             },
             uz: {
                 headerTitle: "Allohning zikri ila qalblar orom topur",
-                postSalahHeaderTitle: "Namozdan keyingi tasbih", postSalahOptionLabel: "Namozdan keyingi zikr", postSalahExitLabel: "Tasbih", postSalahDhikrName: "Namozdan keyingi tasbih",
+                postSalahHeaderTitle: "Namozdan keyingi tasbih", postSalahOptionLabel: "Namozdan keyingi zikr", postSalahExitLabel: "Tasbih", postSalahMainLabel: "Asosiy zikr", postSalahDhikrName: "Namozdan keyingi tasbih",
                 labelGoal: "Maqsad", labelCustom: "O'z maqsad", btnReset: "Hammasini tozalash",
                 titleDua: "Duolar", subtitleDua: "Shaxsiy duolar va zikrlaringiz",
                 titleFav: "Sevimlilar", subtitleFav: "Sevimli duolar qo'lingizda",
@@ -401,7 +401,7 @@
             },
             de: {
                 headerTitle: "Wahrlich, im Gedenken Allahs finden die Herzen Ruhe",
-                postSalahHeaderTitle: "Tasbih nach dem Gebet", postSalahOptionLabel: "Dhikr nach dem Gebet", postSalahExitLabel: "Tasbih", postSalahDhikrName: "Tasbih nach dem Gebet",
+                postSalahHeaderTitle: "Tasbih nach dem Gebet", postSalahOptionLabel: "Dhikr nach dem Gebet", postSalahExitLabel: "Tasbih", postSalahMainLabel: "Haupt-Dhikr", postSalahDhikrName: "Tasbih nach dem Gebet",
                 labelGoal: "Ziel", labelCustom: "Eigenes Ziel", btnReset: "Alles löschen",
                 titleDua: "Duas", subtitleDua: "Deine persönlichen Gebete und Dhikrs",
                 titleFav: "Favoriten", subtitleFav: "Lieblingsgebete griffbereit",
@@ -533,7 +533,7 @@
             },
             es: {
                 headerTitle: "Ciertamente, en el recuerdo de Allah los corazones encuentran paz",
-                postSalahHeaderTitle: "Tasbih después del salat", postSalahOptionLabel: "Dhikr después del salat", postSalahExitLabel: "Tasbih", postSalahDhikrName: "Tasbih después del salat",
+                postSalahHeaderTitle: "Tasbih después del salat", postSalahOptionLabel: "Dhikr después del salat", postSalahExitLabel: "Tasbih", postSalahMainLabel: "Dhikr principal", postSalahDhikrName: "Tasbih después del salat",
                 labelGoal: "Meta", labelCustom: "Meta propia", btnReset: "Borrar todo",
                 titleDua: "Duas", subtitleDua: "Tus oraciones y dhikrs personales",
                 titleFav: "Favoritos", subtitleFav: "Duas favoritas a mano",
@@ -665,7 +665,7 @@
             },
             fr: {
                 headerTitle: "Certes, c'est par le rappel d'Allah que les cœurs trouvent la paix",
-                postSalahHeaderTitle: "Tasbih après la prière", postSalahOptionLabel: "Dhikr après la prière", postSalahExitLabel: "Tasbih", postSalahDhikrName: "Tasbih après la prière",
+                postSalahHeaderTitle: "Tasbih après la prière", postSalahOptionLabel: "Dhikr après la prière", postSalahExitLabel: "Tasbih", postSalahMainLabel: "Dhikr principal", postSalahDhikrName: "Tasbih après la prière",
                 labelGoal: "Objectif", labelCustom: "Objectif perso", btnReset: "Tout effacer",
                 titleDua: "Duas", subtitleDua: "Vos prières et dhikrs personnels",
                 titleFav: "Favoris", subtitleFav: "Duas favorites à portée de main",
@@ -797,7 +797,7 @@
             },
             it: {
                 headerTitle: "In verità, nel ricordo di Allah i cuori trovano pace",
-                postSalahHeaderTitle: "Tasbih dopo la preghiera", postSalahOptionLabel: "Dhikr dopo la preghiera", postSalahExitLabel: "Tasbih", postSalahDhikrName: "Tasbih dopo la preghiera",
+                postSalahHeaderTitle: "Tasbih dopo la preghiera", postSalahOptionLabel: "Dhikr dopo la preghiera", postSalahExitLabel: "Tasbih", postSalahMainLabel: "Dhikr principale", postSalahDhikrName: "Tasbih dopo la preghiera",
                 labelGoal: "Obiettivo", labelCustom: "Obiettivo personale", btnReset: "Cancella tutto",
                 titleDua: "Duas", subtitleDua: "Le tue preghiere e dhikr personali",
                 titleFav: "Preferiti", subtitleFav: "Duas preferite a portata di mano",
@@ -929,7 +929,7 @@
             },
             ja: {
                 headerTitle: "まことに、アッラーの御記憶によって心は安らぐ",
-                postSalahHeaderTitle: "礼拝後のタスビーフ", postSalahOptionLabel: "礼拝後のズィクル", postSalahExitLabel: "タスビーフ", postSalahDhikrName: "礼拝後のタスビーフ",
+                postSalahHeaderTitle: "礼拝後のタスビーフ", postSalahOptionLabel: "礼拝後のズィクル", postSalahExitLabel: "タスビーフ", postSalahMainLabel: "通常のズィクル", postSalahDhikrName: "礼拝後のタスビーフ",
                 labelGoal: "目標", labelCustom: "カスタム目標", btnReset: "すべて消去",
                 titleDua: "ドゥア", subtitleDua: "あなたの個人的な祈りとズィクル",
                 titleFav: "お気に入り", subtitleFav: "よく使うドゥアをすぐに",
@@ -1061,7 +1061,7 @@
             },
             ko: {
                 headerTitle: "진실로 알라를 기억함으로써 마음은 평안을 얻는다",
-                postSalahHeaderTitle: "예배 후 타스비흐", postSalahOptionLabel: "예배 후 지크르", postSalahExitLabel: "타스비흐", postSalahDhikrName: "예배 후 타스비흐",
+                postSalahHeaderTitle: "예배 후 타스비흐", postSalahOptionLabel: "예배 후 지크르", postSalahExitLabel: "타스비흐", postSalahMainLabel: "기본 지크르", postSalahDhikrName: "예배 후 타스비흐",
                 labelGoal: "목표", labelCustom: "사용자 목표", btnReset: "모두 삭제",
                 titleDua: "두아", subtitleDua: "나의 개인 기도와 지크르",
                 titleFav: "즐겨찾기", subtitleFav: "좋아하는 두아를 한눈에",
@@ -1193,7 +1193,7 @@
             },
             zh: {
                 headerTitle: "确实，只有记念安拉，心灵才能得到安宁",
-                postSalahHeaderTitle: "礼拜后赞辞（泰斯比哈）", postSalahOptionLabel: "礼拜后记主", postSalahExitLabel: "赞辞", postSalahDhikrName: "礼拜后赞辞（泰斯比哈）",
+                postSalahHeaderTitle: "礼拜后赞辞（泰斯比哈）", postSalahOptionLabel: "礼拜后记主", postSalahExitLabel: "赞辞", postSalahMainLabel: "普通记主", postSalahDhikrName: "礼拜后赞辞（泰斯比哈）",
                 labelGoal: "目标", labelCustom: "自定义目标", btnReset: "清除所有",
                 titleDua: "杜阿", subtitleDua: "您的个人祈祷和迪克尔",
                 titleFav: "收藏", subtitleFav: "常用杜阿一键直达",
@@ -1327,7 +1327,7 @@
 
         i18n.tr = Object.assign({}, i18n.en, {
             headerTitle: "Şüphesiz kalpler ancak Allah'ı anmakla huzur bulur",
-            postSalahHeaderTitle: "Namazdan sonra tesbih", postSalahOptionLabel: "Namazdan sonra zikir", postSalahExitLabel: "Tesbih", postSalahDhikrName: "Namazdan sonra tesbih",
+            postSalahHeaderTitle: "Namazdan sonra tesbih", postSalahOptionLabel: "Namazdan sonra zikir", postSalahExitLabel: "Tesbih", postSalahMainLabel: "Ana zikir", postSalahDhikrName: "Namazdan sonra tesbih",
             labelGoal: "Hedef",
             labelCustom: "Özel",
             btnReset: "Her şeyi temizle",
@@ -1565,7 +1565,7 @@
         });
         i18n.hi = Object.assign({}, i18n.en, {
             headerTitle: "निःसंदेह, अल्लाह के स्मरण से ही दिलों को चैन मिलता है",
-            postSalahHeaderTitle: "नमाज़ के बाद तस्बीह", postSalahOptionLabel: "नमाज़ के बाद ज़िक्र", postSalahExitLabel: "तस्बीह", postSalahDhikrName: "नमाज़ के बाद तस्बीह",
+            postSalahHeaderTitle: "नमाज़ के बाद तस्बीह", postSalahOptionLabel: "नमाज़ के बाद ज़िक्र", postSalahExitLabel: "तस्बीह", postSalahMainLabel: "मुख्य ज़िक्र", postSalahDhikrName: "नमाज़ के बाद तस्बीह",
             labelGoal: "लक्ष्य",
             labelCustom: "कस्टम",
             btnReset: "सब कुछ साफ़ करें",
@@ -1803,7 +1803,7 @@
         });
         i18n.ms = Object.assign({}, i18n.en, {
             headerTitle: "Sesungguhnya dengan mengingati Allah, hati menjadi tenang",
-            postSalahHeaderTitle: "Tasbih selepas solat", postSalahOptionLabel: "Zikir selepas solat", postSalahExitLabel: "Tasbih", postSalahDhikrName: "Tasbih selepas solat",
+            postSalahHeaderTitle: "Tasbih selepas solat", postSalahOptionLabel: "Zikir selepas solat", postSalahExitLabel: "Tasbih", postSalahMainLabel: "Zikir utama", postSalahDhikrName: "Tasbih selepas solat",
             labelGoal: "Sasaran",
             labelCustom: "Tersuai",
             btnReset: "Kosongkan semua",
@@ -2041,7 +2041,7 @@
         });
         i18n.id = Object.assign({}, i18n.en, {
             headerTitle: "Sesungguhnya hanya dengan mengingat Allah hati menjadi tenang",
-            postSalahHeaderTitle: "Tasbih setelah salat", postSalahOptionLabel: "Dzikir setelah salat", postSalahExitLabel: "Tasbih", postSalahDhikrName: "Tasbih setelah salat",
+            postSalahHeaderTitle: "Tasbih setelah salat", postSalahOptionLabel: "Dzikir setelah salat", postSalahExitLabel: "Tasbih", postSalahMainLabel: "Dzikir utama", postSalahDhikrName: "Tasbih setelah salat",
             labelGoal: "Target",
             labelCustom: "Khusus",
             btnReset: "Hapus semua",
@@ -2279,7 +2279,7 @@
         });
         i18n.th = Object.assign({}, i18n.en, {
             headerTitle: "แท้จริง ด้วยการรำลึกถึงอัลลอฮ์ หัวใจจึงสงบ",
-            postSalahHeaderTitle: "การซิกรุลลอฮ์หลังละหมาด", postSalahOptionLabel: "ซิกิรหลังละหมาด", postSalahExitLabel: "ตัสเบียะฮ์", postSalahDhikrName: "การซิกรุลลอฮ์หลังละหมาด",
+            postSalahHeaderTitle: "การซิกรุลลอฮ์หลังละหมาด", postSalahOptionLabel: "ซิกิรหลังละหมาด", postSalahExitLabel: "ตัสเบียะฮ์", postSalahMainLabel: "ซิกิรหลัก", postSalahDhikrName: "การซิกรุลลอฮ์หลังละหมาด",
             labelGoal: "เป้าหมาย",
             labelCustom: "กำหนดเอง",
             btnReset: "ล้างทั้งหมด",
