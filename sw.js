@@ -1,8 +1,8 @@
 // ===== Azkar PWA Service Worker =====
-// Версия: v64 — добавлен режим "Зикр после намаза" на главном экране;
+// Версия: v65 — добавлен перевод кнопки "Основной зикр" (postSalahMainLabel);
 // бампнуто, чтобы гарантированно сбросить закэшированный старый i18n.js.
 // Бампать CACHE_NAME при каждом релизе → activate-handler выкинет старый кэш.
-const CACHE_NAME = 'azkar-v64';
+const CACHE_NAME = 'azkar-v65';
 
 // ===== УСТАНОВКА И КЭШ =====
 self.addEventListener('install', (event) => {
