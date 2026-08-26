@@ -974,6 +974,69 @@
         }
         .header-divider::after { display: none; }
 
+        /* ===== POST-SALAH (Зикр после намаза) SELECTOR — only on main azkar screen ===== */
+        .post-salah-select-wrap {
+            position: relative;
+            width: 200px;
+            margin: 12px auto 0;
+            z-index: 5;
+        }
+        .post-salah-select-btn {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%;
+            padding: 8px 14px;
+            border-radius: 22px;
+            border: 1px solid var(--border);
+            background: var(--surface-light);
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.78rem; font-weight: 500;
+            font-family: 'Montserrat', sans-serif;
+            transition: border-color 0.15s, background 0.15s;
+            white-space: nowrap;
+        }
+        .post-salah-select-btn:active { transform: scale(0.97); }
+        .post-salah-select-btn.open { border-color: var(--gold); background: var(--accent-glow); color: var(--text); }
+        .post-salah-select-btn.active-mode { border-color: var(--gold); color: var(--gold); }
+        .post-salah-select-btn .post-salah-btn-text { overflow: hidden; text-overflow: ellipsis; }
+        .post-salah-select-btn .post-salah-chevron {
+            width: 13px; height: 13px; flex-shrink: 0;
+            transition: transform 0.2s ease;
+            color: var(--text-dim);
+        }
+        .post-salah-select-btn.open .post-salah-chevron { transform: rotate(180deg); }
+        .post-salah-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0; right: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.45), 0 0 0 1px var(--border);
+            overflow: hidden;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-6px) scale(0.97);
+            pointer-events: none;
+            transition: opacity 0.18s ease, transform 0.18s ease;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .post-salah-dropdown.open {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+        .post-salah-option {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 13px 16px;
+            cursor: pointer;
+            font-size: 0.85rem; font-weight: 500;
+            color: var(--text-muted);
+            transition: background 0.12s, color 0.12s;
+        }
+        .post-salah-option:active { background: var(--surface-light); }
+
         /* ===== HEADER CORNER PRAYER CLOCK ===== */
         .header-clock-corner {
             position: absolute;
@@ -1343,6 +1406,18 @@
             cursor: pointer;
         }
         #specialAchievementOverlay.show { visibility: visible; opacity: 1; }
+        #postSalahAchievementOverlay {
+            position: fixed; inset: 0;
+            z-index: 999999;
+            background: rgba(0, 0, 0, 0.88);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex; align-items: center; justify-content: center;
+            visibility: hidden; opacity: 0;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+            cursor: pointer;
+        }
+        #postSalahAchievementOverlay.show { visibility: visible; opacity: 1; }
         /* Унифицировано с карточкой основных зикров (.overlay-card):
            фон по теме, золотая обводка, градиентный заголовок. */
         .special-achieve-card {
@@ -4952,6 +5027,15 @@
             </div>
             <div class="main-title" id="headerTitle">Помни Аллаха и обрети спокойствие</div>
             <div class="header-divider" aria-hidden="true"></div>
+            <div class="post-salah-select-wrap" id="postSalahSelectWrap">
+                <button class="post-salah-select-btn" id="postSalahSelectBtn" onclick="togglePostSalahDropdown(event)">
+                    <span class="post-salah-btn-text" id="postSalahBtnText">Зикр после намаза</span>
+                    <svg class="post-salah-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="post-salah-dropdown" id="postSalahDropdown">
+                    <div class="post-salah-option" id="postSalahOption" onclick="onPostSalahOptionClick(event)">Зикр после намаза</div>
+                </div>
+            </div>
             <div class="header-clock-corner js-prayer-clock" id="headerClockCorner" aria-live="polite" role="button" tabindex="0" onclick="openPrayerModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openPrayerModal();}" aria-label="Время намаза">
                 <div class="header-clock-prayer js-prayer-name" id="headerClockPrayer">—</div>
                 <div class="header-clock js-prayer-time" id="headerClock">--:--</div>
@@ -4985,7 +5069,7 @@
             </div>
         </div>
         <div style="flex:1 1 0%;min-height:0;pointer-events:none;" aria-hidden="true"></div>
-        <div class="goals-area" style="margin-bottom: clamp(12px, 3.5vw, 20px);">
+        <div class="goals-area" id="mainGoalsArea" style="margin-bottom: clamp(12px, 3.5vw, 20px);">
             <div class="goals-grid">
                 <div class="goal-chip" data-goal="33" onclick="setGoal(33)"><div class="goal-chip-num">33</div><div class="goal-chip-label" id="labelGoal">Цель</div></div>
                 <div class="goal-chip" data-goal="66" onclick="setGoal(66)"><div class="goal-chip-num">66</div><div class="goal-chip-label" id="labelGoal2">Цель</div></div>
@@ -6206,6 +6290,15 @@
                 <button class="special-resume-continue" id="specialResumeContinueBtn" onclick="continueSpecialResume()"></button>
                 <button class="special-resume-start-over" id="specialResumeStartOverBtn" onclick="startSpecialResumeOver()"></button>
             </div>
+        </div>
+    </div>
+
+    <div id="postSalahAchievementOverlay" onclick="onPostSalahAchievementTap()">
+        <div class="special-achieve-card">
+            <div class="special-achieve-title" id="postSalahAchieveTitle">✨ Ма шаа Аллах! ✨</div>
+            <div class="special-achieve-name" id="postSalahAchieveName"></div>
+            <div class="special-achieve-sub" id="postSalahAchieveSub">Цель достигнута</div>
+            <div class="special-achieve-hint" id="postSalahAchieveHint">Коснитесь экрана, чтобы продолжить</div>
         </div>
     </div>
 
@@ -7712,6 +7805,12 @@
             if (window.PrayerTimes && typeof window.PrayerTimes.applyLang === 'function') window.PrayerTimes.applyLang();
             // Re-localize geo permission overlay (only matters if it's visible / about to show)
             if (typeof window._refreshGeoPermLang === 'function') window._refreshGeoPermLang();
+            // Post-salah dhikr mode: keep its own header title / selector labels in sync with the new language
+            if (typeof updatePostSalahSelectorUI === 'function') updatePostSalahSelectorUI();
+            if (postSalahActive) {
+                const headerTitleEl = document.getElementById('headerTitle');
+                if (headerTitleEl) headerTitleEl.innerText = t('postSalahHeaderTitle');
+            }
             updateDisplay();
         }
 
@@ -7849,6 +7948,140 @@
         let _swipeSpecialId = null;
         // 'main' | 'special' — к какому счётчику привязана плавающая кнопка
         let pipMode = 'main';
+
+        // ==================== POST-SALAH DHIKR («Зикр после намаза») ====================
+        // Полностью независимый режим главного экрана: отдельный счётчик 0/100,
+        // НЕ пишет в общую статистику (azkar_stats_v2), НЕ пишет в dhikrTotals,
+        // НЕ помечается как completedSpecial, НЕ входит в specialDhikrs/список
+        // специальных зикров, НЕ сохраняется между перезагрузками страницы —
+        // держится только в памяти на время открытой вкладки. При уходе на
+        // другую вкладку через navbar и возврате обратно просто продолжается
+        // с того же числа, без каких-либо вопросов "продолжить/заново".
+        let postSalahActive = false;
+        let postSalahCount = 0;
+        const POST_SALAH_GOAL = 100;
+        let _postSalahGoalShown = false;
+        function togglePostSalahDropdown(e) {
+            e.stopPropagation();
+            const btn = document.getElementById('postSalahSelectBtn');
+            const dd = document.getElementById('postSalahDropdown');
+            if (!btn || !dd) return;
+            const isOpen = dd.classList.contains('open');
+            if (isOpen) { btn.classList.remove('open'); dd.classList.remove('open'); }
+            else { btn.classList.add('open'); dd.classList.add('open'); }
+        }
+        document.addEventListener('click', function(e) {
+            const wrap = document.getElementById('postSalahSelectWrap');
+            if (wrap && !wrap.contains(e.target)) {
+                const btn = document.getElementById('postSalahSelectBtn');
+                const dd = document.getElementById('postSalahDropdown');
+                if (btn) btn.classList.remove('open');
+                if (dd) dd.classList.remove('open');
+            }
+        });
+
+        function onPostSalahOptionClick(e) {
+            if (e) e.stopPropagation();
+            const btn = document.getElementById('postSalahSelectBtn');
+            const dd = document.getElementById('postSalahDropdown');
+            if (btn) btn.classList.remove('open');
+            if (dd) dd.classList.remove('open');
+            if (postSalahActive) {
+                exitPostSalahMode();
+            } else {
+                enterPostSalahMode();
+            }
+        }
+
+        function updatePostSalahSelectorUI() {
+            const btn = document.getElementById('postSalahSelectBtn');
+            const btnText = document.getElementById('postSalahBtnText');
+            const opt = document.getElementById('postSalahOption');
+            if (btnText) btnText.innerText = postSalahActive ? t('postSalahExitLabel') : t('postSalahOptionLabel');
+            if (opt) opt.innerText = postSalahActive ? t('postSalahExitLabel') : t('postSalahOptionLabel');
+            if (btn) btn.classList.toggle('active-mode', postSalahActive);
+        }
+
+        // Вход в режим: НИКОГДА не спрашивает "продолжить/заново" — просто
+        // показывает текущее (в рамках этой открытой страницы) значение
+        // postSalahCount. При первом входе за загрузку страницы это 0.
+        function enterPostSalahMode() {
+            postSalahActive = true;
+            const headerTitleEl = document.getElementById('headerTitle');
+            if (headerTitleEl) headerTitleEl.innerText = t('postSalahHeaderTitle');
+            const goalsArea = document.getElementById('mainGoalsArea');
+            if (goalsArea) goalsArea.style.display = 'none';
+            updatePostSalahSelectorUI();
+            updatePostSalahDisplay();
+        }
+
+        function exitPostSalahMode() {
+            postSalahActive = false;
+            const headerTitleEl = document.getElementById('headerTitle');
+            if (headerTitleEl) headerTitleEl.innerText = t('headerTitle');
+            const goalsArea = document.getElementById('mainGoalsArea');
+            if (goalsArea) goalsArea.style.display = '';
+            updatePostSalahSelectorUI();
+            updateDisplay();
+        }
+
+        function updatePostSalahDisplay() {
+            const cd = document.getElementById('countDisplay');
+            const td = document.getElementById('totalDisplay');
+            const pf = document.getElementById('progressFill');
+            const ib = document.getElementById('indicatorBall');
+            if (cd) cd.innerText = postSalahCount;
+            if (td) td.innerHTML = `/ <span>${POST_SALAH_GOAL}</span>`;
+            const progress = Math.min(postSalahCount / POST_SALAH_GOAL, 1);
+            if (pf) pf.style.strokeDashoffset = CIRCUMFERENCE - (progress * CIRCUMFERENCE);
+            if (ib) {
+                const ringRadius = getComputedStyle(document.documentElement).getPropertyValue('--ring-radius').trim() || '126px';
+                ib.style.transform = `rotate(${progress * 360}deg) translateY(calc(${ringRadius} * -1))`;
+            }
+        }
+
+        let lastPostSalahIncrementTime = 0;
+        function incrementPostSalah() {
+            const now = Date.now();
+            if (now - lastPostSalahIncrementTime < INCREMENT_DEBOUNCE) return;
+            lastPostSalahIncrementTime = now;
+            vibrate();
+            postSalahCount++;
+            playClickSound();
+            updatePostSalahDisplay();
+            requestAnimationFrame(() => {
+                let d = document.getElementById('countDisplay');
+                if (d) { d.classList.add('pop'); setTimeout(() => d.classList.remove('pop'), 120); }
+                let ring = document.querySelector('.counter-ring-wrap');
+                if (ring) {
+                    let plus = document.createElement('div');
+                    plus.className = 'float-plus'; plus.innerText = '+1';
+                    const offsetX = (Math.random() - 0.5) * 60;
+                    const offsetY = 35 + Math.random() * 15;
+                    plus.style.left = `calc(50% + ${offsetX}px)`;
+                    plus.style.top = `${offsetY}%`;
+                    plus.style.transform = `translate(-50%, -30%) translateZ(0)`;
+                    ring.appendChild(plus);
+                    setTimeout(() => plus.remove(), 550);
+                }
+            });
+            if (postSalahCount === POST_SALAH_GOAL && !_postSalahGoalShown) {
+                _postSalahGoalShown = true;
+                playGoalSound();
+                document.getElementById('postSalahAchieveTitle').innerText = t('completionTitle');
+                document.getElementById('postSalahAchieveName').innerText = t('postSalahDhikrName');
+                document.getElementById('postSalahAchieveSub').innerText = t('completionSub');
+                document.getElementById('postSalahAchievementOverlay').classList.add('show');
+            }
+        }
+
+        function onPostSalahAchievementTap() {
+            document.getElementById('postSalahAchievementOverlay').classList.remove('show');
+            postSalahCount = 0;
+            _postSalahGoalShown = false;
+            // Цель выполнена — выходим из режима и возвращаемся на обычный тасбих.
+            exitPostSalahMode();
+        }
 
         // Cached DOM refs — assigned after DOMContentLoaded
         let _elCount, _elTotal, _elProgress, _elBall;
@@ -8081,6 +8314,7 @@
         }
 
         function updateDisplay() {
+            if (postSalahActive) { updatePostSalahDisplay(); return; }
             const newCount = count;
             const isCustomGoalActive = document.getElementById('customGoalChip') && document.getElementById('customGoalChip').classList.contains('active');
             const isStandard = !isUnlimited && !isCustomGoalActive && goal > 0;
@@ -8407,6 +8641,7 @@
         const MANUAL_ADD_PRESS_MS = 1000;
 
         function startManualAddPress(e) {
+            if (postSalahActive) return;
             _manualAddTriggered = false;
             clearTimeout(_manualAddPressTimer);
             _manualAddPressTimer = setTimeout(() => {
@@ -8427,6 +8662,7 @@
                 _manualAddTriggered = false;
                 return;
             }
+            if (postSalahActive) { incrementPostSalah(); return; }
             increment();
         }
 
@@ -8843,6 +9079,17 @@
         }
 
         function openSpecialDhikrCounter(id, resumedCount) {
+            // Если активен режим "Зикр после намаза" — выходим из него, чтобы
+            // не оставлять #countDisplay/#progressFill в рассинхронизированном
+            // состоянии при возврате на главный экран.
+            if (typeof postSalahActive !== 'undefined' && postSalahActive) {
+                postSalahActive = false;
+                const _hdrEl = document.getElementById('headerTitle');
+                if (_hdrEl) _hdrEl.innerText = t('headerTitle');
+                const _goalsEl = document.getElementById('mainGoalsArea');
+                if (_goalsEl) _goalsEl.style.display = '';
+                if (typeof updatePostSalahSelectorUI === 'function') updatePostSalahSelectorUI();
+            }
             currentSpecialId = id;
             lastActiveSpecialId = id;
             _swipeSpecialId = id;
