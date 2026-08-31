@@ -983,6 +983,7 @@
         }
         .post-salah-select-btn {
             display: flex; align-items: center; justify-content: center; gap: 8px;
+            position: relative;
             width: 100%;
             padding: 8px 14px;
             border-radius: 22px;
@@ -997,12 +998,13 @@
         }
         .post-salah-select-btn:active { transform: scale(0.97); }
         .post-salah-select-btn.open { border-color: var(--gold); background: var(--accent-glow); color: var(--text); }
-        .post-salah-select-btn.active-mode { border-color: var(--gold); color: var(--gold); }
         .post-salah-select-btn .post-salah-btn-text { overflow: hidden; text-overflow: ellipsis; }
         .post-salah-select-btn .post-salah-chevron {
             width: 13px; height: 13px; flex-shrink: 0;
             transition: transform 0.2s ease;
             color: var(--text-dim);
+            position: absolute;
+            right: 14px;
         }
         .post-salah-select-btn.open .post-salah-chevron { transform: rotate(180deg); }
         .post-salah-dropdown {
@@ -8008,7 +8010,8 @@
             // Пункт в выпадающем списке — режим, НА КОТОРЫЙ можно переключиться (противоположный).
             if (btnText) btnText.innerText = postSalahActive ? _tPostSalah('postSalahOptionLabel') : _tPostSalah('postSalahMainLabel');
             if (opt) opt.innerText = postSalahActive ? _tPostSalah('postSalahMainLabel') : _tPostSalah('postSalahOptionLabel');
-            if (btn) btn.classList.toggle('active-mode', postSalahActive);
+            // Подсветка кнопки убрана из постоянного режима (active-mode) —
+            // теперь кнопка светится только при открытии дропдауна (.open), как lang-select
         }
 
         // Вход в режим: НИКОГДА не спрашивает "продолжить/заново" — просто
