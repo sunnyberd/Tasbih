@@ -1,10 +1,11 @@
 // ===== Azkar PWA Service Worker =====
-// Версия: v67 — исправлена гонка между таймером хадисов на странице и в SW
-// (оба независимо показывали баннер и перезапускали друг друга, из-за чего
-// таймер страницы мог никогда не доходить до показа); переключатель
-// "Хадисы" убран из настроек — теперь хадисы всегда включены.
+// Версия: v68 — хадисы раз в 2–4 часа (тестовая минута убрана); страница
+// присылает SW точное время первого показа (firstDelayMs), дальше SW сам берёт
+// случайный интервал 2–4 ч; после системного уведомления SW сообщает странице
+// (HADITH_NOTIFIED), чтобы та начала новое окно; в настройках снова есть
+// переключатель хадисов.
 // Бампать CACHE_NAME при каждом релизе → activate-handler выкинет старый кэш.
-const CACHE_NAME = 'azkar-v67';
+const CACHE_NAME = 'azkar-v68';
 
 // ===== УСТАНОВКА И КЭШ =====
 self.addEventListener('install', (event) => {
@@ -84,7 +85,7 @@ function clearHadithTimer() {
     if (_hadithTimer !== null) { clearTimeout(_hadithTimer); _hadithTimer = null; }
 }
 
-function scheduleHadith(cfg) {
+function scheduleHadith(cfg, firstDelayMs) {
     clearHadithTimer();
     if (cfg) _hadithCfg = cfg;
     const c = _hadithCfg;
@@ -92,6 +93,8 @@ function scheduleHadith(cfg) {
     const min = c.minMs || (2 * 60 * 60 * 1000);
     const max = c.maxMs || (4 * 60 * 60 * 1000);
     let delay = min + Math.floor(Math.random() * Math.max(1, max - min));
+    // Первый показ — ровно в то время, которое сохранила страница (если прислала)
+    if (typeof firstDelayMs === 'number' && firstDelayMs > 0) delay = firstDelayMs;
     delay = Math.min(delay, 25 * 60 * 60 * 1000);
     _hadithTimer = setTimeout(fireHadith, delay);
 }
@@ -114,6 +117,9 @@ function fireHadith() {
                 renotify: true,
                 requireInteraction: false,
                 data: { url: self.registration.scope }
+            }).then(() => {
+                // Сообщаем странице (если она где-то жива), что хадис уже показан
+                clients.forEach(cl => cl.postMessage({ type: 'HADITH_NOTIFIED' }));
             }).catch(() => {});
         }
         scheduleHadith(); // перепланируем следующий случайный интервал 2–4 ч
@@ -138,7 +144,7 @@ self.addEventListener('message', (event) => {
     }
 
     if (type === 'SCHEDULE_HADITH') {
-        scheduleHadith(event.data);
+        scheduleHadith(event.data, event.data.firstDelayMs);
     }
 
     if (type === 'CANCEL_HADITH') {
