@@ -5912,6 +5912,12 @@
                 <div class="set-row-lbl"><b id="labelStealth">Тёмный режим зикра</b></div>
                 <div class="toggle-switch" id="stealthToggle"></div>
             </div>
+            <!-- Hadith notifications -->
+            <div class="set-row" onclick="toggleHadithSetting()">
+                <span class="set-ic" id="hadithIcon">📖</span>
+                <div class="set-row-lbl"><b id="labelHadith">Хадисы</b></div>
+                <div class="toggle-switch" id="hadithToggle"></div>
+            </div>
               </div>
             </div>
 
@@ -7634,7 +7640,8 @@
                 labelTimer: 'labelTimer',
                 labelStealth: 'labelStealth',
                 labelAutoAdvance: 'labelAutoAdvance',
-                // Hadith UI (сам переключатель убран — хадисы всегда включены)
+                // Hadith UI
+                labelHadith: 'labelHadith',
                 hadithPopupLabel: 'hadithLabel',
                 hadithCloseHint: 'hadithCloseHint',
                 // Add-folder modal (tasks)
@@ -14231,6 +14238,7 @@
             if (onlinePresenceEl) onlinePresenceEl.style.display = onlinePresenceOn ? '' : 'none';
             if (onlinePresenceCoordinatorStarted) postOnlinePresenceCoordinatorState();
             if (typeof updateGoogleAccountUI === 'function') updateGoogleAccountUI();
+            if (typeof updateHadithUI === 'function') updateHadithUI();
         }
 
         /* ===== ЛЕНИВЫЙ РЕНДЕР: флаги «грязных» разделов =====
@@ -14404,14 +14412,83 @@
         function clearHadithTimer() {
             if (_hadithTimer) { clearTimeout(_hadithTimer); _hadithTimer = null; }
         }
-        const HADITH_MIN_MS = 1 * 60 * 1000; // 1 минута — ТЕСТОВЫЙ режим (для проверки исправленной логики)
-        const HADITH_MAX_MS = 1 * 60 * 1000; // 1 минута — минимум = максимум, значит ровно каждую минуту
+        const HADITH_MIN_MS = 2 * 60 * 60 * 1000; // 2 часа — начало окна
+        const HADITH_MAX_MS = 4 * 60 * 60 * 1000; // 4 часа — конец окна
+        const HADITH_NEXT_KEY = 'azkar_hadith_next_at';
+        const HADITH_OVERDUE_DELAY_MS = 3000;     // если время прошло, пока приложение было закрыто
+
+        // Время следующего хадиса хранится в localStorage: так оно переживает
+        // перезапуск приложения, и в каждом окне 2–4 часа хадис приходит ровно один раз.
+        function _hadithReadNext() {
+            try { const v = parseInt(localStorage.getItem(HADITH_NEXT_KEY) || '0', 10); return isNaN(v) ? 0 : v; }
+            catch (e) { return 0; }
+        }
+        function _hadithWriteNext(ts) {
+            try { if (ts) localStorage.setItem(HADITH_NEXT_KEY, String(ts)); else localStorage.removeItem(HADITH_NEXT_KEY); }
+            catch (e) {}
+        }
+        function _hadithRollNext() {
+            const ts = Date.now() + HADITH_MIN_MS + Math.floor(Math.random() * (HADITH_MAX_MS - HADITH_MIN_MS + 1));
+            _hadithWriteNext(ts);
+            return ts;
+        }
+        // Показать хадис и начать новое окно 2–4 часа.
+        function _hadithFireAndReschedule() {
+            _hadithTimer = null;
+            _hadithWriteNext(0);
+            if (document.hidden && _hadithSystemNotify()) {
+                // приложение свёрнуто — баннера никто не увидит, показываем системное уведомление
+            } else {
+                showRandomHadith();
+            }
+            scheduleHadith();
+        }
+        // Системное уведомление с случайным хадисом (когда приложение свёрнуто).
+        function _hadithSystemNotify() {
+            try {
+                if (!('Notification' in window) || Notification.permission !== 'granted' || !('serviceWorker' in navigator)) return false;
+                const list = getHadiths();
+                if (!list.length) return false;
+                let idx;
+                do { idx = Math.floor(Math.random() * list.length); } while (idx === _hadithLastIdx && list.length > 1);
+                _hadithLastIdx = idx;
+                const body = _hadithText(list[idx]);
+                if (!body) return false;
+                navigator.serviceWorker.ready.then(reg => reg.showNotification(t('hadithLabel'), {
+                    body: body, icon: 'icon-192.png', badge: 'icon-192.png',
+                    tag: 'azkar-hadith', renotify: true, requireInteraction: false,
+                    data: { url: reg.scope }
+                })).catch(() => {});
+                return true;
+            } catch (e) { return false; }
+        }
+
+        function toggleHadithSetting() {
+            if (!settings.hadithEnabled) {
+                settings.hadithEnabled = true;
+                _hadithWriteNext(0);
+                saveDataDebounced();
+                updateSettingsUI();
+                scheduleHadith();
+                try {
+                    if ('Notification' in window && Notification.permission === 'default' && typeof requestNotifPermission === 'function') requestNotifPermission();
+                } catch (e) {}
+            } else {
+                settings.hadithEnabled = false;
+                saveDataDebounced();
+                clearHadithTimer();
+                _hadithWriteNext(0);
+                hideHadithBanner();
+                updateSettingsUI();
+                sendHadithScheduleToSW();
+            }
+        }
 
         // Передаёт расписание хадисов в Service Worker. SW показывает случайный
         // хадис раз в 2–4 часа: если приложение открыто — присылает сообщение и
         // мы рисуем баннер; если свёрнуто/закрыто (и SW ещё жив) — системное
         // уведомление. Возвращает true, если SW взял расписание на себя.
-        function sendHadithScheduleToSW() {
+        function sendHadithScheduleToSW(delayMs) {
             if (!('serviceWorker' in navigator)) return false;
             const list = getHadiths();
             navigator.serviceWorker.ready.then(reg => {
@@ -14424,6 +14501,8 @@
                         title: (typeof t === 'function') ? t('hadithLabel') : 'Хадис',
                         minMs: HADITH_MIN_MS,
                         maxMs: HADITH_MAX_MS,
+                        // первый показ SW — ровно в сохранённое время, дальше он сам берёт 2–4 ч
+                        firstDelayMs: delayMs || 0,
                         icon: 'icon-192.png',
                         badge: 'icon-192.png'
                     });
@@ -14446,9 +14525,13 @@
             // друг от друга и постоянно перезапускали друг друга — из-за этой
             // гонки таймер страницы мог никогда не доходить до конца. Теперь SW
             // просто держит расписание "про запас" на случай сворачивания.
-            sendHadithScheduleToSW();
-            const delay = HADITH_MIN_MS + Math.floor(Math.random() * (HADITH_MAX_MS - HADITH_MIN_MS));
-            _hadithTimer = setTimeout(() => { showRandomHadith(); scheduleHadith(); }, delay);
+            let next = _hadithReadNext();
+            const now = Date.now();
+            // нет сохранённого времени или оно подозрительно далеко (сбилось время на устройстве) — новый бросок
+            if (!next || next - now > HADITH_MAX_MS) next = _hadithRollNext();
+            const delay = Math.max(next - now, HADITH_OVERDUE_DELAY_MS);
+            sendHadithScheduleToSW(delay);
+            _hadithTimer = setTimeout(_hadithFireAndReschedule, delay);
         }
 
         // Сообщение от Service Worker приходит, только если ОН сам решил, что
@@ -14461,8 +14544,15 @@
         // показа сам, без внешних толчков.
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.addEventListener('message', event => {
+                if (event.data?.type === 'HADITH_NOTIFIED' && settings.hadithEnabled) {
+                    // SW сам показал системное уведомление — начинаем новое окно 2–4 ч
+                    _hadithWriteNext(0);
+                    scheduleHadith();
+                    return;
+                }
                 if (event.data?.type !== 'SHOW_HADITH' || !settings.hadithEnabled) return;
                 if (document.hidden) {
+                    _hadithWriteNext(0);
                     showRandomHadith();
                     scheduleHadith();
                 }
@@ -14474,7 +14564,7 @@
         // только пользователь возвращается на видимую вкладку, снова берём
         // инициативу на себя и ставим свежий таймер страницы.
         document.addEventListener('visibilitychange', () => {
-            if (!document.hidden && settings.hadithEnabled && getHadiths().length && !_hadithTimer) {
+            if (!document.hidden && settings.hadithEnabled && getHadiths().length) {
                 scheduleHadith();
             }
         });
@@ -14530,11 +14620,11 @@
             overlay.classList.remove('show');
             setTimeout(() => { overlay.style.display = 'none'; }, 340);
         }
-        // Хадисы теперь всегда включены — отдельного переключателя в
-        // настройках больше нет (settings.hadithEnabled жёстко = true,
-        // см. loadData()). Функция оставлена как no-op, чтобы не трогать
-        // остальные вызовы updateHadithUI() по коду.
-        function updateHadithUI() {}
+        // Синхронизирует ползунок и подпись хадисов в настройках.
+        function updateHadithUI() {
+            const tg = document.getElementById('hadithToggle');
+            if (tg) tg.classList.toggle('on', !!settings.hadithEnabled);
+        }
 
         function loadData() {
             const s = localStorage.getItem('azkar_settings');
@@ -14582,11 +14672,8 @@
             if (settings.autoAdvance === undefined) settings.autoAdvance = false;
             if (settings.stealthMode === undefined) settings.stealthMode = false;
             if (settings.reminder === undefined) settings.reminder = false;
-            // Хадисы теперь ВСЕГДА включены — отдельного переключателя в
-            // настройках больше нет. Жёстко перезаписываем значение при каждой
-            // загрузке, чтобы старое сохранённое false (если у кого-то было
-            // выключено раньше) больше не имело силы.
-            settings.hadithEnabled = true;
+            // Хадисы по умолчанию включены; дальше значение управляется ползунком в настройках.
+            if (settings.hadithEnabled === undefined) settings.hadithEnabled = true;
             if (settings.onlinePresence === undefined) settings.onlinePresence = true;
             updateSettingsUI();
             updateHadithUI();
