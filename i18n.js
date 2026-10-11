@@ -2520,7 +2520,7 @@
     const NOTIF_I18N = {
     "ru": {
         "notifRowPrayer": "Время намазов",
-        "notifRowUmama": "Дуа Абу Умамы · Фаджр и Аср",
+        "notifRowUmama": "Дуа Абу Умамы",
         "notifPrayerBody": "Время намаза",
         "notifUmamaTitle": "Дуа Абу Умамы",
         "notifUmamaMorning": "Утреннее дуа — время Фаджра",
@@ -2530,7 +2530,7 @@
     },
     "en": {
         "notifRowPrayer": "Prayer times",
-        "notifRowUmama": "Du'a of Abu Umamah · Fajr & Asr",
+        "notifRowUmama": "Du'a of Abu Umamah",
         "notifPrayerBody": "Time for prayer",
         "notifUmamaTitle": "Du'a of Abu Umamah",
         "notifUmamaMorning": "Morning du'a — Fajr time",
@@ -2540,7 +2540,7 @@
     },
     "uz": {
         "notifRowPrayer": "Namoz vaqtlari",
-        "notifRowUmama": "Abu Umoma duosi · Bomdod va Asr",
+        "notifRowUmama": "Abu Umoma duosi",
         "notifPrayerBody": "Namoz vaqti",
         "notifUmamaTitle": "Abu Umoma duosi",
         "notifUmamaMorning": "Ertalabki duo — Bomdod vaqti",
@@ -2550,7 +2550,7 @@
     },
     "de": {
         "notifRowPrayer": "Gebetszeiten",
-        "notifRowUmama": "Du'a von Abu Umama · Fajr & Asr",
+        "notifRowUmama": "Du'a von Abu Umama",
         "notifPrayerBody": "Zeit zum Gebet",
         "notifUmamaTitle": "Du'a von Abu Umama",
         "notifUmamaMorning": "Morgen-Du'a — Fajr-Zeit",
@@ -2560,7 +2560,7 @@
     },
     "es": {
         "notifRowPrayer": "Horarios de oración",
-        "notifRowUmama": "Du'a de Abu Umama · Fajr y Asr",
+        "notifRowUmama": "Du'a de Abu Umama",
         "notifPrayerBody": "Hora de la oración",
         "notifUmamaTitle": "Du'a de Abu Umama",
         "notifUmamaMorning": "Du'a de la mañana — hora de Fajr",
@@ -2570,7 +2570,7 @@
     },
     "fr": {
         "notifRowPrayer": "Heures de prière",
-        "notifRowUmama": "Dou'a d'Abou Oumama · Fajr et Asr",
+        "notifRowUmama": "Dou'a d'Abou Oumama",
         "notifPrayerBody": "Heure de la prière",
         "notifUmamaTitle": "Dou'a d'Abou Oumama",
         "notifUmamaMorning": "Dou'a du matin — heure du Fajr",
@@ -2580,7 +2580,7 @@
     },
     "it": {
         "notifRowPrayer": "Orari di preghiera",
-        "notifRowUmama": "Du'a di Abu Umama · Fajr e Asr",
+        "notifRowUmama": "Du'a di Abu Umama",
         "notifPrayerBody": "È ora della preghiera",
         "notifUmamaTitle": "Du'a di Abu Umama",
         "notifUmamaMorning": "Du'a del mattino — ora del Fajr",
@@ -2590,7 +2590,7 @@
     },
     "ja": {
         "notifRowPrayer": "礼拝の時間",
-        "notifRowUmama": "アブー・ウマーマのドゥアー · ファジュルとアスル",
+        "notifRowUmama": "アブー・ウマーマのドゥアー",
         "notifPrayerBody": "礼拝の時間です",
         "notifUmamaTitle": "アブー・ウマーマのドゥアー",
         "notifUmamaMorning": "朝のドゥアー — ファジュルの時間",
@@ -2600,7 +2600,7 @@
     },
     "ko": {
         "notifRowPrayer": "예배 시간",
-        "notifRowUmama": "아부 우마마의 두아 · 파즈르와 아스르",
+        "notifRowUmama": "아부 우마마의 두아",
         "notifPrayerBody": "예배 시간입니다",
         "notifUmamaTitle": "아부 우마마의 두아",
         "notifUmamaMorning": "아침 두아 — 파즈르 시간",
@@ -2610,7 +2610,7 @@
     },
     "zh": {
         "notifRowPrayer": "礼拜时间",
-        "notifRowUmama": "艾布·吴马麦的杜阿 · 晨礼与晡礼",
+        "notifRowUmama": "艾布·吴马麦的杜阿",
         "notifPrayerBody": "礼拜时间到了",
         "notifUmamaTitle": "艾布·吴马麦的杜阿",
         "notifUmamaMorning": "晨间杜阿 — 晨礼时间",
@@ -2620,7 +2620,7 @@
     },
     "tr": {
         "notifRowPrayer": "Namaz vakitleri",
-        "notifRowUmama": "Ebû Ümâme duası · İmsak ve İkindi",
+        "notifRowUmama": "Ebû Ümâme duası",
         "notifPrayerBody": "Namaz vakti",
         "notifUmamaTitle": "Ebû Ümâme duası",
         "notifUmamaMorning": "Sabah duası — İmsak vakti",
@@ -2630,7 +2630,7 @@
     },
     "hi": {
         "notifRowPrayer": "नमाज़ के समय",
-        "notifRowUmama": "अबू उमामा की दुआ · फ़ज्र और अस्र",
+        "notifRowUmama": "अबू उमामा की दुआ",
         "notifPrayerBody": "नमाज़ का समय",
         "notifUmamaTitle": "अबू उमामा की दुआ",
         "notifUmamaMorning": "सुबह की दुआ — फ़ज्र का समय",
@@ -2640,7 +2640,7 @@
     },
     "ms": {
         "notifRowPrayer": "Waktu solat",
-        "notifRowUmama": "Doa Abu Umamah · Subuh & Asar",
+        "notifRowUmama": "Doa Abu Umamah",
         "notifPrayerBody": "Masuk waktu solat",
         "notifUmamaTitle": "Doa Abu Umamah",
         "notifUmamaMorning": "Doa pagi — waktu Subuh",
@@ -2650,7 +2650,7 @@
     },
     "id": {
         "notifRowPrayer": "Waktu salat",
-        "notifRowUmama": "Doa Abu Umamah · Subuh & Asar",
+        "notifRowUmama": "Doa Abu Umamah",
         "notifPrayerBody": "Waktunya salat",
         "notifUmamaTitle": "Doa Abu Umamah",
         "notifUmamaMorning": "Doa pagi — waktu Subuh",
@@ -2660,7 +2660,7 @@
     },
     "th": {
         "notifRowPrayer": "เวลาละหมาด",
-        "notifRowUmama": "ดุอาอ์ของอบูอุมามะฮ์ · ฟัจร์และอัศร์",
+        "notifRowUmama": "ดุอาอ์ของอบูอุมามะฮ์",
         "notifPrayerBody": "ถึงเวลาละหมาด",
         "notifUmamaTitle": "ดุอาอ์ของอบูอุมามะฮ์",
         "notifUmamaMorning": "ดุอาอ์ตอนเช้า — เวลาฟัจร์",
