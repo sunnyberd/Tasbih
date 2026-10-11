@@ -14744,6 +14744,7 @@
         //   • Хадисы (settings.hadithEnabled)
         //   • Время намазов (settings.notifPrayer)
         //   • Дуа Абу Умамы в Фаджр и Аср, через 15 минут после времени намаза (settings.notifAbuUmama)
+        // Напоминание о зикре (~12:00 и ~22:00) отдельного ползунка не имеет — оно идёт вместе с общим ползунком.
         // Всё работает только если включён общий ползунок (settings.notifMaster).
         function notifMasterOn() { return settings.notifMaster !== false; }
         function hadithOn() { return notifMasterOn() && !!settings.hadithEnabled; }
@@ -14850,15 +14851,45 @@
         // Дуа Абу Умамы приходит не в сам момент намаза, а спустя это время.
         const UMAMA_DELAY_MS = 15 * 60 * 1000;
         function _pad2(n) { return String(n).padStart(2, '0'); }
+        // ----- Напоминание о зикре: два раза в день, ~12:00 и ~22:00 со случайным разбросом ±30 минут -----
+        // Разброс «случайный», но стабильный в пределах дня (считается из даты), чтобы пересчёты
+        // расписания каждые 5 минут не сдвигали время уведомления.
+        const ZIKR_SLOTS = [{ key: 'noon', hour: 12 }, { key: 'night', hour: 22 }];
+        const ZIKR_JITTER_MIN = 30;
+        function _zikrOffsetMin(seedStr) {
+            let x = 2166136261;
+            for (let i = 0; i < seedStr.length; i++) { x ^= seedStr.charCodeAt(i); x = Math.imul(x, 16777619); }
+            x ^= x >>> 15; x = Math.imul(x, 2246822519); x ^= x >>> 13;
+            return ((x >>> 0) % (2 * ZIKR_JITTER_MIN + 1)) - ZIKR_JITTER_MIN;   // −30…+30
+        }
+        function _zikrEvents(base) {
+            const out = [];
+            for (let d = 0; d < 2; d++) {
+                const day = new Date(base.getFullYear(), base.getMonth(), base.getDate() + d);
+                const dk = day.getFullYear() + '-' + (day.getMonth() + 1) + '-' + day.getDate();
+                ZIKR_SLOTS.forEach(sl => {
+                    const off = _zikrOffsetMin(dk + '|' + sl.key);
+                    const ts = new Date(day.getFullYear(), day.getMonth(), day.getDate(), sl.hour, off, 0, 0).getTime();
+                    out.push({ ts, tag: 'azkar-zikr-' + sl.key + '-' + dk, icon: '🕌',
+                        title: tn('notifZikrTitle', 'Не забывайте поминать Аллаха'),
+                        body: tn('notifZikrBody', 'СубханАллах, Альхамдулиллях, Аллаху Акбар 🌙 — каждое из этих слов станет светом для вашего сердца.') });
+                });
+            }
+            return out;
+        }
         function buildNotifEvents() {
             if (!notifMasterOn()) return [];
-            const wantPrayer = !!settings.notifPrayer, wantUmama = !!settings.notifAbuUmama;
-            if (!wantPrayer && !wantUmama) return [];
-            const pt = window.PrayerTimes;
-            if (!pt || typeof pt.getForDate !== 'function' || !pt.getLocation()) return [];
-            const names = (typeof pt.L === 'function' && pt.L()) || {};
             const out = [];
             const base = new Date();
+            // Напоминание о зикре — привязано к общему ползунку «Уведомления», геолокация не нужна.
+            _zikrEvents(base).forEach(e => out.push(e));
+            const wantPrayer = !!settings.notifPrayer, wantUmama = !!settings.notifAbuUmama;
+            const pt = window.PrayerTimes;
+            if ((!wantPrayer && !wantUmama) || !pt || typeof pt.getForDate !== 'function' || !pt.getLocation()) {
+                out.sort((a, b) => a.ts - b.ts);
+                return out;
+            }
+            const names = (typeof pt.L === 'function' && pt.L()) || {};
             for (let d = 0; d < 2; d++) {
                 const day = new Date(base.getFullYear(), base.getMonth(), base.getDate() + d);
                 const dk = day.getFullYear() + '-' + (day.getMonth() + 1) + '-' + day.getDate();
