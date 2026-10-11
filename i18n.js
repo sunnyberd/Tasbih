@@ -2516,6 +2516,161 @@
             specialStatsSubtitle: "ความคืบหน้าโดยละเอียดและสถิติต่อเนื่อง",
         });
 
+    // ===== Notification centre (v104): подписи мини-меню и уведомлений =====
+    const NOTIF_I18N = {
+    "ru": {
+        "notifRowPrayer": "Время намазов",
+        "notifRowUmama": "Зикр Абу Умамы · Фаджр и Магриб",
+        "notifPrayerBody": "Время намаза",
+        "notifUmamaTitle": "Зикр Абу Умамы",
+        "notifUmamaMorning": "Утренний зикр — время Фаджра",
+        "notifUmamaEvening": "Вечерний зикр — время Магриба",
+        "notifPermDenied": "Разрешите уведомления в настройках браузера",
+        "notifNeedLocation": "Разрешите геолокацию — нужна для времён намаза"
+    },
+    "en": {
+        "notifRowPrayer": "Prayer times",
+        "notifRowUmama": "Abu Umamah's dhikr · Fajr & Maghrib",
+        "notifPrayerBody": "Time for prayer",
+        "notifUmamaTitle": "Abu Umamah's dhikr",
+        "notifUmamaMorning": "Morning dhikr — Fajr time",
+        "notifUmamaEvening": "Evening dhikr — Maghrib time",
+        "notifPermDenied": "Allow notifications in your browser settings",
+        "notifNeedLocation": "Allow location — needed for prayer times"
+    },
+    "uz": {
+        "notifRowPrayer": "Namoz vaqtlari",
+        "notifRowUmama": "Abu Umoma zikri · Bomdod va Shom",
+        "notifPrayerBody": "Namoz vaqti",
+        "notifUmamaTitle": "Abu Umoma zikri",
+        "notifUmamaMorning": "Ertalabki zikr — Bomdod vaqti",
+        "notifUmamaEvening": "Kechki zikr — Shom vaqti",
+        "notifPermDenied": "Brauzer sozlamalarida bildirishnomalarga ruxsat bering",
+        "notifNeedLocation": "Joylashuvga ruxsat bering — namoz vaqtlari uchun kerak"
+    },
+    "de": {
+        "notifRowPrayer": "Gebetszeiten",
+        "notifRowUmama": "Dhikr von Abu Umama · Fajr & Maghrib",
+        "notifPrayerBody": "Zeit zum Gebet",
+        "notifUmamaTitle": "Dhikr von Abu Umama",
+        "notifUmamaMorning": "Morgen-Dhikr — Fajr-Zeit",
+        "notifUmamaEvening": "Abend-Dhikr — Maghrib-Zeit",
+        "notifPermDenied": "Erlaube Benachrichtigungen in den Browser-Einstellungen",
+        "notifNeedLocation": "Standort erlauben — für die Gebetszeiten nötig"
+    },
+    "es": {
+        "notifRowPrayer": "Horarios de oración",
+        "notifRowUmama": "Dhikr de Abu Umama · Fajr y Magrib",
+        "notifPrayerBody": "Hora de la oración",
+        "notifUmamaTitle": "Dhikr de Abu Umama",
+        "notifUmamaMorning": "Dhikr de la mañana — hora de Fajr",
+        "notifUmamaEvening": "Dhikr de la tarde — hora de Magrib",
+        "notifPermDenied": "Permite las notificaciones en los ajustes del navegador",
+        "notifNeedLocation": "Permite la ubicación: es necesaria para los horarios de oración"
+    },
+    "fr": {
+        "notifRowPrayer": "Heures de prière",
+        "notifRowUmama": "Dhikr d'Abou Oumama · Fajr et Maghreb",
+        "notifPrayerBody": "Heure de la prière",
+        "notifUmamaTitle": "Dhikr d'Abou Oumama",
+        "notifUmamaMorning": "Dhikr du matin — heure du Fajr",
+        "notifUmamaEvening": "Dhikr du soir — heure du Maghreb",
+        "notifPermDenied": "Autorise les notifications dans les réglages du navigateur",
+        "notifNeedLocation": "Autorise la localisation — nécessaire pour les heures de prière"
+    },
+    "it": {
+        "notifRowPrayer": "Orari di preghiera",
+        "notifRowUmama": "Dhikr di Abu Umama · Fajr e Maghrib",
+        "notifPrayerBody": "È ora della preghiera",
+        "notifUmamaTitle": "Dhikr di Abu Umama",
+        "notifUmamaMorning": "Dhikr del mattino — ora del Fajr",
+        "notifUmamaEvening": "Dhikr della sera — ora del Maghrib",
+        "notifPermDenied": "Consenti le notifiche nelle impostazioni del browser",
+        "notifNeedLocation": "Consenti la posizione — serve per gli orari di preghiera"
+    },
+    "ja": {
+        "notifRowPrayer": "礼拝の時間",
+        "notifRowUmama": "アブー・ウマーマのズィクル · ファジュルとマグリブ",
+        "notifPrayerBody": "礼拝の時間です",
+        "notifUmamaTitle": "アブー・ウマーマのズィクル",
+        "notifUmamaMorning": "朝のズィクル — ファジュルの時間",
+        "notifUmamaEvening": "夕のズィクル — マグリブの時間",
+        "notifPermDenied": "ブラウザの設定で通知を許可してください",
+        "notifNeedLocation": "位置情報を許可してください — 礼拝時間に必要です"
+    },
+    "ko": {
+        "notifRowPrayer": "예배 시간",
+        "notifRowUmama": "아부 우마마의 지크르 · 파즈르와 마그리브",
+        "notifPrayerBody": "예배 시간입니다",
+        "notifUmamaTitle": "아부 우마마의 지크르",
+        "notifUmamaMorning": "아침 지크르 — 파즈르 시간",
+        "notifUmamaEvening": "저녁 지크르 — 마그리브 시간",
+        "notifPermDenied": "브라우저 설정에서 알림을 허용해 주세요",
+        "notifNeedLocation": "위치 권한을 허용해 주세요 — 예배 시간에 필요합니다"
+    },
+    "zh": {
+        "notifRowPrayer": "礼拜时间",
+        "notifRowUmama": "艾布·吴马麦的赞念 · 晨礼与昏礼",
+        "notifPrayerBody": "礼拜时间到了",
+        "notifUmamaTitle": "艾布·吴马麦的赞念",
+        "notifUmamaMorning": "晨间赞念 — 晨礼时间",
+        "notifUmamaEvening": "晚间赞念 — 昏礼时间",
+        "notifPermDenied": "请在浏览器设置中允许通知",
+        "notifNeedLocation": "请允许定位 — 计算礼拜时间需要"
+    },
+    "tr": {
+        "notifRowPrayer": "Namaz vakitleri",
+        "notifRowUmama": "Ebû Ümâme zikri · İmsak ve Akşam",
+        "notifPrayerBody": "Namaz vakti",
+        "notifUmamaTitle": "Ebû Ümâme zikri",
+        "notifUmamaMorning": "Sabah zikri — İmsak vakti",
+        "notifUmamaEvening": "Akşam zikri — Akşam vakti",
+        "notifPermDenied": "Tarayıcı ayarlarından bildirimlere izin ver",
+        "notifNeedLocation": "Konuma izin ver — namaz vakitleri için gerekli"
+    },
+    "hi": {
+        "notifRowPrayer": "नमाज़ के समय",
+        "notifRowUmama": "अबू उमामा का ज़िक्र · फ़ज्र और मग़रिब",
+        "notifPrayerBody": "नमाज़ का समय",
+        "notifUmamaTitle": "अबू उमामा का ज़िक्र",
+        "notifUmamaMorning": "सुबह का ज़िक्र — फ़ज्र का समय",
+        "notifUmamaEvening": "शाम का ज़िक्र — मग़रिब का समय",
+        "notifPermDenied": "ब्राउज़र सेटिंग्स में नोटिफ़िकेशन की अनुमति दें",
+        "notifNeedLocation": "स्थान की अनुमति दें — नमाज़ के समय के लिए ज़रूरी"
+    },
+    "ms": {
+        "notifRowPrayer": "Waktu solat",
+        "notifRowUmama": "Zikir Abu Umamah · Subuh & Maghrib",
+        "notifPrayerBody": "Masuk waktu solat",
+        "notifUmamaTitle": "Zikir Abu Umamah",
+        "notifUmamaMorning": "Zikir pagi — waktu Subuh",
+        "notifUmamaEvening": "Zikir petang — waktu Maghrib",
+        "notifPermDenied": "Benarkan pemberitahuan dalam tetapan pelayar",
+        "notifNeedLocation": "Benarkan lokasi — diperlukan untuk waktu solat"
+    },
+    "id": {
+        "notifRowPrayer": "Waktu salat",
+        "notifRowUmama": "Zikir Abu Umamah · Subuh & Magrib",
+        "notifPrayerBody": "Waktunya salat",
+        "notifUmamaTitle": "Zikir Abu Umamah",
+        "notifUmamaMorning": "Zikir pagi — waktu Subuh",
+        "notifUmamaEvening": "Zikir petang — waktu Magrib",
+        "notifPermDenied": "Izinkan notifikasi di pengaturan browser",
+        "notifNeedLocation": "Izinkan lokasi — diperlukan untuk waktu salat"
+    },
+    "th": {
+        "notifRowPrayer": "เวลาละหมาด",
+        "notifRowUmama": "ซิกร์ของอบูอุมามะฮ์ · ฟัจร์และมัฆริบ",
+        "notifPrayerBody": "ถึงเวลาละหมาด",
+        "notifUmamaTitle": "ซิกร์ของอบูอุมามะฮ์",
+        "notifUmamaMorning": "ซิกร์ตอนเช้า — เวลาฟัจร์",
+        "notifUmamaEvening": "ซิกร์ตอนเย็น — เวลามัฆริบ",
+        "notifPermDenied": "อนุญาตการแจ้งเตือนในการตั้งค่าเบราว์เซอร์",
+        "notifNeedLocation": "อนุญาตตำแหน่ง — จำเป็นสำหรับเวลาละหมาด"
+    }
+};
+    Object.keys(NOTIF_I18N).forEach(function (l) { if (i18n[l]) Object.assign(i18n[l], NOTIF_I18N[l]); });
+
     const ui = {
         settingsSections: {
                 appearance: { ru:'Внешний вид', en:'Appearance', de:'Darstellung', es:'Apariencia', fr:'Apparence', it:'Aspetto', ja:'外観', ko:'화면', uz:"Ko'rinish", zh:'外观', tr:'Görünüm', hi:'दिखावट', ms:'Penampilan', id:'Tampilan', th:'ลักษณะ' },
