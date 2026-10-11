@@ -6106,8 +6106,8 @@
                 <div class="toggle-switch" id="notifTgPrayer"></div>
             </div>
             <div class="notif-row" onclick="toggleNotifUmama()">
-                <span class="notif-ic">🌅</span>
-                <div class="notif-lbl" id="notifLblUmama">Зикр Абу Умамы · Фаджр и Магриб</div>
+                <span class="notif-ic">🤲</span>
+                <div class="notif-lbl" id="notifLblUmama">Дуа Абу Умамы · Фаджр и Аср</div>
                 <div class="toggle-switch" id="notifTgUmama"></div>
             </div>
         </div>
@@ -14743,7 +14743,7 @@
         // Удержание 1 секунда — компактное окно с отдельными ползунками:
         //   • Хадисы (settings.hadithEnabled)
         //   • Время намазов (settings.notifPrayer)
-        //   • Зикр Абу Умамы в Фаджр и Магриб (settings.notifAbuUmama)
+        //   • Дуа Абу Умамы в Фаджр и Аср, через 15 минут после времени намаза (settings.notifAbuUmama)
         // Всё работает только если включён общий ползунок (settings.notifMaster).
         function notifMasterOn() { return settings.notifMaster !== false; }
         function hadithOn() { return notifMasterOn() && !!settings.hadithEnabled; }
@@ -14826,7 +14826,7 @@
             set('notifPopTitle', 'labelNotifications', 'Уведомления');
             set('notifLblHadith', 'labelHadith', 'Хадисы');
             set('notifLblPrayer', 'notifRowPrayer', 'Время намазов');
-            set('notifLblUmama', 'notifRowUmama', 'Зикр Абу Умамы · Фаджр и Магриб');
+            set('notifLblUmama', 'notifRowUmama', 'Дуа Абу Умамы · Фаджр и Аср');
             updateHadithUI();
             _notifPopupOpenedAt = Date.now();
             const ov = document.getElementById('notifPopOverlay');
@@ -14839,7 +14839,7 @@
         }
         document.addEventListener('keydown', ev => { if (ev.key === 'Escape') closeNotifPopup(); });
 
-        // ----- Расписание: время намазов и зикр Абу Умамы (Фаджр / Магриб) -----
+        // ----- Расписание: время намазов и дуа Абу Умамы (Фаджр / Аср, +15 минут) -----
         // Страница считает события на сегодня и завтра (по геолокации), сама ставит
         // таймер на ближайшее, а полный список отдаёт в Service Worker — SW показывает
         // системное уведомление, когда приложение свёрнуто. Если приложение открыто —
@@ -14847,6 +14847,8 @@
         // усыпить SW) — как и у хадисов.
         let _notifEvTimer = null;
         const _notifFired = new Set();
+        // Дуа Абу Умамы приходит не в сам момент намаза, а спустя это время.
+        const UMAMA_DELAY_MS = 15 * 60 * 1000;
         function _pad2(n) { return String(n).padStart(2, '0'); }
         function buildNotifEvents() {
             if (!notifMasterOn()) return [];
@@ -14871,12 +14873,12 @@
                             title: names[p.key] || p.key,
                             body: tn('notifPrayerBody', 'Время намаза') + ' · ' + clock });
                     }
-                    if (wantUmama && (p.key === 'fajr' || p.key === 'maghrib')) {
-                        out.push({ ts, tag: 'azkar-umama-' + p.key + '-' + dk, icon: '🌅',
-                            title: tn('notifUmamaTitle', 'Зикр Абу Умамы'),
+                    if (wantUmama && (p.key === 'fajr' || p.key === 'asr')) {
+                        out.push({ ts: ts + UMAMA_DELAY_MS, tag: 'azkar-umama-' + p.key + '-' + dk, icon: '🤲',
+                            title: tn('notifUmamaTitle', 'Дуа Абу Умамы'),
                             body: p.key === 'fajr'
-                                ? tn('notifUmamaMorning', 'Утренний зикр — время Фаджра')
-                                : tn('notifUmamaEvening', 'Вечерний зикр — время Магриба') });
+                                ? tn('notifUmamaMorning', 'Утреннее дуа — время Фаджра')
+                                : tn('notifUmamaEvening', 'Вечернее дуа — время Асра') });
                     }
                 });
             }
