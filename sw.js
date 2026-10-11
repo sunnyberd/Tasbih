@@ -1,11 +1,13 @@
 // ===== Azkar PWA Service Worker =====
-// Версия: v68 — хадисы раз в 2–4 часа (тестовая минута убрана); страница
+// Версия: v69 — добавлены уведомления времён намазов и зикра Абу Умамы
+// (SCHEDULE_EVENTS / CANCEL_EVENTS — список событий с точным временем от страницы).
+// v68 — хадисы раз в 2–4 часа (тестовая минута убрана); страница
 // присылает SW точное время первого показа (firstDelayMs), дальше SW сам берёт
 // случайный интервал 2–4 ч; после системного уведомления SW сообщает странице
 // (HADITH_NOTIFIED), чтобы та начала новое окно; в настройках снова есть
 // переключатель хадисов.
 // Бампать CACHE_NAME при каждом релизе → activate-handler выкинет старый кэш.
-const CACHE_NAME = 'azkar-v68';
+const CACHE_NAME = 'azkar-v69';
 
 // ===== УСТАНОВКА И КЭШ =====
 self.addEventListener('install', (event) => {
@@ -151,7 +153,73 @@ self.addEventListener('message', (event) => {
         clearHadithTimer();
         _hadithCfg = null;
     }
+
+    if (type === 'SCHEDULE_EVENTS') {
+        scheduleEvents(event.data);
+    }
+
+    if (type === 'CANCEL_EVENTS') {
+        clearEventTimer();
+        _evList = [];
+    }
 });
+
+// ===== PRAYER / ABU UMAMAH EVENT NOTIFICATIONS =====
+// Страница присылает список событий { ts, tag, title, body } (на сегодня и завтра).
+// SW ставит таймер на ближайшее. Если приложение открыто и видимо — уведомление
+// показывает сама страница (баннер), SW молчит. Если свёрнуто — системное уведомление.
+// Фон «по возможности»: ОС может усыпить SW у полностью закрытого PWA.
+let _evList = [];
+let _evTimer = null;
+let _evCfg = { icon: 'icon-192.png', badge: 'icon-192.png' };
+const _evFiredTags = new Set();
+
+function clearEventTimer() {
+    if (_evTimer !== null) { clearTimeout(_evTimer); _evTimer = null; }
+}
+
+function scheduleEvents(data) {
+    clearEventTimer();
+    _evCfg = { icon: data.icon || _evCfg.icon, badge: data.badge || _evCfg.badge };
+    const now = Date.now();
+    _evList = (data.events || [])
+        .filter(e => e && typeof e.ts === 'number' && e.ts > now - 30000 && !_evFiredTags.has(e.tag))
+        .sort((a, b) => a.ts - b.ts);
+    armNextEvent();
+}
+
+function armNextEvent() {
+    clearEventTimer();
+    if (!_evList.length) return;
+    const delay = Math.max(0, Math.min(_evList[0].ts - Date.now(), 25 * 60 * 60 * 1000));
+    _evTimer = setTimeout(fireDueEvents, delay);
+}
+
+function fireDueEvents() {
+    _evTimer = null;
+    const now = Date.now();
+    const due = [];
+    while (_evList.length && _evList[0].ts <= now + 1000) due.push(_evList.shift());
+    if (!due.length) { armNextEvent(); return; }
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
+        const visible = clients.some(cl => cl.visibilityState === 'visible');
+        due.forEach(ev => {
+            if (_evFiredTags.has(ev.tag)) return;
+            _evFiredTags.add(ev.tag);
+            if (visible) return; // страница сама покажет баннер
+            self.registration.showNotification(ev.title, {
+                body: ev.body,
+                icon: _evCfg.icon,
+                badge: _evCfg.badge,
+                tag: ev.tag,
+                renotify: false,
+                requireInteraction: false,
+                data: { url: self.registration.scope }
+            }).catch(() => {});
+        });
+        armNextEvent();
+    }).catch(() => { armNextEvent(); });
+}
 
 // ===== КЛИК ПО УВЕДОМЛЕНИЮ — открыть приложение =====
 self.addEventListener('notificationclick', (event) => {
