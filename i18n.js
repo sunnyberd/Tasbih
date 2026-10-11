@@ -2525,6 +2525,8 @@
         "notifUmamaTitle": "Дуа Абу Умамы",
         "notifUmamaMorning": "Утреннее дуа — время Фаджра",
         "notifUmamaEvening": "Вечернее дуа — время Асра",
+        "notifZikrTitle": "Не забывайте поминать Аллаха",
+        "notifZikrBody": "СубханАллах, Альхамдулиллях, Аллаху Акбар 🌙 — каждое из этих слов станет светом для вашего сердца.",
         "notifPermDenied": "Разрешите уведомления в настройках браузера",
         "notifNeedLocation": "Разрешите геолокацию — нужна для времён намаза"
     },
@@ -2535,6 +2537,8 @@
         "notifUmamaTitle": "Du'a of Abu Umamah",
         "notifUmamaMorning": "Morning du'a — Fajr time",
         "notifUmamaEvening": "Evening du'a — Asr time",
+        "notifZikrTitle": "Don't forget to remember Allah",
+        "notifZikrBody": "SubhanAllah, Alhamdulillah, Allahu Akbar 🌙 – each of them will be a light for your heart.",
         "notifPermDenied": "Allow notifications in your browser settings",
         "notifNeedLocation": "Allow location — needed for prayer times"
     },
@@ -2545,6 +2549,8 @@
         "notifUmamaTitle": "Abu Umoma duosi",
         "notifUmamaMorning": "Ertalabki duo — Bomdod vaqti",
         "notifUmamaEvening": "Kechki duo — Asr vaqti",
+        "notifZikrTitle": "Allohni zikr qilishni unutmang",
+        "notifZikrBody": "Subhanalloh, Alhamdulillah, Allohu Akbar 🌙 – har biri qalbingizga nur bo'ladi.",
         "notifPermDenied": "Brauzer sozlamalarida bildirishnomalarga ruxsat bering",
         "notifNeedLocation": "Joylashuvga ruxsat bering — namoz vaqtlari uchun kerak"
     },
@@ -2555,6 +2561,8 @@
         "notifUmamaTitle": "Du'a von Abu Umama",
         "notifUmamaMorning": "Morgen-Du'a — Fajr-Zeit",
         "notifUmamaEvening": "Abend-Du'a — Asr-Zeit",
+        "notifZikrTitle": "Vergiss nicht, Allahs zu gedenken",
+        "notifZikrBody": "SubhanAllah, Alhamdulillah, Allahu Akbar 🌙 – jedes davon wird ein Licht für dein Herz sein.",
         "notifPermDenied": "Erlaube Benachrichtigungen in den Browser-Einstellungen",
         "notifNeedLocation": "Standort erlauben — für die Gebetszeiten nötig"
     },
@@ -2565,6 +2573,8 @@
         "notifUmamaTitle": "Du'a de Abu Umama",
         "notifUmamaMorning": "Du'a de la mañana — hora de Fajr",
         "notifUmamaEvening": "Du'a de la tarde — hora de Asr",
+        "notifZikrTitle": "No olvides recordar a Alá",
+        "notifZikrBody": "SubhanAllah, Alhamdulillah, Allahu Akbar 🌙 – cada una será una luz para tu corazón.",
         "notifPermDenied": "Permite las notificaciones en los ajustes del navegador",
         "notifNeedLocation": "Permite la ubicación: es necesaria para los horarios de oración"
     },
@@ -2575,6 +2585,8 @@
         "notifUmamaTitle": "Dou'a d'Abou Oumama",
         "notifUmamaMorning": "Dou'a du matin — heure du Fajr",
         "notifUmamaEvening": "Dou'a du soir — heure de l'Asr",
+        "notifZikrTitle": "N'oubliez pas d'invoquer Allah",
+        "notifZikrBody": "SubhanAllah, Alhamdulillah, Allahou Akbar 🌙 – chacune sera une lumière pour votre cœur.",
         "notifPermDenied": "Autorise les notifications dans les réglages du navigateur",
         "notifNeedLocation": "Autorise la localisation — nécessaire pour les heures de prière"
     },
@@ -2585,6 +2597,8 @@
         "notifUmamaTitle": "Du'a di Abu Umama",
         "notifUmamaMorning": "Du'a del mattino — ora del Fajr",
         "notifUmamaEvening": "Du'a della sera — ora dell'Asr",
+        "notifZikrTitle": "Non dimenticare di ricordare Allah",
+        "notifZikrBody": "SubhanAllah, Alhamdulillah, Allahu Akbar 🌙 – ognuna sarà una luce per il tuo cuore.",
         "notifPermDenied": "Consenti le notifiche nelle impostazioni del browser",
         "notifNeedLocation": "Consenti la posizione — serve per gli orari di preghiera"
     },
@@ -2595,6 +2609,8 @@
         "notifUmamaTitle": "アブー・ウマーマのドゥアー",
         "notifUmamaMorning": "朝のドゥアー — ファジュルの時間",
         "notifUmamaEvening": "夕のドゥアー — アスルの時間",
+        "notifZikrTitle": "アッラーを想起することを忘れずに",
+        "notifZikrBody": "スブハーナッラー、アルハムドゥリッラー、アッラーフ・アクバル 🌙 – そのひとつひとつが、あなたの心の光となります。",
         "notifPermDenied": "ブラウザの設定で通知を許可してください",
         "notifNeedLocation": "位置情報を許可してください — 礼拝時間に必要です"
     },
@@ -2605,6 +2621,8 @@
         "notifUmamaTitle": "아부 우마마의 두아",
         "notifUmamaMorning": "아침 두아 — 파즈르 시간",
         "notifUmamaEvening": "저녁 두아 — 아스르 시간",
+        "notifZikrTitle": "알라를 기억하는 것을 잊지 마세요",
+        "notifZikrBody": "수브하날라, 알함두릴라, 알라후 아크바르 🌙 – 하나하나가 당신의 마음에 빛이 될 것입니다.",
         "notifPermDenied": "브라우저 설정에서 알림을 허용해 주세요",
         "notifNeedLocation": "위치 권한을 허용해 주세요 — 예배 시간에 필요합니다"
     },
@@ -2615,6 +2633,8 @@
         "notifUmamaTitle": "艾布·吴马麦的杜阿",
         "notifUmamaMorning": "晨间杜阿 — 晨礼时间",
         "notifUmamaEvening": "晚间杜阿 — 晡礼时间",
+        "notifZikrTitle": "别忘了赞念真主",
+        "notifZikrBody": "颂真主超绝、赞美归真主、真主至大 🌙 – 每一句都会成为你心中的光明。",
         "notifPermDenied": "请在浏览器设置中允许通知",
         "notifNeedLocation": "请允许定位 — 计算礼拜时间需要"
     },
@@ -2625,6 +2645,8 @@
         "notifUmamaTitle": "Ebû Ümâme duası",
         "notifUmamaMorning": "Sabah duası — İmsak vakti",
         "notifUmamaEvening": "Akşam duası — İkindi vakti",
+        "notifZikrTitle": "Allah'ı zikretmeyi unutma",
+        "notifZikrBody": "Sübhanallah, Elhamdülillah, Allahu Ekber 🌙 – her biri kalbine nur olacak.",
         "notifPermDenied": "Tarayıcı ayarlarından bildirimlere izin ver",
         "notifNeedLocation": "Konuma izin ver — namaz vakitleri için gerekli"
     },
@@ -2635,6 +2657,8 @@
         "notifUmamaTitle": "अबू उमामा की दुआ",
         "notifUmamaMorning": "सुबह की दुआ — फ़ज्र का समय",
         "notifUmamaEvening": "शाम की दुआ — अस्र का समय",
+        "notifZikrTitle": "अल्लाह का ज़िक्र करना न भूलें",
+        "notifZikrBody": "सुब्हानअल्लाह, अल-हम्दुलिल्लाह, अल्लाहु अकबर 🌙 – इनमें से हर एक आपके दिल के लिए नूर बनेगा।",
         "notifPermDenied": "ब्राउज़र सेटिंग्स में नोटिफ़िकेशन की अनुमति दें",
         "notifNeedLocation": "स्थान की अनुमति दें — नमाज़ के समय के लिए ज़रूरी"
     },
@@ -2645,6 +2669,8 @@
         "notifUmamaTitle": "Doa Abu Umamah",
         "notifUmamaMorning": "Doa pagi — waktu Subuh",
         "notifUmamaEvening": "Doa petang — waktu Asar",
+        "notifZikrTitle": "Jangan lupa mengingati Allah",
+        "notifZikrBody": "Subhanallah, Alhamdulillah, Allahu Akbar 🌙 – setiap satunya akan menjadi cahaya buat hatimu.",
         "notifPermDenied": "Benarkan pemberitahuan dalam tetapan pelayar",
         "notifNeedLocation": "Benarkan lokasi — diperlukan untuk waktu solat"
     },
@@ -2655,6 +2681,8 @@
         "notifUmamaTitle": "Doa Abu Umamah",
         "notifUmamaMorning": "Doa pagi — waktu Subuh",
         "notifUmamaEvening": "Doa petang — waktu Asar",
+        "notifZikrTitle": "Jangan lupa berzikir kepada Allah",
+        "notifZikrBody": "Subhanallah, Alhamdulillah, Allahu Akbar 🌙 – masing-masing akan menjadi cahaya bagi hatimu.",
         "notifPermDenied": "Izinkan notifikasi di pengaturan browser",
         "notifNeedLocation": "Izinkan lokasi — diperlukan untuk waktu salat"
     },
@@ -2665,6 +2693,8 @@
         "notifUmamaTitle": "ดุอาอ์ของอบูอุมามะฮ์",
         "notifUmamaMorning": "ดุอาอ์ตอนเช้า — เวลาฟัจร์",
         "notifUmamaEvening": "ดุอาอ์ตอนเย็น — เวลาอัศร์",
+        "notifZikrTitle": "อย่าลืมรำลึกถึงอัลลอฮ์",
+        "notifZikrBody": "สุบหานัลลอฮ์ อัลฮัมดุลิลลาห์ อัลลอฮุอักบัร 🌙 – แต่ละคำจะเป็นแสงสว่างแก่หัวใจของคุณ",
         "notifPermDenied": "อนุญาตการแจ้งเตือนในการตั้งค่าเบราว์เซอร์",
         "notifNeedLocation": "อนุญาตตำแหน่ง — จำเป็นสำหรับเวลาละหมาด"
     }
