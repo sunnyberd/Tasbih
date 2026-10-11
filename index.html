@@ -3287,6 +3287,57 @@
             stroke: var(--gold); fill: none; stroke-width: 1.8;
         }
 
+        /* ===== NOTIFICATION CENTRE POPUP (удержание на «Уведомления») ===== */
+        .notif-pop-overlay {
+            position: fixed; inset: 0; z-index: 4000;
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            visibility: hidden; opacity: 0;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+        }
+        .notif-pop-overlay.show { visibility: visible; opacity: 1; }
+        .notif-pop {
+            width: min(330px, 100%);
+            background: var(--surface);
+            border: 1px solid var(--border-hover);
+            border-radius: 30px;
+            padding: 18px 14px 14px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06);
+            transform: scale(0.9) translateY(14px) translateZ(0);
+            opacity: 0;
+            transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1), opacity 0.2s ease;
+            will-change: transform, opacity;
+        }
+        .notif-pop-overlay.show .notif-pop { transform: scale(1) translateY(0) translateZ(0); opacity: 1; }
+        .notif-pop-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.3rem; font-weight: 600; text-align: center;
+            background: linear-gradient(135deg, var(--grad-start), var(--grad-mid));
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            margin-bottom: 14px;
+        }
+        .notif-row {
+            display: flex; align-items: center; gap: 12px;
+            padding: 11px 12px; margin-bottom: 8px;
+            background: rgba(128,128,128,0.08);
+            border: 1px solid var(--border);
+            border-radius: 20px; cursor: pointer;
+            transition: transform 0.12s ease, opacity 0.2s ease, border-color 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .notif-row:last-child { margin-bottom: 0; }
+        .notif-row:active { transform: scale(0.975); }
+        .notif-ic {
+            width: 36px; height: 36px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; border-radius: 50%;
+            background: var(--accent-glow);
+        }
+        .notif-lbl { flex: 1; min-width: 0; font-size: 0.93rem; font-weight: 600; color: var(--text-main); line-height: 1.25; }
+        .notif-pop.master-off .notif-row { opacity: 0.45; }
+
         /* ===== THEME PICKER MODAL ===== */
         .theme-picker-overlay {
             position: fixed; inset: 0;
@@ -5912,9 +5963,11 @@
                 <div class="set-row-lbl"><b id="labelStealth">Тёмный режим зикра</b></div>
                 <div class="toggle-switch" id="stealthToggle"></div>
             </div>
-            <!-- Уведомления (сейчас — хадисы; позже сюда добавятся другие виды уведомлений) -->
-            <div class="set-row" onclick="toggleHadithSetting()">
-                <span class="set-ic" id="hadithIcon">📖</span>
+            <!-- Уведомления: тап — общий ползунок, удержание 1 с — меню отдельных уведомлений -->
+            <div class="set-row" id="notifSettingRow" oncontextmenu="return false;"
+                 onpointerdown="startNotifPress(event)" onpointerup="cancelNotifPress()"
+                 onpointerleave="abortNotifPress()" onpointercancel="abortNotifPress()">
+                <span class="set-ic" id="hadithIcon">🔔</span>
                 <div class="set-row-lbl"><b id="labelHadith">Уведомления</b></div>
                 <div class="toggle-switch" id="hadithToggle"></div>
             </div>
@@ -6033,6 +6086,28 @@
             <div class="overlay-btns">
                 <button class="overlay-btn-cancel" onclick="cancelClearStats()" id="btnNoClearStats">Нет</button>
                 <button class="overlay-btn-confirm" onclick="confirmClearStats()" id="btnYesClearStats">Да</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTIFICATION CENTRE (удержание на «Уведомления») -->
+    <div class="notif-pop-overlay" id="notifPopOverlay" onclick="closeNotifPopup()">
+        <div class="notif-pop" id="notifPop" role="dialog" aria-modal="true" onclick="event.stopPropagation()">
+            <div class="notif-pop-title" id="notifPopTitle">Уведомления</div>
+            <div class="notif-row" onclick="toggleHadithSetting()">
+                <span class="notif-ic">📖</span>
+                <div class="notif-lbl" id="notifLblHadith">Хадисы</div>
+                <div class="toggle-switch" id="notifTgHadith"></div>
+            </div>
+            <div class="notif-row" onclick="toggleNotifPrayer()">
+                <span class="notif-ic">🕌</span>
+                <div class="notif-lbl" id="notifLblPrayer">Время намазов</div>
+                <div class="toggle-switch" id="notifTgPrayer"></div>
+            </div>
+            <div class="notif-row" onclick="toggleNotifUmama()">
+                <span class="notif-ic">🌅</span>
+                <div class="notif-lbl" id="notifLblUmama">Зикр Абу Умамы · Фаджр и Магриб</div>
+                <div class="toggle-switch" id="notifTgUmama"></div>
             </div>
         </div>
     </div>
@@ -7743,7 +7818,7 @@
             applySettingsSectionLabels(lang);
             if (typeof updateGoogleAccountUI === 'function') updateGoogleAccountUI();
             // Хадисы: пересылаем расписание в SW с текстами на текущем языке
-            if (settings && settings.hadithEnabled && typeof sendHadithScheduleToSW === 'function') {
+            if (settings && hadithOn() && typeof sendHadithScheduleToSW === 'function') {
                 sendHadithScheduleToSW();
             }
             renderDuas();
@@ -14493,7 +14568,7 @@
             const list = getHadiths();
             navigator.serviceWorker.ready.then(reg => {
                 if (!reg || !reg.active) return;
-                if (settings.hadithEnabled && list.length) {
+                if (hadithOn() && list.length) {
                     const items = list.map(h => _hadithText(h)).filter(Boolean);
                     reg.active.postMessage({
                         type: 'SCHEDULE_HADITH',
@@ -14515,7 +14590,7 @@
 
         function scheduleHadith() {
             clearHadithTimer();
-            if (!settings.hadithEnabled || !getHadiths().length) {
+            if (!hadithOn() || !getHadiths().length) {
                 sendHadithScheduleToSW();
                 return;
             }
@@ -14544,13 +14619,13 @@
         // показа сам, без внешних толчков.
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.addEventListener('message', event => {
-                if (event.data?.type === 'HADITH_NOTIFIED' && settings.hadithEnabled) {
+                if (event.data?.type === 'HADITH_NOTIFIED' && hadithOn()) {
                     // SW сам показал системное уведомление — начинаем новое окно 2–4 ч
                     _hadithWriteNext(0);
                     scheduleHadith();
                     return;
                 }
-                if (event.data?.type !== 'SHOW_HADITH' || !settings.hadithEnabled) return;
+                if (event.data?.type !== 'SHOW_HADITH' || !hadithOn()) return;
                 if (document.hidden) {
                     _hadithWriteNext(0);
                     showRandomHadith();
@@ -14564,7 +14639,7 @@
         // только пользователь возвращается на видимую вкладку, снова берём
         // инициативу на себя и ставим свежий таймер страницы.
         document.addEventListener('visibilitychange', () => {
-            if (!document.hidden && settings.hadithEnabled && getHadiths().length) {
+            if (!document.hidden && hadithOn() && getHadiths().length) {
                 scheduleHadith();
             }
         });
@@ -14588,6 +14663,7 @@
             const textEl = document.getElementById('hadithBannerText');
             if (titleEl) titleEl.textContent = (typeof t === 'function') ? t('hadithLabel') : 'Хадис';
             if (textEl) textEl.textContent = _hadithText(h);
+            const icEl = banner.querySelector('.hadith-banner-icon'); if (icEl) icEl.textContent = '📖';
             banner.style.display = 'flex';
             requestAnimationFrame(() => requestAnimationFrame(() => banner.classList.add('show')));
             if (_hadithBannerTimer) clearTimeout(_hadithBannerTimer);
@@ -14604,6 +14680,7 @@
         // Тап по баннеру → открыть полноценный попап
         function openHadithFromBanner() {
             hideHadithBanner();
+            if (!_hadithCurrent) return;   // баннер намаза/зикра — просто закрываем
             openHadithPopup(_hadithCurrent);
         }
         // Полноценный попап по центру экрана (как было раньше)
@@ -14622,9 +14699,234 @@
         }
         // Синхронизирует ползунок и подпись хадисов в настройках.
         function updateHadithUI() {
+            // Главный ползунок «Уведомления» = общий выключатель всех видов уведомлений.
+            const master = notifMasterOn();
             const tg = document.getElementById('hadithToggle');
-            if (tg) tg.classList.toggle('on', !!settings.hadithEnabled);
+            if (tg) tg.classList.toggle('on', master);
+            const ic = document.getElementById('hadithIcon');
+            if (ic) ic.textContent = master ? '🔔' : '🔕';
+            // Мини-меню отдельных уведомлений
+            const set = (id, on) => { const el = document.getElementById(id); if (el) el.classList.toggle('on', !!on); };
+            set('notifTgHadith', settings.hadithEnabled);
+            set('notifTgPrayer', settings.notifPrayer);
+            set('notifTgUmama', settings.notifAbuUmama);
+            const pop = document.getElementById('notifPop');
+            if (pop) pop.classList.toggle('master-off', !master);
         }
+
+        // ===== NOTIFICATION CENTRE =====
+        // Тап по «Уведомления» — общий ползунок (всё вкл/выкл).
+        // Удержание 1 секунда — компактное окно с отдельными ползунками:
+        //   • Хадисы (settings.hadithEnabled)
+        //   • Время намазов (settings.notifPrayer)
+        //   • Зикр Абу Умамы в Фаджр и Магриб (settings.notifAbuUmama)
+        // Всё работает только если включён общий ползунок (settings.notifMaster).
+        function notifMasterOn() { return settings.notifMaster !== false; }
+        function hadithOn() { return notifMasterOn() && !!settings.hadithEnabled; }
+        // t() с запасным текстом, если ключа ещё нет в закэшированном i18n.js
+        function tn(key, fallback) {
+            const v = (typeof t === 'function') ? t(key) : key;
+            return (v && v !== key) ? v : fallback;
+        }
+
+        let _notifPressTimer = null;
+        let _notifPopupOpenedAt = 0;
+        function startNotifPress(e) {
+            if (e && e.pointerType === 'mouse' && e.button !== 0) return;
+            clearTimeout(_notifPressTimer);
+            _notifPressTimer = setTimeout(() => {
+                _notifPressTimer = null;
+                openNotifPopup();
+            }, 1000);
+        }
+        function cancelNotifPress() {            // отпустили раньше секунды → короткий тап
+            if (_notifPressTimer) {
+                clearTimeout(_notifPressTimer);
+                _notifPressTimer = null;
+                toggleNotifMaster();
+            }
+        }
+        function abortNotifPress() {             // палец ушёл / начался скролл → без действия
+            if (_notifPressTimer) { clearTimeout(_notifPressTimer); _notifPressTimer = null; }
+        }
+
+        function toggleNotifMaster() {
+            const turningOn = !notifMasterOn();
+            settings.notifMaster = turningOn;
+            saveDataDebounced();
+            if (turningOn) {
+                _hadithWriteNext(0);
+                try {
+                    if ('Notification' in window && Notification.permission === 'default') requestNotifPermission();
+                } catch (e) {}
+            } else {
+                hideHadithBanner();
+            }
+            updateHadithUI();
+            scheduleHadith();
+            scheduleNotifEvents();
+        }
+
+        async function _notifEnsureExtras() {
+            try {
+                if ('Notification' in window) {
+                    if (Notification.permission === 'default') await requestNotifPermission();
+                    if (Notification.permission === 'denied') showToast(tn('notifPermDenied', 'Разрешите уведомления в настройках браузера'), 2600);
+                }
+            } catch (e) {}
+            try {
+                const pt = window.PrayerTimes;
+                if (pt && !pt.getLocation()) {
+                    showToast(tn('notifNeedLocation', 'Разрешите геолокацию — нужна для времён намаза'), 2800);
+                    pt.requestGeo(() => scheduleNotifEvents());
+                }
+            } catch (e) {}
+        }
+        function toggleNotifPrayer() {
+            settings.notifPrayer = !settings.notifPrayer;
+            saveDataDebounced();
+            updateHadithUI();
+            scheduleNotifEvents();
+            if (settings.notifPrayer) _notifEnsureExtras();
+        }
+        function toggleNotifUmama() {
+            settings.notifAbuUmama = !settings.notifAbuUmama;
+            saveDataDebounced();
+            updateHadithUI();
+            scheduleNotifEvents();
+            if (settings.notifAbuUmama) _notifEnsureExtras();
+        }
+
+        function openNotifPopup() {
+            const set = (id, key, fb) => { const el = document.getElementById(id); if (el) el.textContent = tn(key, fb); };
+            set('notifPopTitle', 'labelNotifications', 'Уведомления');
+            set('notifLblHadith', 'labelHadith', 'Хадисы');
+            set('notifLblPrayer', 'notifRowPrayer', 'Время намазов');
+            set('notifLblUmama', 'notifRowUmama', 'Зикр Абу Умамы · Фаджр и Магриб');
+            updateHadithUI();
+            _notifPopupOpenedAt = Date.now();
+            const ov = document.getElementById('notifPopOverlay');
+            if (ov) ov.classList.add('show');
+        }
+        function closeNotifPopup() {
+            if (Date.now() - _notifPopupOpenedAt < 350) return;   // защита от «хвоста» долгого нажатия
+            const ov = document.getElementById('notifPopOverlay');
+            if (ov) ov.classList.remove('show');
+        }
+        document.addEventListener('keydown', ev => { if (ev.key === 'Escape') closeNotifPopup(); });
+
+        // ----- Расписание: время намазов и зикр Абу Умамы (Фаджр / Магриб) -----
+        // Страница считает события на сегодня и завтра (по геолокации), сама ставит
+        // таймер на ближайшее, а полный список отдаёт в Service Worker — SW показывает
+        // системное уведомление, когда приложение свёрнуто. Если приложение открыто —
+        // показывается баннер сверху. Гарантий для полностью закрытого PWA нет (ОС может
+        // усыпить SW) — как и у хадисов.
+        let _notifEvTimer = null;
+        const _notifFired = new Set();
+        function _pad2(n) { return String(n).padStart(2, '0'); }
+        function buildNotifEvents() {
+            if (!notifMasterOn()) return [];
+            const wantPrayer = !!settings.notifPrayer, wantUmama = !!settings.notifAbuUmama;
+            if (!wantPrayer && !wantUmama) return [];
+            const pt = window.PrayerTimes;
+            if (!pt || typeof pt.getForDate !== 'function' || !pt.getLocation()) return [];
+            const names = (typeof pt.L === 'function' && pt.L()) || {};
+            const out = [];
+            const base = new Date();
+            for (let d = 0; d < 2; d++) {
+                const day = new Date(base.getFullYear(), base.getMonth(), base.getDate() + d);
+                const dk = day.getFullYear() + '-' + (day.getMonth() + 1) + '-' + day.getDate();
+                (pt.getForDate(day) || []).forEach(p => {
+                    if (!p || p.t === null || p.t === undefined || isNaN(p.t) || p.key === 'sunrise') return;
+                    const mins = Math.round(p.t * 60);
+                    const ts = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 0, mins, 0, 0).getTime();
+                    const at = new Date(ts);
+                    const clock = _pad2(at.getHours()) + ':' + _pad2(at.getMinutes());
+                    if (wantPrayer) {
+                        out.push({ ts, tag: 'azkar-prayer-' + p.key + '-' + dk, icon: '🕌',
+                            title: names[p.key] || p.key,
+                            body: tn('notifPrayerBody', 'Время намаза') + ' · ' + clock });
+                    }
+                    if (wantUmama && (p.key === 'fajr' || p.key === 'maghrib')) {
+                        out.push({ ts, tag: 'azkar-umama-' + p.key + '-' + dk, icon: '🌅',
+                            title: tn('notifUmamaTitle', 'Зикр Абу Умамы'),
+                            body: p.key === 'fajr'
+                                ? tn('notifUmamaMorning', 'Утренний зикр — время Фаджра')
+                                : tn('notifUmamaEvening', 'Вечерний зикр — время Магриба') });
+                    }
+                });
+            }
+            out.sort((a, b) => a.ts - b.ts);
+            return out;
+        }
+
+        function scheduleNotifEvents() {
+            clearTimeout(_notifEvTimer);
+            _notifEvTimer = null;
+            let list = [];
+            try { list = buildNotifEvents(); } catch (e) { list = []; }
+            const now = Date.now();
+            list = list.filter(e => e.ts > now + 1000 && !_notifFired.has(e.tag));
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready.then(reg => {
+                    if (!reg || !reg.active) return;
+                    if (list.length) {
+                        reg.active.postMessage({ type: 'SCHEDULE_EVENTS', events: list, icon: 'icon-192.png', badge: 'icon-192.png' });
+                    } else {
+                        reg.active.postMessage({ type: 'CANCEL_EVENTS' });
+                    }
+                }).catch(() => {});
+            }
+            if (!list.length) return;
+            _notifEvTimer = setTimeout(_notifFireDue, Math.max(500, list[0].ts - now));
+        }
+
+        function _notifFireDue() {
+            _notifEvTimer = null;
+            const now = Date.now();
+            let list = [];
+            try { list = buildNotifEvents(); } catch (e) {}
+            list.filter(e => e.ts <= now + 1500 && e.ts > now - 90000 && !_notifFired.has(e.tag))
+                .forEach(e => { _notifFired.add(e.tag); _notifDeliver(e); });
+            scheduleNotifEvents();
+        }
+
+        function _notifDeliver(ev) {
+            let system = false;
+            try {
+                if (document.hidden && 'Notification' in window && Notification.permission === 'granted' && 'serviceWorker' in navigator) {
+                    navigator.serviceWorker.ready.then(reg => reg.showNotification(ev.title, {
+                        body: ev.body, icon: 'icon-192.png', badge: 'icon-192.png',
+                        tag: ev.tag, renotify: false, requireInteraction: false,
+                        data: { url: reg.scope }
+                    })).catch(() => {});
+                    system = true;
+                }
+            } catch (e) {}
+            if (!system) showNotifBanner(ev.title, ev.body, ev.icon);
+        }
+
+        // Тот же iOS-style баннер сверху, что и у хадисов, но без попапа по тапу.
+        function showNotifBanner(title, text, icon) {
+            const banner = document.getElementById('hadithBanner');
+            if (!banner) return;
+            _hadithCurrent = null;
+            const titleEl = document.getElementById('hadithBannerTitle');
+            const textEl = document.getElementById('hadithBannerText');
+            const icEl = banner.querySelector('.hadith-banner-icon');
+            if (titleEl) titleEl.textContent = title;
+            if (textEl) textEl.textContent = text;
+            if (icEl) icEl.textContent = icon || '🔔';
+            banner.style.display = 'flex';
+            requestAnimationFrame(() => requestAnimationFrame(() => banner.classList.add('show')));
+            if (_hadithBannerTimer) clearTimeout(_hadithBannerTimer);
+            _hadithBannerTimer = setTimeout(hideHadithBanner, 7000);
+        }
+
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) scheduleNotifEvents(); });
+        setInterval(() => { if (!document.hidden) scheduleNotifEvents(); }, 5 * 60 * 1000);
+        setTimeout(scheduleNotifEvents, 1500);
+        setTimeout(scheduleNotifEvents, 6000);
 
         function loadData() {
             const s = localStorage.getItem('azkar_settings');
@@ -14674,6 +14976,10 @@
             if (settings.reminder === undefined) settings.reminder = false;
             // Хадисы по умолчанию включены; дальше значение управляется ползунком в настройках.
             if (settings.hadithEnabled === undefined) settings.hadithEnabled = true;
+            // Общий ползунок уведомлений и отдельные виды (намазы / зикр Абу Умамы — по умолчанию выключены).
+            if (settings.notifMaster === undefined) settings.notifMaster = true;
+            if (settings.notifPrayer === undefined) settings.notifPrayer = false;
+            if (settings.notifAbuUmama === undefined) settings.notifAbuUmama = false;
             if (settings.onlinePresence === undefined) settings.onlinePresence = true;
             updateSettingsUI();
             updateHadithUI();
@@ -18218,6 +18524,7 @@
                     if (typeof refreshMethodLabels === 'function') refreshMethodLabels();
                 }
                 tick();
+                if (typeof scheduleNotifEvents === 'function') { try { scheduleNotifEvents(); } catch(e) {} }
                 if (document.getElementById('prayerModalOverlay')?.classList.contains('show')) renderModal();
                 // Re-render special dhikrs — their "completed today" status uses
                 // the Islamic-day key which depends on Fajr time. Now that we
@@ -18257,6 +18564,7 @@
                 getNext: nextPrayer,
                 getToday: todayPrayers,
                 getLocation: () => uLat === null ? null : { lat: uLat, lng: uLng },
+                getForDate: (d) => uLat === null ? null : prayers(uLat, uLng, d || new Date()),
                 setLocation: setLocation,
                 requestGeo: requestGeo,
                 tick: tick,
