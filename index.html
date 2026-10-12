@@ -5370,9 +5370,11 @@
     </div>
 
     <div class="screen" id="screen-special-list">
-        <div class="screen-header" style="position:relative;">
-            <h2 id="specialListTitle">Специальные зикры</h2>
-            <p id="specialListSubtitle">Нажмите, чтобы узнать награду и начать</p>
+        <div class="screen-sticky-head">
+            <div class="screen-header" style="position:relative;">
+                <h2 id="specialListTitle">Специальные зикры</h2>
+                <p id="specialListSubtitle">Нажмите, чтобы узнать награду и начать</p>
+            </div>
         </div>
         <div class="dua-list" id="specialListContainer"></div>
     </div>
@@ -5893,7 +5895,8 @@
                     <div class="volume-slider-wrap">
                         <svg id="goalSoundSliderIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path class="sp-w sp-w1" d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path class="sp-w sp-w2" d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
                         <input type="range" class="volume-slider" id="goalSoundSlider" min="1" max="10" step="1" value="5"
-                            oninput="onGoalSoundSlider(this.value)">
+                            oninput="onGoalSoundSlider(this.value)"
+                            onchange="previewGoalSoundVolume()">
                         <span class="volume-slider-label" id="goalSoundSliderLabel">5</span>
                     </div>
                 </div>
@@ -5911,7 +5914,8 @@
                     <div class="volume-slider-wrap">
                         <svg id="clickSoundSliderIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path class="sp-w sp-w1" d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path class="sp-w sp-w2" d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
                         <input type="range" class="volume-slider" id="clickSoundSlider" min="1" max="10" step="1" value="5"
-                            oninput="onClickSoundSlider(this.value)">
+                            oninput="onClickSoundSlider(this.value)"
+                            onchange="previewClickSoundVolume()">
                         <span class="volume-slider-label" id="clickSoundSliderLabel">5</span>
                     </div>
                 </div>
@@ -14239,6 +14243,20 @@
             if (label) label.textContent = val;
             setSpeakerIcon('goalSoundSliderIcon', val);
             saveDataDebounced();
+        }
+        // Пробный звук при отпускании ползунка громкости (событие change срабатывает
+        // один раз после отпускания, а не на каждом шаге перетаскивания).
+        function previewClickSoundVolume() {
+            try {
+                const v = settings.clickSoundVolume !== undefined ? settings.clickSoundVolume : 5;
+                _playClickSoundById(settings.clickSoundType || 'default', v);
+            } catch (e) { console.warn('clickSound preview error', e); }
+        }
+        function previewGoalSoundVolume() {
+            try {
+                const v = settings.goalSoundVolume !== undefined ? settings.goalSoundVolume : 5;
+                _playGoalSoundById(settings.goalSoundType || 'default', v);
+            } catch (e) { console.warn('goalSound preview error', e); }
         }
         function updateSettingsUI() {
             const isLight = !isDarkTheme();
