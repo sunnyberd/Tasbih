@@ -19145,6 +19145,39 @@
                 } catch (e) { elPreHint.style.bottom = ''; }
             }
 
+            // ===== Полноэкранный режим — только для тёмного режима зикра =====
+            // На Android Chrome полноэкранный режим прячет строку состояния (время,
+            // сеть, заряд) и панель навигации (задачи, домой, назад). Запрос делается
+            // только когда тёмный режим активен, и снимается при его выходе.
+            let _fsRequested = false;
+            let _curScreen = 'screen-azkar';
+            function enterImmersive() {
+                try {
+                    const root = document.documentElement;
+                    if (document.fullscreenElement || typeof root.requestFullscreen !== 'function') return;
+                    _fsRequested = true;
+                    const p = root.requestFullscreen({ navigationUI: 'hide' });
+                    if (p && typeof p.catch === 'function') {
+                        p.catch(() => { _fsRequested = false; });
+                    }
+                } catch (e) { _fsRequested = false; }
+            }
+            function exitImmersive() {
+                if (!_fsRequested) return;
+                _fsRequested = false;
+                try {
+                    if (document.fullscreenElement && typeof document.exitFullscreen === 'function') {
+                        document.exitFullscreen().catch(() => {});
+                    }
+                } catch (e) {}
+            }
+            // Смена размера окна (вход/выход из полноэкранного режима) меняет
+            // координаты экрана, поэтому пересчитываем подсказку выхода.
+            window.addEventListener('resize', function() {
+                if (!_active || overlay.classList.contains('counting')) return;
+                positionPreHint(_curScreen);
+            });
+
             function activate(screenId) {
                 _active = false;
                 _ignoreTouchEndsUntilClear = false;
@@ -19160,6 +19193,8 @@
 
                 _active = true;
                 _targetCounter = (screenId === 'screen-special-counter') ? 'special' : 'azkar';
+                _curScreen = screenId;
+                enterImmersive();
                 overlay.classList.remove('counting');
                 overlay.classList.add('active');
                 // Пре-подсказка выхода видна уже во время отсчёта (до затемнения),
@@ -19196,6 +19231,7 @@
             }
 
             function deactivate() {
+                exitImmersive();
                 if (!_active) return;
                 _active = false;
                 _ignoreTouchEndsUntilClear = false;
@@ -19228,6 +19264,9 @@
             overlay.addEventListener('touchstart', function(e) {
                 if (!overlay.classList.contains('counting')) return;
                 e.preventDefault();
+                // Браузер разрешает полноэкранный режим только после касания —
+                // повторяем запрос, если он не прошёл при входе в режим.
+                enterImmersive();
                 if (_achievementActive) return;
 
                 // A second finger must never replace the first finger's timer:
@@ -19305,6 +19344,7 @@
             overlay.addEventListener('mousedown', function(e) {
                 if (!overlay.classList.contains('counting')) return;
                 if (_achievementActive) return;
+                enterImmersive();
                 _holdStart = Date.now();
                 if (elRingCircle) elRingCircle.style.strokeDashoffset = RING_FULL;
                 const elRing = document.getElementById('stealthHoldRing');
