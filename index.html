@@ -5086,6 +5086,24 @@
                 #ffffff 0%, color-mix(in srgb, var(--gold-light) 80%, #ffffff) 75%);
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
         }
+    
+        /* ===== Плавная подсветка при наведении (без свечения) ===== */
+        .nav-item, .set-row, .lang-option, .post-salah-option,
+        .goal-chip, .period-btn, .dua-card, .special-card, .stat-card,
+        .counter-center, .back-btn, .special-action-btn, .dua-action-btn, .fab {
+            transition: background-color 0.35s ease, filter 0.35s ease, transform 0.15s ease;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .nav-item:not(.active):hover { background: color-mix(in srgb, var(--gold) 7%, transparent); }
+            .set-row:hover, .lang-option:hover, .post-salah-option:hover {
+                background: color-mix(in srgb, var(--gold) 6%, transparent);
+            }
+            .goal-chip:hover, .period-btn:hover, .dua-card:hover, .special-card:hover,
+            .stat-card:hover, .counter-center:hover, .back-btn:hover,
+            .special-action-btn:hover, .dua-action-btn:hover, .fab:hover {
+                filter: brightness(1.08);
+            }
+        }
     </style>
 </head>
 <body>
