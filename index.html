@@ -5104,6 +5104,44 @@
                 filter: brightness(1.08);
             }
         }
+    
+        /* ===== Профиль: никнейм и отзывы ===== */
+        .acc-nick { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; border-top:1px solid color-mix(in srgb, var(--gold) 14%, transparent); }
+        .acc-nick[hidden] { display:none; }
+        .acc-info { display:flex; flex-direction:column; min-width:0; gap:2px; }
+        .acc-kicker { font-size:.66rem; letter-spacing:.12em; text-transform:uppercase; color:var(--text-dim); }
+        .acc-value { font-family:'Cormorant Garamond', serif; font-size:1.3rem; font-weight:600; color:var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .acc-value-sm { font-family:inherit; font-size:.95rem; color:var(--text); }
+        .acc-hint { font-size:.72rem; color:var(--text-dim); line-height:1.35; }
+        .acc-btn { flex:0 0 auto; min-height:40px; padding:0 16px; border-radius:999px; font-family:inherit; font-size:.8rem; font-weight:600; letter-spacing:.02em; color:var(--gold); background:color-mix(in srgb, var(--gold) 8%, transparent); border:1px solid color-mix(in srgb, var(--gold) 45%, transparent); box-shadow:var(--rich-inset); cursor:pointer; transition: background-color .3s ease, filter .3s ease, transform .15s ease, opacity .3s ease; }
+        .acc-btn:active { transform:scale(.96); filter:brightness(.93); }
+        .acc-btn:disabled { opacity:.42; cursor:not-allowed; transform:none; }
+        .acc-btn-primary { background:var(--rich-gold-fill); color:var(--rich-ink); border-color:transparent; box-shadow:var(--rich-gold-gloss), 0 4px 12px rgba(0,0,0,.35); }
+        @media (hover: hover) and (pointer: fine) {
+            .acc-btn:not(:disabled):hover { filter:brightness(1.08); }
+        }
+        .acc-overlay { position:fixed; inset:0; z-index:9000; display:none; align-items:flex-end; justify-content:center; padding:16px; background:rgba(0,0,0,.55); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); }
+        .acc-overlay.open { display:flex; }
+        .acc-modal { width:min(440px,100%); max-height:88vh; overflow:auto; padding:10px 20px calc(20px + env(safe-area-inset-bottom,0px)); border-radius:26px 26px 22px 22px; border:1px solid color-mix(in srgb, var(--gold) 28%, transparent); background:linear-gradient(180deg, color-mix(in srgb, var(--surface-light) 55%, var(--surface)) 0%, var(--surface) 62%); box-shadow:0 26px 64px -20px rgba(0,0,0,.68), var(--rich-inset); animation:accUp .28s ease; }
+        .acc-modal-handle { width:44px; height:4px; border-radius:4px; margin:4px auto 14px; background:color-mix(in srgb, var(--gold) 55%, transparent); }
+        .acc-modal-title { font-family:'Cormorant Garamond', serif; font-size:1.55rem; font-weight:600; text-align:center; color:var(--text); margin:0 0 6px; }
+        .acc-modal-sub { font-size:.85rem; text-align:center; color:var(--text-dim); line-height:1.45; margin:0 0 16px; }
+        .acc-warn { padding:12px 14px; border-radius:16px; font-size:.82rem; line-height:1.45; color:var(--text); background:color-mix(in srgb, var(--gold) 9%, transparent); border:1px solid color-mix(in srgb, var(--gold) 30%, transparent); margin-bottom:14px; }
+        .acc-warn[hidden] { display:none; }
+        .acc-input, .acc-textarea { width:100%; box-sizing:border-box; padding:13px 14px; border-radius:16px; font-family:inherit; font-size:1rem; color:var(--text); background:color-mix(in srgb, var(--surface) 70%, transparent); border:1px solid color-mix(in srgb, var(--gold) 30%, transparent); box-shadow:var(--rich-track-inset); outline:none; transition:border-color .3s ease; }
+        .acc-input:focus, .acc-textarea:focus { border-color:var(--gold); }
+        .acc-input:disabled { opacity:.6; }
+        .acc-textarea { min-height:140px; resize:vertical; line-height:1.5; }
+        .acc-meta { display:flex; justify-content:space-between; gap:10px; margin-top:6px; font-size:.72rem; color:var(--text-dim); }
+        .acc-rules { margin-top:6px; font-size:.72rem; color:var(--text-dim); }
+        .acc-err { min-height:1.1em; margin-top:8px; font-size:.78rem; color:var(--danger); }
+        .acc-modal-actions { display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
+        .acc-modal-actions .acc-btn { flex:1 1 auto; }
+        .acc-modal-actions .acc-btn[hidden] { display:none; }
+        .acc-toast { position:fixed; left:50%; bottom:calc(96px + env(safe-area-inset-bottom,0px)); transform:translate(-50%,16px); z-index:9500; padding:12px 18px; border-radius:999px; font-size:.85rem; font-weight:600; color:var(--rich-ink); background:var(--rich-gold-fill); box-shadow:0 14px 34px -12px rgba(0,0,0,.55); opacity:0; pointer-events:none; transition:opacity .3s ease, transform .3s ease; }
+        .acc-toast.show { opacity:1; transform:translate(-50%,0); }
+        @keyframes accUp { from { transform:translateY(18px); opacity:0; } to { transform:none; opacity:1; } }
+        @media (prefers-reduced-motion: reduce) { .acc-modal { animation:none; } }
     </style>
 </head>
 <body>
@@ -5880,6 +5918,22 @@
                             <strong id="googleAccountName">Google user</strong>
                             <span id="googleAccountEmail">user@gmail.com</span>
                         </div>
+                    </div>
+                    <div class="acc-nick" id="accNickRow" hidden>
+                        <div class="acc-info">
+                            <span class="acc-kicker" id="accNickLabel">Никнейм</span>
+                            <strong class="acc-value" id="accNickValue">—</strong>
+                            <small class="acc-hint" id="accNickHint"></small>
+                        </div>
+                        <button class="acc-btn" id="accNickBtn" type="button" onclick="pfOpenNick()">Задать</button>
+                    </div>
+                    <div class="acc-nick" id="accFbRow">
+                        <div class="acc-info">
+                            <span class="acc-kicker" id="accFbKicker">Обратная связь</span>
+                            <strong class="acc-value acc-value-sm" id="accFbTitle">Отзывы и пожелания</strong>
+                            <small class="acc-hint" id="accFbHint"></small>
+                        </div>
+                        <button class="acc-btn acc-btn-primary" id="accFbBtn" type="button" onclick="pfOpenFeedback()">Написать</button>
                     </div>
                     <div class="account-actions">
                         <button class="google-signin-btn" id="googleSignInBtn" type="button" onclick="signInWithGoogle()">
@@ -19990,5 +20044,320 @@
                 });
             }
         </script>
+    <div class="acc-overlay" id="accNickModal" onclick="pfBackdrop(event,'accNickModal')">
+        <div class="acc-modal" role="dialog" aria-modal="true" aria-labelledby="accNickTitle">
+            <div class="acc-modal-handle"></div>
+            <h3 class="acc-modal-title" id="accNickTitle">Никнейм</h3>
+            <p class="acc-modal-sub" id="accNickSub"></p>
+            <div class="acc-warn" id="accNickWarn"></div>
+            <input class="acc-input" id="accNickInput" type="text" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false">
+            <div class="acc-rules" id="accNickRules"></div>
+            <div class="acc-err" id="accNickErr" aria-live="polite"></div>
+            <div class="acc-modal-actions">
+                <button class="acc-btn" id="accNickRandom" type="button" onclick="pfRandomNick()">Случайный</button>
+                <button class="acc-btn" id="accNickCancel" type="button" onclick="pfClose('accNickModal')">Отмена</button>
+                <button class="acc-btn acc-btn-primary" id="accNickSave" type="button" onclick="pfSaveNickUI()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="acc-overlay" id="accFbModal" onclick="pfBackdrop(event,'accFbModal')">
+        <div class="acc-modal" role="dialog" aria-modal="true" aria-labelledby="accFbModalTitle">
+            <div class="acc-modal-handle"></div>
+            <h3 class="acc-modal-title" id="accFbModalTitle">Отзывы и пожелания</h3>
+            <p class="acc-modal-sub" id="accFbModalSub"></p>
+            <textarea class="acc-textarea" id="accFbText" maxlength="1000" placeholder=""></textarea>
+            <div class="acc-meta"><span id="accFbAuthor"></span><span id="accFbCount">0 / 1000</span></div>
+            <div class="acc-err" id="accFbErr" aria-live="polite"></div>
+            <div class="acc-modal-actions">
+                <button class="acc-btn" type="button" onclick="pfClose('accFbModal')" id="accFbCancel">Отмена</button>
+                <button class="acc-btn acc-btn-primary" id="accFbSend" type="button" onclick="pfSendFeedbackUI()">Отправить</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ===== Профиль: никнейм (меняется один раз) и отзывы для вошедших =====
+    const PF_TEXT = {
+        ru: { kicker:'Никнейм', set:'Задать', change:'Изменить', locked:'Изменён', none:'Не задан',
+              hintOnce:'Можно изменить один раз', hintLocked:'Ник уже менялся — больше нельзя',
+              nickTitle:'Никнейм', nickSub:'Так вас будут видеть авторы отзывов.',
+              nickWarn:'Ник можно изменить только один раз. Выбирайте внимательно.',
+              nickLockedWarn:'Вы уже меняли ник, поэтому изменить его больше нельзя.',
+              nickRules:'От 3 до 20 символов: буквы, цифры, _ . -', nickPh:'Например, Nur_2024',
+              random:'Случайный', save:'Сохранить', cancel:'Отмена', nickSaved:'Никнейм сохранён',
+              fbKicker:'Обратная связь', fbTitle:'Отзывы и пожелания', fbSub:'Ваше мнение помогает делать приложение лучше.',
+              fbBtn:'Написать', fbLocked:'Войдите в аккаунт, чтобы оставить отзыв.', fbNeedNick:'Сначала задайте никнейм.',
+              fbPh:'Что стоит улучшить? Ошибка, идея или пожелание…', fbSend:'Отправить', fbSent:'Спасибо! Ваш отзыв отправлен.',
+              fbCooldown:'Подождите минуту перед следующим отзывом.', fbMin:'Напишите хотя бы 5 символов.',
+              fbErr:'Не удалось отправить. Проверьте интернет.', err_len:'От 3 до 20 символов', err_chars:'Допустимы буквы, цифры, _ . -',
+              err_locked:'Ник уже менялся', err_auth:'Войдите в аккаунт', err_net:'Нет связи, попробуйте позже' },
+        en: { kicker:'Nickname', set:'Set', change:'Change', locked:'Changed', none:'Not set',
+              hintOnce:'Can be changed once', hintLocked:'Already changed — no more changes',
+              nickTitle:'Nickname', nickSub:'This is how your feedback will be signed.',
+              nickWarn:'The nickname can only be changed once. Choose carefully.',
+              nickLockedWarn:'You have already changed your nickname, so it cannot be changed again.',
+              nickRules:'3–20 characters: letters, digits, _ . -', nickPh:'For example, Nur_2024',
+              random:'Random', save:'Save', cancel:'Cancel', nickSaved:'Nickname saved',
+              fbKicker:'Feedback', fbTitle:'Feedback & suggestions', fbSub:'Your input helps make the app better.',
+              fbBtn:'Write', fbLocked:'Sign in to leave feedback.', fbNeedNick:'Set a nickname first.',
+              fbPh:'What should we improve? A bug, an idea or a wish…', fbSend:'Send', fbSent:'Thank you! Your feedback was sent.',
+              fbCooldown:'Please wait a minute before the next message.', fbMin:'Please write at least 5 characters.',
+              fbErr:'Could not send. Check your connection.', err_len:'3 to 20 characters', err_chars:'Letters, digits, _ . - only',
+              err_locked:'Nickname was already changed', err_auth:'Please sign in', err_net:'No connection, try again later' },
+        uz: { kicker:'Taxallus', set:'Qo‘yish', change:'O‘zgartirish', locked:'O‘zgartirilgan', none:'Qo‘yilmagan',
+              hintOnce:'Bir marta o‘zgartirish mumkin', hintLocked:'Taxallus allaqachon o‘zgartirilgan',
+              nickTitle:'Taxallus', nickSub:'Fikr-mulohazalaringizda shunday ko‘rsatiladi.',
+              nickWarn:'Taxallusni faqat bir marta o‘zgartirish mumkin. Diqqat bilan tanlang.',
+              nickLockedWarn:'Siz taxallusni allaqachon o‘zgartirgansiz, shuning uchun yana o‘zgartirib bo‘lmaydi.',
+              nickRules:'3–20 belgi: harflar, raqamlar, _ . -', nickPh:'Masalan, Nur_2024',
+              random:'Tasodifiy', save:'Saqlash', cancel:'Bekor qilish', nickSaved:'Taxallus saqlandi',
+              fbKicker:'Fikr-mulohaza', fbTitle:'Fikr va takliflar', fbSub:'Fikringiz ilovani yaxshilashga yordam beradi.',
+              fbBtn:'Yozish', fbLocked:'Fikr qoldirish uchun hisobga kiring.', fbNeedNick:'Avval taxallus qo‘ying.',
+              fbPh:'Nimani yaxshilash kerak? Xato, g‘oya yoki taklif…', fbSend:'Yuborish', fbSent:'Rahmat! Fikringiz yuborildi.',
+              fbCooldown:'Keyingi xabardan oldin bir daqiqa kuting.', fbMin:'Kamida 5 ta belgi yozing.',
+              fbErr:'Yuborib bo‘lmadi. Internetni tekshiring.', err_len:'3 dan 20 tagacha belgi', err_chars:'Faqat harflar, raqamlar, _ . -',
+              err_locked:'Taxallus allaqachon o‘zgartirilgan', err_auth:'Hisobga kiring', err_net:'Aloqa yo‘q, keyinroq urinib ko‘ring' }
+    };
+    const pfEl = (id) => document.getElementById(id);
+    const pfSet = (id, v) => { const e = pfEl(id); if (e) e.textContent = v; };
+    const pfLang = () => (PF_TEXT[currentLang] ? currentLang : 'en');
+    const pfTx = (k) => (PF_TEXT[pfLang()][k] || PF_TEXT.en[k] || k);
+    const PF_NICK_RE = /^[\p{L}\p{N}_.\-]+$/u;
+
+    let pfProfile = null;   // { nickname, nicknameChanges }
+    let pfUid = null;
+
+    function pfSignedIn() { return !!(window.firebaseAuth && firebaseAuth.currentUser); }
+
+    async function pfLoad() {
+        const ctx = await initFirebaseAccount();
+        const user = ctx.auth.currentUser;
+        if (!user) { pfProfile = null; pfUid = null; return null; }
+        if (pfUid === user.uid && pfProfile) return pfProfile;
+        const fs = ctx.firestoreApi;
+        const snap = await fs.getDoc(fs.doc(ctx.db, 'users', user.uid, 'meta', 'profile'));
+        pfProfile = snap.exists() ? snap.data() : { nickname: '', nicknameChanges: 0 };
+        pfUid = user.uid;
+        return pfProfile;
+    }
+
+    function pfValidate(raw) {
+        const n = (raw || '').trim();
+        if (n.length < 3 || n.length > 20) throw new Error('err_len');
+        if (!PF_NICK_RE.test(n)) throw new Error('err_chars');
+        return n;
+    }
+
+    async function pfSaveNick(raw) {
+        const nick = pfValidate(raw);
+        const ctx = await initFirebaseAccount();
+        const user = ctx.auth.currentUser;
+        if (!user) throw new Error('err_auth');
+        const fs = ctx.firestoreApi;
+        const ref = fs.doc(ctx.db, 'users', user.uid, 'meta', 'profile');
+        const snap = await fs.getDoc(ref);
+        const cur = snap.exists() ? snap.data() : {};
+        const curNick = cur.nickname || '';
+        const changes = cur.nicknameChanges || 0;
+        if (curNick && changes >= 1) throw new Error('err_locked');
+        if (curNick && nick === curNick) return cur;
+        const isChange = !!curNick;
+        await fs.setDoc(ref, {
+            uid: user.uid,
+            nickname: nick,
+            nicknameChanges: isChange ? 1 : 0,
+            nicknameUpdatedAt: fs.serverTimestamp()
+        }, { merge: true });
+        pfProfile = { nickname: nick, nicknameChanges: isChange ? 1 : 0 };
+        pfUid = user.uid;
+        return pfProfile;
+    }
+
+    async function pfSendFeedback(text) {
+        const ctx = await initFirebaseAccount();
+        const user = ctx.auth.currentUser;
+        if (!user) throw new Error('err_auth');
+        const fs = ctx.firestoreApi;
+        const snap = await fs.getDoc(fs.doc(ctx.db, 'users', user.uid, 'meta', 'profile'));
+        const nick = snap.exists() ? (snap.data().nickname || '') : '';
+        if (!nick) throw new Error('fbNeedNick');
+        await fs.addDoc(fs.collection(ctx.db, 'feedback'), {
+            uid: user.uid,
+            nickname: nick,
+            text: text,
+            lang: pfLang(),
+            app: 'Azkar',
+            createdAt: fs.serverTimestamp()
+        });
+    }
+
+    function pfRender() {
+        const signed = pfSignedIn();
+        const p = signed ? (pfProfile || {}) : {};
+        const hasNick = !!p.nickname;
+        const locked = hasNick && (p.nicknameChanges || 0) >= 1;
+
+        const nickRow = pfEl('accNickRow');
+        if (nickRow) nickRow.hidden = !signed;
+        pfSet('accNickLabel', pfTx('kicker'));
+        pfSet('accNickValue', hasNick ? p.nickname : pfTx('none'));
+        pfSet('accNickHint', hasNick ? (locked ? pfTx('hintLocked') : pfTx('hintOnce')) : '');
+        const nb = pfEl('accNickBtn');
+        if (nb) {
+            nb.textContent = !hasNick ? pfTx('set') : (locked ? pfTx('locked') : pfTx('change'));
+            nb.disabled = locked;
+        }
+
+        pfSet('accFbKicker', pfTx('fbKicker'));
+        pfSet('accFbTitle', pfTx('fbTitle'));
+        pfSet('accFbHint', signed ? (hasNick ? pfTx('fbSub') : pfTx('fbNeedNick')) : pfTx('fbLocked'));
+        const fb = pfEl('accFbBtn');
+        if (fb) { fb.textContent = pfTx('fbBtn'); fb.disabled = !signed; }
+    }
+
+    async function pfOnAccountChanged() {
+        if (!pfSignedIn()) { pfProfile = null; pfUid = null; pfRender(); return; }
+        pfRender();
+        if (pfUid !== firebaseAuth.currentUser.uid || !pfProfile) {
+            try { await pfLoad(); } catch (e) { console.warn('[profile] load failed', e); }
+            pfRender();
+        }
+    }
+
+    function pfOpen(id) { const e = pfEl(id); if (e) e.classList.add('open'); }
+    function pfClose(id) { const e = pfEl(id); if (e) e.classList.remove('open'); }
+    function pfBackdrop(e, id) { if (e.target === pfEl(id)) pfClose(id); }
+
+    function pfErrText(e) {
+        const k = e && e.message;
+        return ['err_len', 'err_chars', 'err_locked', 'err_auth', 'fbNeedNick'].includes(k) ? pfTx(k) : pfTx('err_net');
+    }
+
+    function pfToast(msg) {
+        let t = pfEl('accToast');
+        if (!t) {
+            t = document.createElement('div');
+            t.id = 'accToast';
+            t.className = 'acc-toast';
+            t.setAttribute('role', 'status');
+            document.body.appendChild(t);
+        }
+        t.textContent = msg;
+        t.classList.add('show');
+        clearTimeout(t._h);
+        t._h = setTimeout(() => t.classList.remove('show'), 2600);
+    }
+
+    function pfOpenNick() {
+        if (!pfSignedIn()) return;
+        const p = pfProfile || {};
+        const locked = !!p.nickname && (p.nicknameChanges || 0) >= 1;
+        pfSet('accNickTitle', pfTx('nickTitle'));
+        pfSet('accNickSub', pfTx('nickSub'));
+        pfSet('accNickWarn', locked ? pfTx('nickLockedWarn') : pfTx('nickWarn'));
+        pfSet('accNickRules', pfTx('nickRules'));
+        pfSet('accNickSave', pfTx('save'));
+        pfSet('accNickRandom', pfTx('random'));
+        pfSet('accNickCancel', pfTx('cancel'));
+        const input = pfEl('accNickInput');
+        input.placeholder = pfTx('nickPh');
+        input.value = p.nickname || '';
+        input.disabled = locked;
+        pfEl('accNickSave').hidden = locked;
+        pfEl('accNickRandom').hidden = locked;
+        pfSet('accNickErr', '');
+        pfOpen('accNickModal');
+        setTimeout(() => { if (!input.disabled) input.focus(); }, 60);
+    }
+
+    async function pfSaveNickUI() {
+        const btn = pfEl('accNickSave');
+        btn.disabled = true;
+        pfSet('accNickErr', '');
+        try {
+            await pfSaveNick(pfEl('accNickInput').value);
+            pfClose('accNickModal');
+            pfRender();
+            pfToast(pfTx('nickSaved'));
+        } catch (e) {
+            pfSet('accNickErr', pfErrText(e));
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    function pfRandomNick() {
+        const base = ['Nur', 'Sabr', 'Noor', 'Iman', 'Baraka', 'Rahma', 'Ilm', 'Sakina', 'Hikma', 'Zikr'];
+        pfEl('accNickInput').value = base[Math.floor(Math.random() * base.length)] + '_' + (1000 + Math.floor(Math.random() * 9000));
+    }
+
+    function pfUpdateFbCount() {
+        const n = pfEl('accFbText').value.length;
+        pfSet('accFbCount', n + ' / 1000');
+    }
+
+    function pfOpenFeedback() {
+        if (!pfSignedIn()) return;
+        if (!pfProfile || !pfProfile.nickname) {
+            pfToast(pfTx('fbNeedNick'));
+            pfOpenNick();
+            return;
+        }
+        pfSet('accFbModalTitle', pfTx('fbTitle'));
+        pfSet('accFbModalSub', pfTx('fbSub'));
+        pfSet('accFbAuthor', pfProfile.nickname);
+        pfSet('accFbErr', '');
+        pfSet('accFbSend', pfTx('fbSend'));
+        pfSet('accFbCancel', pfTx('cancel'));
+        pfEl('accFbText').placeholder = pfTx('fbPh');
+        pfUpdateFbCount();
+        pfOpen('accFbModal');
+        setTimeout(() => pfEl('accFbText').focus(), 60);
+    }
+
+    async function pfSendFeedbackUI() {
+        const ta = pfEl('accFbText');
+        const text = (ta.value || '').trim();
+        pfSet('accFbErr', '');
+        if (text.length < 5) { pfSet('accFbErr', pfTx('fbMin')); return; }
+        const last = Number(localStorage.getItem('azkarFbLast')) || 0;
+        if (Date.now() - last < 60000) { pfSet('accFbErr', pfTx('fbCooldown')); return; }
+        const btn = pfEl('accFbSend');
+        btn.disabled = true;
+        try {
+            await pfSendFeedback(text.slice(0, 1000));
+            try { localStorage.setItem('azkarFbLast', String(Date.now())); } catch (e) {}
+            ta.value = '';
+            pfUpdateFbCount();
+            pfClose('accFbModal');
+            pfToast(pfTx('fbSent'));
+        } catch (e) {
+            const msg = pfErrText(e);
+            pfSet('accFbErr', msg === pfTx('err_net') ? pfTx('fbErr') : msg);
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') { pfClose('accNickModal'); pfClose('accFbModal'); }
+    });
+    pfEl('accNickInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') pfSaveNickUI(); });
+    pfEl('accFbText').addEventListener('input', pfUpdateFbCount);
+
+    // Подключаемся к обновлению блока аккаунта, чтобы показывать профиль после входа/выхода
+    if (typeof updateGoogleAccountUI === 'function') {
+        const pfOrigUpdate = updateGoogleAccountUI;
+        updateGoogleAccountUI = function () {
+            const r = pfOrigUpdate.apply(this, arguments);
+            pfOnAccountChanged();
+            return r;
+        };
+    }
+    pfRender();
+    pfOnAccountChanged();
+    </script>
+
 </body>
 </html>
