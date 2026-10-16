@@ -2640,31 +2640,6 @@
         .special-start-btn:active { transform: scale(0.95) translateZ(0); }
 
 
-        /* ===== ТЁМНЫЙ ЗИКР: навбар прячется, полоска внизу возвращает его ===== */
-        .navbar { transition: translate 0.35s cubic-bezier(.2,.8,.2,1), opacity 0.25s ease, visibility 0.35s; }
-        html.zikr-immersive .navbar {
-            translate: 0 160%;
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-        html.zikr-immersive.zikr-reveal .navbar {
-            translate: 0 0;
-            opacity: 1;
-            visibility: visible;
-            pointer-events: auto;
-        }
-        .zikr-reveal-strip {
-            display: none;
-            position: fixed; left: 0; right: 0; bottom: 0;
-            height: calc(44px + var(--safe-b));
-            z-index: 999;
-            background: transparent;
-            -webkit-tap-highlight-color: transparent;
-        }
-        html.zikr-immersive .zikr-reveal-strip { display: block; }
-        html.zikr-immersive.zikr-reveal .zikr-reveal-strip { display: none; }
-
         /* ===== NAVBAR ===== */
         .navbar {
             position: fixed;
@@ -6439,7 +6414,6 @@
         <div class="pip-label" id="pipCountLabel"></div>
     </div>
 
-    <div class="zikr-reveal-strip" onclick="zikrRevealNav()"></div>
     <div class="navbar">
         <div class="nav-inner">
             <div class="nav-item active" data-tab="azkar" onclick="switchTab('azkar')">
@@ -12273,56 +12247,6 @@
             return DARK_THEMES.some(t => t.id === (th || settings.theme));
         }
 
-        // ===== ТЁМНЫЙ ЗИКР: прячем навбар и (по возможности) статус-бар =====
-        // Условие: тёмная тема и открыт экран «Зикр» (или спец-зикр). В остальных случаях всё как было.
-        var _zikrImmersiveOn = false;
-        var _zikrRevealTimer = null;
-
-        function _zikrRequestFullscreen() {
-            const el = document.documentElement;
-            if (document.fullscreenElement || typeof el.requestFullscreen !== 'function') return;
-            try {
-                const p = el.requestFullscreen();
-                if (p && typeof p.catch === 'function') p.catch(() => {});
-            } catch (e) {}
-        }
-
-        function syncZikrImmersive() {
-            const root = document.documentElement;
-            const active = document.querySelector('.screen.active');
-            const onZikr = !!active && (active.id === 'screen-azkar' || active.id === 'screen-special-counter');
-            const on = isDarkTheme() && onZikr;
-            if (on === _zikrImmersiveOn) return;
-            _zikrImmersiveOn = on;
-            root.classList.toggle('zikr-immersive', on);
-            if (on) {
-                _zikrRequestFullscreen(); // сработает только рядом с жестом пользователя, иначе тихо пропускаем
-            } else {
-                clearTimeout(_zikrRevealTimer);
-                root.classList.remove('zikr-reveal');
-                if (document.fullscreenElement && document.exitFullscreen) {
-                    document.exitFullscreen().catch(() => {});
-                }
-            }
-        }
-
-        // Тап по нижней полоске: показать навбар на 4 секунды (тап — это жест, поэтому можно и полноэкранный режим)
-        function zikrRevealNav() {
-            const root = document.documentElement;
-            if (!root.classList.contains('zikr-immersive')) return;
-            root.classList.add('zikr-reveal');
-            _zikrRequestFullscreen();
-            clearTimeout(_zikrRevealTimer);
-            _zikrRevealTimer = setTimeout(() => root.classList.remove('zikr-reveal'), 4000);
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.screen').forEach(s => {
-                new MutationObserver(() => syncZikrImmersive()).observe(s, { attributes: true, attributeFilter: ['class'] });
-            });
-            syncZikrImmersive();
-        });
-
         function shouldAnimateThemeChange(currentTheme, nextTheme, options) {
             if (options && options.animate === false) return false;
             return String(currentTheme || '') !== String(nextTheme || '');
@@ -12342,7 +12266,6 @@
                 const isLight = !isDarkTheme(theme);
                 document.querySelector('meta[name="theme-color"]').content = isLight ? '#f4f7fb' : '#0a0a0a';
                 updateSettingsUI();
-                syncZikrImmersive();
             };
 
             const root = document.documentElement;
