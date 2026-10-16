@@ -1,9 +1,13 @@
 {
+  "id": "/Tasbih/",
   "name": "Azkar",
   "short_name": "Azkar",
   "description": "Free multilingual dhikr and tasbih counter with duas, the 99 Names of Allah, goals, reminders and statistics.",
   "lang": "en",
-  "categories": ["lifestyle", "utilities"],
+  "categories": [
+    "lifestyle",
+    "utilities"
+  ],
   "start_url": "/Tasbih/",
   "scope": "/Tasbih/",
   "display": "standalone",
