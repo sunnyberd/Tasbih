@@ -4955,6 +4955,137 @@
             overflow-wrap: anywhere;
         }
 
+    
+        /* ===== Перенос из v3 «Михраб»: кнопки, иконки-обводки, ползунки (без свечений и анимаций) ===== */
+        html {
+            --rich-ink: #1a1206;
+            --rich-inset: inset 0 1px 0 color-mix(in srgb, #ffffff 8%, transparent);
+            --rich-inset-strong: inset 0 1px 0 color-mix(in srgb, #ffffff 16%, transparent);
+            --rich-track-inset: inset 0 1px 3px rgba(0, 0, 0, 0.35);
+            --rich-gold-fill: linear-gradient(160deg,
+                var(--gold-light) 0%, var(--gold) 52%, var(--gold-dark) 100%);
+            --rich-gold-gloss:
+                inset 0 1px 0 rgba(255, 255, 255, 0.42),
+                inset 0 -2px 6px rgba(0, 0, 0, 0.16);
+        }
+        [data-theme^="light"] {
+            --rich-inset: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            --rich-inset-strong: inset 0 1px 0 rgba(255, 255, 255, 1);
+            --rich-track-inset: inset 0 1px 2px rgba(70, 48, 12, 0.14);
+        }
+
+        /* ---------- Главные кнопки: литое золото ---------- */
+        .overlay-btn-confirm, .cl-modal-confirm:not(.danger), .special-resume-continue,
+        .geo-perm-btn-primary, .btn-gold, .method-geo-btn, .qibla-err-btn {
+            background: var(--rich-gold-fill);
+            border-color: transparent;
+            color: var(--rich-ink);
+            font-weight: 600;
+            text-shadow: none;
+            box-shadow:
+                var(--rich-gold-gloss),
+                0 6px 14px -8px rgba(0, 0, 0, 0.45);
+        }
+        .overlay-btn-confirm:active, .cl-modal-confirm:not(.danger):active,
+        .special-resume-continue:active, .geo-perm-btn-primary:active,
+        .btn-gold:active, .method-geo-btn:active, .qibla-err-btn:active {
+            filter: brightness(0.93);
+        }
+        .fab {
+            background: var(--rich-gold-fill);
+            box-shadow:
+                var(--rich-gold-gloss),
+                0 4px 12px rgba(0, 0, 0, 0.35);
+        }
+        .back-btn {
+            background: color-mix(in srgb, var(--gold) 7%, transparent);
+            border-color: color-mix(in srgb, var(--gold) 45%, transparent);
+            box-shadow: var(--rich-inset), 0 4px 12px -6px rgba(0, 0, 0, 0.4);
+        }
+        .special-action-btn, .dua-action-btn {
+            box-shadow: var(--rich-inset), 0 4px 12px -6px rgba(0, 0, 0, 0.4);
+        }
+        .dua-action-btn { background: color-mix(in srgb, var(--gold) 6%, transparent); }
+        .special-edit-toggle, .special-edit-toggle.active {
+            box-shadow: var(--rich-inset);
+        }
+        .data-btn {
+            box-shadow: var(--rich-inset);
+            border-color: color-mix(in srgb, var(--gold) 40%, transparent);
+        }
+        .reset-btn {
+            box-shadow: var(--shadow-sm), inset 0 1px 0 color-mix(in srgb, #ffffff 5%, transparent);
+        }
+        .lang-select-btn, .cl-list-select-btn, .post-salah-select-btn {
+            border-color: color-mix(in srgb, var(--gold) 34%, transparent);
+            box-shadow: var(--rich-inset);
+        }
+        .period-btn.active { box-shadow: var(--rich-inset-strong); }
+        .period-selector { box-shadow: var(--rich-track-inset); }
+
+        /* ---------- Нижняя навигация: активная кнопка + плавный ховер ---------- */
+        .nav-item {
+            transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+        }
+        .nav-item.active {
+            background-image: var(--rich-gold-fill);
+            background-color: transparent;
+            border-color: transparent;
+            box-shadow: var(--rich-gold-gloss);
+        }
+        .nav-item.active .nav-icon-wrap svg {
+            stroke: var(--rich-ink);
+            color: var(--rich-ink);
+        }
+        .nav-item.active .nav-label {
+            color: var(--rich-ink);
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .nav-item:not(.active):hover { background: color-mix(in srgb, var(--gold) 7%, transparent); }
+        }
+
+        /* ---------- Обводки вокруг иконок ---------- */
+        .stat-icon {
+            width: clamp(38px, 11vw, 44px);
+            height: clamp(38px, 11vw, 44px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            font-size: clamp(1.05rem, 4vw, 1.25rem);
+            background: linear-gradient(160deg,
+                color-mix(in srgb, var(--gold) 16%, transparent),
+                color-mix(in srgb, var(--gold) 5%, transparent));
+            border: 1px solid color-mix(in srgb, var(--gold) 22%, transparent);
+            box-shadow: var(--rich-inset);
+        }
+        .set-ic {
+            border-radius: 11px;
+            background: color-mix(in srgb, var(--gold) 8%, transparent);
+            border: 1px solid color-mix(in srgb, var(--gold) 15%, transparent);
+        }
+        .cl-folder-icon {
+            background: linear-gradient(160deg,
+                color-mix(in srgb, var(--gold) 20%, transparent),
+                color-mix(in srgb, var(--gold) 6%, transparent));
+            border: 1px solid color-mix(in srgb, var(--gold) 26%, transparent);
+            box-shadow: var(--rich-inset);
+        }
+
+        /* ---------- Ползунки (переключатели) ---------- */
+        .toggle-switch { box-shadow: var(--rich-track-inset); }
+        .toggle-switch.on {
+            background: linear-gradient(180deg,
+                color-mix(in srgb, var(--gold) 80%, transparent) 0%,
+                color-mix(in srgb, var(--gold) 52%, transparent) 100%);
+            border-color: color-mix(in srgb, var(--gold) 85%, transparent);
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.22);
+        }
+        .toggle-switch.on::after {
+            background: radial-gradient(circle at 35% 30%,
+                #ffffff 0%, color-mix(in srgb, var(--gold-light) 80%, #ffffff) 75%);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+        }
     </style>
 </head>
 <body>
@@ -19145,39 +19276,6 @@
                 } catch (e) { elPreHint.style.bottom = ''; }
             }
 
-            // ===== Полноэкранный режим — только для тёмного режима зикра =====
-            // На Android Chrome полноэкранный режим прячет строку состояния (время,
-            // сеть, заряд) и панель навигации (задачи, домой, назад). Запрос делается
-            // только когда тёмный режим активен, и снимается при его выходе.
-            let _fsRequested = false;
-            let _curScreen = 'screen-azkar';
-            function enterImmersive() {
-                try {
-                    const root = document.documentElement;
-                    if (document.fullscreenElement || typeof root.requestFullscreen !== 'function') return;
-                    _fsRequested = true;
-                    const p = root.requestFullscreen({ navigationUI: 'hide' });
-                    if (p && typeof p.catch === 'function') {
-                        p.catch(() => { _fsRequested = false; });
-                    }
-                } catch (e) { _fsRequested = false; }
-            }
-            function exitImmersive() {
-                if (!_fsRequested) return;
-                _fsRequested = false;
-                try {
-                    if (document.fullscreenElement && typeof document.exitFullscreen === 'function') {
-                        document.exitFullscreen().catch(() => {});
-                    }
-                } catch (e) {}
-            }
-            // Смена размера окна (вход/выход из полноэкранного режима) меняет
-            // координаты экрана, поэтому пересчитываем подсказку выхода.
-            window.addEventListener('resize', function() {
-                if (!_active || overlay.classList.contains('counting')) return;
-                positionPreHint(_curScreen);
-            });
-
             function activate(screenId) {
                 _active = false;
                 _ignoreTouchEndsUntilClear = false;
@@ -19193,8 +19291,6 @@
 
                 _active = true;
                 _targetCounter = (screenId === 'screen-special-counter') ? 'special' : 'azkar';
-                _curScreen = screenId;
-                enterImmersive();
                 overlay.classList.remove('counting');
                 overlay.classList.add('active');
                 // Пре-подсказка выхода видна уже во время отсчёта (до затемнения),
@@ -19231,7 +19327,6 @@
             }
 
             function deactivate() {
-                exitImmersive();
                 if (!_active) return;
                 _active = false;
                 _ignoreTouchEndsUntilClear = false;
@@ -19264,9 +19359,6 @@
             overlay.addEventListener('touchstart', function(e) {
                 if (!overlay.classList.contains('counting')) return;
                 e.preventDefault();
-                // Браузер разрешает полноэкранный режим только после касания —
-                // повторяем запрос, если он не прошёл при входе в режим.
-                enterImmersive();
                 if (_achievementActive) return;
 
                 // A second finger must never replace the first finger's timer:
@@ -19344,7 +19436,6 @@
             overlay.addEventListener('mousedown', function(e) {
                 if (!overlay.classList.contains('counting')) return;
                 if (_achievementActive) return;
-                enterImmersive();
                 _holdStart = Date.now();
                 if (elRingCircle) elRingCircle.style.strokeDashoffset = RING_FULL;
                 const elRing = document.getElementById('stealthHoldRing');
