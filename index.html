@@ -811,12 +811,6 @@
             -webkit-mask-image: linear-gradient(to bottom, black calc(100% - calc(var(--nav-h) + var(--safe-b) + 48px)), transparent calc(100% - calc(var(--nav-h) + var(--safe-b) + 4px)));
             mask-image: linear-gradient(to bottom, black calc(100% - calc(var(--nav-h) + var(--safe-b) + 48px)), transparent calc(100% - calc(var(--nav-h) + var(--safe-b) + 4px)));
         }
-        /* Боковые вырезы экрана (landscape, камера сбоку) — экраны не заезжают под них.
-           В обычном портрете env() = 0, поэтому раскладка не меняется. */
-        .screen {
-            left: env(safe-area-inset-left, 0px);
-            right: env(safe-area-inset-right, 0px);
-        }
         /* Extra bottom padding for screens with FAB so last card is always above the button */
         #screen-dua,
         #screen-special-list,
@@ -2650,8 +2644,8 @@
         .navbar {
             position: fixed;
             bottom: calc(10px + var(--safe-b));
-            left: calc(clamp(8px, 3vw, 12px) + env(safe-area-inset-left, 0px));
-            right: calc(clamp(8px, 3vw, 12px) + env(safe-area-inset-right, 0px));
+            left: clamp(8px, 3vw, 12px);
+            right: clamp(8px, 3vw, 12px);
             z-index: 1000;
             /* Separate compositing layer */
             transform: translateZ(0);
@@ -3787,7 +3781,7 @@
             .goal-chip-num { font-size: 0.95rem; }
             .goal-chip-label { display: none; }
 
-            .navbar        { bottom: calc(3px + var(--safe-b)); left: calc(3px + env(safe-area-inset-left, 0px)); right: calc(3px + env(safe-area-inset-right, 0px)); }
+            .navbar        { bottom: calc(3px + var(--safe-b)); left: 3px; right: 3px; }
             .nav-inner     { padding: 4px 8px; border-radius: 36px; }
             .nav-item      { padding: 4px 5px; min-width: 34px; }
             .nav-icon-wrap svg { width: 17px; height: 17px; }
@@ -12503,22 +12497,12 @@
             return langPack[id] || enPack[id] || fallback || id;
         }
 
-        // Кривая громкости: каждая цифра 1–10 даёт одинаковый шаг на слух (~2,4 дБ),
-        // диапазон ~22 дБ. Звуки считают громкость как (v/10)^2, поэтому подаём им
-        // пересчитанное значение v' — сами звуки менять не нужно.
-        const VOL_RANGE_DB = 22;
-        function _volCurve(v) {
-            v = Math.min(10, Math.max(1, Number(v) || 5));
-            const xMin = Math.pow(10, -VOL_RANGE_DB / 20);
-            const x = Math.pow(xMin, (10 - v) / 9);
-            return 10 * Math.sqrt(x);
-        }
         function _playClickSoundById(id, vol) {
             const ctx = getAudioCtx();
             const resume = ctx.state === 'suspended' ? ctx.resume() : Promise.resolve();
             resume.then(() => {
                 const snd = CLICK_SOUNDS.find(s => s.id === id) || CLICK_SOUNDS[0];
-                snd.play(ctx, _volCurve(vol));
+                snd.play(ctx, vol);
             });
         }
         function _playGoalSoundById(id, vol) {
@@ -12526,7 +12510,7 @@
             const resume = ctx.state === 'suspended' ? ctx.resume() : Promise.resolve();
             resume.then(() => {
                 const snd = GOAL_SOUNDS.find(s => s.id === id) || GOAL_SOUNDS[0];
-                snd.play(ctx, _volCurve(vol));
+                snd.play(ctx, vol);
             });
         }
 
@@ -19857,29 +19841,5 @@
                 });
             }
         </script>
-    <script>
-        // ===== ПОЛНОЭКРАННЫЙ РЕЖИМ =====
-        // В установленном PWA полноэкранность задаёт manifest (display: fullscreen).
-        // Если приложение открыто в обычном браузере, пробуем развернуть страницу
-        // при первом касании — браузер разрешает это только после действия пользователя.
-        (function () {
-            const isFullscreenNow = () =>
-                !!(document.fullscreenElement || document.webkitFullscreenElement) ||
-                window.matchMedia('(display-mode: fullscreen)').matches;
-
-            const enterFullscreen = () => {
-                if (isFullscreenNow()) return;
-                const el = document.documentElement;
-                const request = el.requestFullscreen || el.webkitRequestFullscreen;
-                if (!request) return;
-                try {
-                    const p = request.call(el);
-                    if (p && typeof p.catch === 'function') p.catch(() => {});
-                } catch (e) {}
-            };
-
-            document.addEventListener('pointerdown', enterFullscreen, { once: true });
-        })();
-    </script>
 </body>
 </html>
