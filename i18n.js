@@ -3262,3 +3262,25 @@
     window.AZKAR_I18N = i18n;
     window.AZKAR_UI_TRANSLATIONS = ui;
 })();
+
+// ===== Блок «Отзывы и пожелания» и кнопка «Резервные копии» (все языки приложения) =====
+(function () {
+    const ui = window.AZKAR_UI_TRANSLATIONS = window.AZKAR_UI_TRANSLATIONS || {};
+    ui.feedback = {
+        ru: { title: "Отзывы и пожелания", write: "Написать", ok: "Чтобы приложение стало лучше.", locked: "Войдите в аккаунт, чтобы оставить отзыв.", backup: "Резервные копии" },
+        en: { title: "Feedback & suggestions", write: "Write", ok: "To make the app better.", locked: "Sign in to leave feedback.", backup: "Backups" },
+        de: { title: "Feedback & Vorschläge", write: "Schreiben", ok: "Damit die App besser wird.", locked: "Melde dich an, um Feedback zu geben.", backup: "Sicherungskopien" },
+        es: { title: "Comentarios y sugerencias", write: "Escribir", ok: "Para mejorar la app.", locked: "Inicia sesión para dejar comentarios.", backup: "Copias de seguridad" },
+        fr: { title: "Avis et suggestions", write: "Écrire", ok: "Pour améliorer l'application.", locked: "Connectez-vous pour laisser un avis.", backup: "Sauvegardes" },
+        it: { title: "Feedback e suggerimenti", write: "Scrivi", ok: "Per migliorare l'app.", locked: "Accedi per lasciare un feedback.", backup: "Backup" },
+        ja: { title: "フィードバックと要望", write: "書く", ok: "アプリをより良くするために。", locked: "フィードバックを送るにはサインインしてください。", backup: "バックアップ" },
+        ko: { title: "피드백 및 제안", write: "작성", ok: "앱을 더 좋게 만들기 위해.", locked: "피드백을 남기려면 로그인하세요.", backup: "백업" },
+        uz: { title: "Fikr va takliflar", write: "Yozish", ok: "Ilovani yaxshilash uchun.", locked: "Fikr qoldirish uchun hisobga kiring.", backup: "Zaxira nusxalari" },
+        zh: { title: "反馈与建议", write: "写评价", ok: "让应用变得更好。", locked: "登录后即可提交反馈。", backup: "备份" },
+        tr: { title: "Geri bildirim ve öneriler", write: "Yaz", ok: "Uygulamayı daha iyi hale getirmek için.", locked: "Geri bildirim bırakmak için giriş yapın.", backup: "Yedekler" },
+        hi: { title: "प्रतिक्रिया और सुझाव", write: "लिखें", ok: "ऐप को और बेहतर बनाने के लिए।", locked: "फ़ीडबैक देने के लिए साइन इन करें।", backup: "बैकअप" },
+        id: { title: "Masukan & saran", write: "Tulis", ok: "Agar aplikasi makin baik.", locked: "Masuk untuk memberikan masukan.", backup: "Cadangan" },
+        ms: { title: "Maklum balas & cadangan", write: "Tulis", ok: "Untuk menjadikan aplikasi lebih baik.", locked: "Log masuk untuk memberi maklum balas.", backup: "Sandaran" },
+        th: { title: "ข้อเสนอแนะและความคิดเห็น", write: "เขียน", ok: "เพื่อทำให้แอปดียิ่งขึ้น", locked: "เข้าสู่ระบบเพื่อส่งข้อเสนอแนะ", backup: "การสำรองข้อมูล" }
+    };
+})();
