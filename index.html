@@ -1385,6 +1385,9 @@
         .overlay-btn-cancel {
             background: transparent; border: 1px solid rgba(128,128,128,0.2); color: var(--text-muted);
         }
+        .overlay-btn-cancel[id*="No"], .overlay-btn-cancel[id*="no"] {
+            background: rgba(74, 222, 128, 0.08); border: 1px solid var(--success); color: var(--success);
+        }
         .special-resume-actions { flex-direction: column; }
         .special-resume-actions button { width: 100%; flex: none; }
         .special-resume-continue {
@@ -5161,6 +5164,7 @@
             transition: background-color 0.3s ease, transform 0.12s ease;
         }
         .set-ic-btn svg { width: 22px; height: 22px; }
+        .backup-close-btn { position: absolute; right: 0; top: 50%; margin-top: -17px; font-size: 1.3rem; line-height: 1; }
         .set-ic-btn:active { transform: scale(0.94); }
         @media (hover: hover) and (pointer: fine) {
             .set-ic-btn:hover {
@@ -6430,7 +6434,7 @@
         <div class="cl-modal" onclick="event.stopPropagation()" style="max-height:80vh;overflow:hidden;display:flex;flex-direction:column;">
             <div class="cl-modal-title-row">
                 <div class="cl-modal-title" id="backupModalTitle">Резервные копии</div>
-                <button onclick="closeBackupModal()" style="position:absolute;right:0;background:none;border:none;color:var(--text-muted);font-size:1.4rem;line-height:1;cursor:pointer;padding:4px;">×</button>
+                <button class="set-ic-btn backup-close-btn" onclick="closeBackupModal()" aria-label="Закрыть">×</button>
             </div>
             <div id="backupList" style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:8px;padding:4px 0;min-height:60px;">
                 <div style="text-align:center;color:var(--text-muted);font-size:0.9rem;padding:20px 0;" id="backupEmptyMsg">Нет сохранённых копий</div>
@@ -10725,14 +10729,14 @@
                 });
 
                 // X-axis labels
-                const step = (currentPeriod === 'year') ? 1 : Math.ceil(labels.length / 7);
+                const step = (currentPeriod === 'year' || currentPeriod === 'month') ? 1 : Math.ceil(labels.length / 7);
                 labels.forEach((lbl, i) => {
                     if (i % step !== 0 && i !== labels.length - 1) return;
                     const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
                     t.setAttribute('x', points[i].x);
                     t.setAttribute('y', padTop + chartH + 18);
                     t.setAttribute('text-anchor', 'middle');
-                    t.setAttribute('font-size', '9');
+                    t.setAttribute('font-size', currentPeriod === 'month' ? '8' : '9');
                     t.setAttribute('fill', 'var(--text-dim)');
                     t.textContent = lbl;
                     svg.appendChild(t);
@@ -10754,15 +10758,55 @@
                     circle.setAttribute('fill', 'var(--gold)');
                     circle.setAttribute('stroke', 'var(--bg)');
                     circle.setAttribute('stroke-width', '1.5');
-                    circle.style.cursor = 'pointer';
+                    circle.style.cursor = 'default';
                     // Animate dot appear
                     circle.style.opacity = '0';
                     circle.style.transition = `opacity 0.3s ease ${0.5 + i * 0.04}s`;
                     requestAnimationFrame(() => { circle.style.opacity = '1'; });
-                    circle.addEventListener('click', () => {
-                        showStatsDetail(`${labels[i]}: ${data[i]}`);
-                    });
                     svg.appendChild(circle);
+                });
+
+                // Подсказка при наведении: значение за этот период показывается над точкой
+                const svgNS = 'http://www.w3.org/2000/svg';
+                const hoverG = document.createElementNS(svgNS, 'g');
+                hoverG.setAttribute('pointer-events', 'none');
+                hoverG.style.display = 'none';
+                const tipBg = document.createElementNS(svgNS, 'rect');
+                tipBg.setAttribute('rx', '8'); tipBg.setAttribute('ry', '8');
+                tipBg.setAttribute('fill', 'var(--surface)');
+                tipBg.setAttribute('stroke', 'var(--gold)'); tipBg.setAttribute('stroke-width', '1');
+                const tipText = document.createElementNS(svgNS, 'text');
+                tipText.setAttribute('font-size', '10'); tipText.setAttribute('font-weight', '600');
+                tipText.setAttribute('fill', 'var(--gold)'); tipText.setAttribute('text-anchor', 'middle');
+                hoverG.appendChild(tipBg); hoverG.appendChild(tipText);
+                svg.appendChild(hoverG);
+                const vbParts = (svg.getAttribute('viewBox') || '').split(/\s+/).map(Number);
+                const vbW = vbParts[2] || 320;
+                const hideTip = () => { hoverG.style.display = 'none'; };
+                const showTip = (i) => {
+                    const p = points[i];
+                    tipText.textContent = `${labels[i]}: ${data[i]}`;
+                    hoverG.style.display = '';
+                    const bb = tipText.getBBox();
+                    const w = bb.width + 16, h = bb.height + 10;
+                    const cx = Math.max(w / 2 + 2, Math.min(vbW - w / 2 - 2, p.x));
+                    let top = p.y - h - 10;
+                    if (top < 0) top = p.y + 10;
+                    tipBg.setAttribute('x', cx - w / 2); tipBg.setAttribute('y', top);
+                    tipBg.setAttribute('width', w); tipBg.setAttribute('height', h);
+                    tipText.setAttribute('x', cx); tipText.setAttribute('y', top + h / 2 + bb.height * 0.35);
+                };
+                const colW = points.length > 1 ? Math.abs(points[1].x - points[0].x) : 40;
+                let hideT = null;
+                points.forEach((p, i) => {
+                    const hit = document.createElementNS(svgNS, 'rect');
+                    hit.setAttribute('x', p.x - colW / 2); hit.setAttribute('y', padTop);
+                    hit.setAttribute('width', colW); hit.setAttribute('height', chartH);
+                    hit.setAttribute('fill', 'transparent');
+                    hit.addEventListener('pointerenter', () => { clearTimeout(hideT); showTip(i); });
+                    hit.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') { clearTimeout(hideT); hideTip(); } });
+                    hit.addEventListener('pointerdown', () => { clearTimeout(hideT); showTip(i); hideT = setTimeout(hideTip, 1600); });
+                    svg.appendChild(hit);
                 });
 
                 // Peak label — show max value
