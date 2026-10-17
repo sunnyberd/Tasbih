@@ -6701,6 +6701,9 @@
         #screen-feedback { transform: none; will-change: auto; -webkit-mask-image: none; mask-image: none; }
         #screen-feedback.active { animation: none; }
         #fbHost { display: block; width: 100%; }
+        body.fb-page .navbar { display: none !important; }
+        body.fb-page #pipCounterBtn { display: none !important; }
+        body.fb-page #screen-feedback { padding-bottom: calc(var(--safe-b) + 16px); }
     </style>
     <div class="screen" id="screen-feedback"><div id="fbHost"></div></div>
     <template id="fbTemplate">
@@ -6927,7 +6930,7 @@
             z-index: 1;
             max-width: 620px;
             margin: 0 auto;
-            padding: calc(var(--safe-t) + 76px) 16px calc(var(--safe-b) + 44px);
+            padding: calc(var(--safe-t) + 18px) 16px calc(var(--safe-b) + 24px);
         }
         .hidden { display: none !important; }
 
@@ -7064,7 +7067,7 @@
         .form-label {
             display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
             font-size: 0.66rem; font-weight: 600;
-            text-transform: uppercase; letter-spacing: 1.2px;
+            letter-spacing: 0.3px;
             color: var(--text-muted);
             margin-bottom: 9px;
         }
@@ -7531,37 +7534,28 @@
             .composer { padding: 24px 22px 20px; }
         }
     
+.hero-row { display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; gap: 8px; }
+.hero-row .icon-btn { justify-self: start; }
+.hero-spacer { display: block; width: 40px; height: 40px; }
+
 </style>
 <div class="fb-ambient" aria-hidden="true"></div>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="moonGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--grad-start)"/><stop offset="1" stop-color="var(--grad-end)"/></linearGradient></defs></svg>
-<header class="topbar">
-        <button class="brand-btn" type="button" id="backBtn" aria-label="В приложение">
-            <svg viewBox="0 0 24 24"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
-            <span>Azkar</span>
-        </button>
-        <div class="topbar-spacer"></div>
-        </header>
-
-    <main class="wrap">
+<main class="wrap">
 
         <!-- ===== ШАПКА ===== -->
         <section class="hero">
+            <div class="hero-row">
+                <button class="icon-btn" type="button" id="backBtn" aria-label="В приложение">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+                </button>
             <h1 id="heroTitle" data-i18n="headerTitle">Отзывы и пожелания</h1>
+            <span class="hero-spacer" aria-hidden="true"></span>
+            </div>
             <p class="hero-sub" id="heroSub" data-i18n="subtitle">Поделитесь отзывом или идеей — мы читаем каждый</p>
             <div class="ornament" aria-hidden="true">
                 <span class="ornament-line"></span><span class="ornament-star">✦</span><span class="ornament-line"></span>
             </div>
-        </section>
-
-        <!-- ===== СТАТИСТИКА ===== -->
-        <section class="stats-card card reveal hidden" id="statsCard" aria-hidden="false">
-            <div class="stats-left">
-                <div class="avg-num" id="avgNum">0.0</div>
-                <div class="static-stars" id="avgStars" aria-hidden="true"></div>
-                <div class="stat-cap" data-i18n="statAverage">Средняя оценка</div>
-                <div class="reviews-count-line" id="reviewsCountLine"></div>
-            </div>
-            <div class="stats-right" id="distBars" aria-hidden="true"></div>
         </section>
 
         <!-- ===== ФОРМА ОТЗЫВА ===== -->
@@ -7600,7 +7594,7 @@
             <div class="form-group">
                 <label class="form-label" for="nameInput">
                     <span data-i18n="labelName">Имя</span>
-                    <span class="opt" data-i18n="optLabel">необязательно</span>
+                    
                 </label>
                 <input class="input" id="nameInput" type="text" maxlength="40" autocomplete="name" data-i18n-ph="phName" placeholder="Как к вам обращаться?">
             </div>
@@ -7643,11 +7637,6 @@
             <div class="reviews" id="reviewsList"></div>
 
             <div class="empty hidden" id="emptyState">
-                <div class="empty-moon" aria-hidden="true">
-                    <svg viewBox="0 0 32 32" fill="none">
-                        <path d="M25 16C25 21 21 25 16 25C11 25 7 21 7 16C7 11 11 7 16 7C16.4 7 16.8 7.04 17.2 7.12C14.6 8.3 13 10.8 13 14C13 17.8 15.8 21 19.6 21C21.3 21 22.8 20.3 23.8 19.1C24.1 18.1 25 17 25 16Z" fill="url(#moonGrad)" opacity="0.6"/>
-                    </svg>
-                </div>
                 <h3 id="emptyTitle"></h3>
                 <p id="emptySub"></p>
             </div>
@@ -7709,374 +7698,80 @@
 
     
     </template>
+
+    <div class="navbar">
+        <div class="nav-inner">
+            <div class="nav-item active" data-tab="azkar" onclick="switchTab('azkar')">
+                <div class="nav-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                  <!-- Нить круга -->
+                  <circle cx="12" cy="10" r="7" stroke-width="1.3" fill="none" opacity="0.5"/>
+                  <!-- Бусины по кругу (10 штук) -->
+                  <circle cx="12"   cy="3.2"  r="1.5" fill="currentColor" stroke="none"/>
+                  <circle cx="16.5" cy="4.5"  r="1.5" fill="currentColor" stroke="none"/>
+                  <circle cx="19.2" cy="8.2"  r="1.5" fill="currentColor" stroke="none"/>
+                  <circle cx="19.2" cy="12.2" r="1.5" fill="currentColor" stroke="none"/>
+                  <circle cx="16.5" cy="15.8" r="1.5" fill="currentColor" stroke="none"/>
+                  <circle cx="12"   cy="17"   r="1.5" fill="currentColor" stroke="none"/>
+                  <circle cx="7.5"  cy="15.8" r="1.5" fill="currentColor" stroke="none"/>
+                  <circle cx="4.8"  cy="12.2" r="1.5" fill="currentColor" stroke="none"/>
+                  <circle cx="4.8"  cy="8.2"  r="1.5" fill="currentColor" stroke="none"/>
+                  <circle cx="7.5"  cy="4.5"  r="1.5" fill="currentColor" stroke="none"/>
+                  <!-- Хвостик от нижней бусины -->
+                  <line x1="12" y1="17" x2="12" y2="20" stroke-width="1.3"/>
+                  <!-- Маркерная бусина -->
+                  <circle cx="12" cy="21" r="1.8" fill="currentColor" stroke="none"/>
+                </svg></div>
+                <span class="nav-label" id="navAzkar">Зикр</span>
+            </div>
+            <div class="nav-item" data-tab="dua" onclick="switchTab('dua')">
+                <div class="nav-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <!-- Открытая книга — современная, с закладкой -->
+                  <path d="M2 6.5C2 5.4 2.9 4.5 4 4.5H10.5C11.3 4.5 12 5.2 12 6V19C12 19 10 18.5 8 18.5H4C2.9 18.5 2 17.6 2 16.5V6.5Z"/>
+                  <path d="M22 6.5C22 5.4 21.1 4.5 20 4.5H13.5C12.7 4.5 12 5.2 12 6V19C12 19 14 18.5 16 18.5H20C21.1 18.5 22 17.6 22 16.5V6.5Z"/>
+                  <line x1="12" y1="6" x2="12" y2="19" stroke-width="1"/>
+                  <path d="M6 8H9M6 11H9M6 14H8" stroke-width="1.2" opacity="0.7"/>
+                </svg></div>
+                <span class="nav-label" id="navDua">Дуа</span>
+            </div>
+            <div class="nav-item" data-tab="favorites" onclick="switchTab('favorites')">
+                <div class="nav-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg></div>
+                <span class="nav-label" id="navFav">Избранное</span>
+            </div>
+            <div class="nav-item" data-tab="stats" onclick="switchTab('stats')">
+                <div class="nav-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3"  y="12" width="4" height="9" rx="1"/>
+                  <rect x="10" y="7"  width="4" height="14" rx="1"/>
+                  <rect x="17" y="3"  width="4" height="18" rx="1"/>
+                </svg></div>
+                <span class="nav-label" id="navStats">Статистика</span>
+            </div>
+            <div class="nav-item" data-tab="settings" onclick="switchTab('settings')">
+                <div class="nav-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="4" y1="6" x2="20" y2="6"/>
+                  <line x1="4" y1="12" x2="20" y2="12"/>
+                  <line x1="4" y1="18" x2="20" y2="18"/>
+                  <circle cx="8"  cy="6"  r="2.2" fill="var(--bg, #0a0a0a)" stroke="currentColor"/>
+                  <circle cx="16" cy="12" r="2.2" fill="var(--bg, #0a0a0a)" stroke="currentColor"/>
+                  <circle cx="10" cy="18" r="2.2" fill="var(--bg, #0a0a0a)" stroke="currentColor"/>
+                </svg></div>
+                <span class="nav-label" id="navSettings">Настройки</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Данные хадисов вынесены в отдельный файл. Если его удалить — приложение
+         продолжит работать как обычно, просто без показа хадисов. -->
+    <script src="hadiths.js"></script>
+    <script src="i18n.js"></script>
     <script>
 (function () {
     var R = document.getElementById("fbHost").attachShadow({ mode: "open" });
     R.appendChild(document.getElementById("fbTemplate").content.cloneNode(true));
 
     /* ==================== ЧАСТЬ 1: СЛОВАРИ ПЕРЕВОДОВ ==================== */
-    var FB = {
-        ru: {
-            docTitle: "Azkar — Отзывы и пожелания", headerTitle: "Отзывы и пожелания", back: "В приложение",
-            subtitle: "Поделитесь отзывом или идеей — мы читаем каждый",
-            statReviews: "Отзывов", statAverage: "Средняя оценка",
-            formTitle: "Оставить отзыв", labelCategory: "Что хотите рассказать?",
-            catPraise: "Отзыв", catIdea: "Пожелание", catBug: "Проблема", catOther: "Другое",
-            labelRating: "Ваша оценка", ratingEmpty: "Нажмите на звезду",
-            ratingTexts: ["Очень плохо", "Плохо", "Нормально", "Хорошо", "Отлично"],
-            labelName: "Имя", optLabel: "необязательно", phName: "Как к вам обращаться?",
-            labelMessage: "Сообщение", phMessage: "Напишите отзыв или пожелание…",
-            btnSubmit: "Отправить отзыв", errRating: "Поставьте оценку", errMessage: "Напишите хотя бы несколько слов",
-            thanksTitle: "Спасибо за отзыв!", thanksSub: "Ваше мнение помогает Azkar становиться лучше",
-            btnShare: "Поделиться", btnDone: "Готово",
-            toastDeleted: "Отзыв удалён", toastCopied: "Скопировано",
-            reviewsTitle: "Все отзывы", searchPh: "Поиск по отзывам…", filterAll: "Все",
-            emptyTitle: "Пока нет отзывов", emptySub: "Станьте первым — расскажите, что вы думаете об Azkar",
-            emptyFilterTitle: "Ничего не найдено", emptyFilterSub: "Попробуйте изменить фильтр или запрос",
-            guest: "Гость", confirmDeleteTitle: "Удалить отзыв?", confirmDeleteSub: "Это действие нельзя отменить",
-            btnYes: "Да", btnNo: "Нет",
-            actCopy: "Копировать", actShare: "Поделиться", actDelete: "Удалить",
-            settingsTitle: "Настройки", secLang: "Язык", secTheme: "Тема",
-            themeDark: "Тёмные", themeLight: "Светлые", btnClose: "Закрыть",
-            themeToggleAria: "Переключить тему", settingsAria: "Настройки", madeWith: "сделано с"
-        },
-        en: {
-            docTitle: "Azkar — Feedback & Suggestions", headerTitle: "Feedback & Suggestions", back: "Back to app",
-            subtitle: "Share a review or an idea — we read every one",
-            statReviews: "Reviews", statAverage: "Average rating",
-            formTitle: "Leave feedback", labelCategory: "What would you like to share?",
-            catPraise: "Review", catIdea: "Suggestion", catBug: "Problem", catOther: "Other",
-            labelRating: "Your rating", ratingEmpty: "Tap a star",
-            ratingTexts: ["Very bad", "Bad", "Okay", "Good", "Excellent"],
-            labelName: "Name", optLabel: "optional", phName: "What should we call you?",
-            labelMessage: "Message", phMessage: "Write your review or suggestion…",
-            btnSubmit: "Send feedback", errRating: "Please rate", errMessage: "Please write a few words",
-            thanksTitle: "Thank you for your feedback!", thanksSub: "Your opinion helps Azkar get better",
-            btnShare: "Share", btnDone: "Done",
-            toastDeleted: "Review deleted", toastCopied: "Copied",
-            reviewsTitle: "All reviews", searchPh: "Search reviews…", filterAll: "All",
-            emptyTitle: "No reviews yet", emptySub: "Be the first — tell us what you think about Azkar",
-            emptyFilterTitle: "Nothing found", emptyFilterSub: "Try changing the filter or your query",
-            guest: "Guest", confirmDeleteTitle: "Delete review?", confirmDeleteSub: "This action cannot be undone",
-            btnYes: "Yes", btnNo: "No",
-            actCopy: "Copy", actShare: "Share", actDelete: "Delete",
-            settingsTitle: "Settings", secLang: "Language", secTheme: "Theme",
-            themeDark: "Dark", themeLight: "Light", btnClose: "Close",
-            themeToggleAria: "Toggle theme", settingsAria: "Settings", madeWith: "made with"
-        },
-        uz: {
-            docTitle: "Azkar — Fikr va takliflar", headerTitle: "Fikr va takliflar", back: "Ilovaga qaytish",
-            subtitle: "Fikr yoki taklifingizni ulashing — har birini o'qiymiz",
-            statReviews: "Fikrlar", statAverage: "O'rtacha baho",
-            formTitle: "Fikr qoldirish", labelCategory: "Nima haqida yozmoqchisiz?",
-            catPraise: "Fikr", catIdea: "Taklif", catBug: "Muammo", catOther: "Boshqa",
-            labelRating: "Bahoingiz", ratingEmpty: "Yulduzchani bosing",
-            ratingTexts: ["Juda yomon", "Yomon", "O'rtacha", "Yaxshi", "Ajoyib"],
-            labelName: "Ism", optLabel: "majburiy emas", phName: "Sizni qanday chaqirishsin?",
-            labelMessage: "Xabar", phMessage: "Fikr yoki taklifingizni yozing…",
-            btnSubmit: "Fikrni yuborish", errRating: "Baho qo'ying", errMessage: "Hech bo'lmaganda bir-ikki so'z yozing",
-            thanksTitle: "Fikringiz uchun rahmat!", thanksSub: "Sizning fikringiz Azkarni yaxshilaydi",
-            btnShare: "Ulashish", btnDone: "Tayyor",
-            toastDeleted: "Fikr o'chirildi", toastCopied: "Nusxalandi",
-            reviewsTitle: "Barcha fikrlar", searchPh: "Fikrlardan qidirish…", filterAll: "Barchasi",
-            emptyTitle: "Hozircha fikr yo'q", emptySub: "Birinchi bo'ling — Azkar haqidagi fikringizni yozing",
-            emptyFilterTitle: "Hech narsa topilmadi", emptyFilterSub: "Filtr yoki so'rovni o'zgartirib ko'ring",
-            guest: "Mehmon", confirmDeleteTitle: "Fikr o'chirilsinmi?", confirmDeleteSub: "Bu amalni ortga qaytarib bo'lmaydi",
-            btnYes: "Ha", btnNo: "Yo'q",
-            actCopy: "Nusxalash", actShare: "Ulashish", actDelete: "O'chirish",
-            settingsTitle: "Sozlamalar", secLang: "Til", secTheme: "Mavzu",
-            themeDark: "Qorong'u", themeLight: "Yorug'", btnClose: "Yopish",
-            themeToggleAria: "Mavzuni almashtirish", settingsAria: "Sozlamalar", madeWith: "mehr bilan"
-        },
-        de: {
-            docTitle: "Azkar — Feedback & Vorschläge", headerTitle: "Feedback & Vorschläge", back: "Zurück zur App",
-            subtitle: "Teile eine Bewertung oder Idee – wir lesen jede",
-            statReviews: "Bewertungen", statAverage: "Ø Bewertung",
-            formTitle: "Feedback geben", labelCategory: "Was möchtest du teilen?",
-            catPraise: "Bewertung", catIdea: "Vorschlag", catBug: "Problem", catOther: "Sonstiges",
-            labelRating: "Deine Bewertung", ratingEmpty: "Tippe auf einen Stern",
-            ratingTexts: ["Sehr schlecht", "Schlecht", "Okay", "Gut", "Ausgezeichnet"],
-            labelName: "Name", optLabel: "optional", phName: "Wie dürfen wir dich nennen?",
-            labelMessage: "Nachricht", phMessage: "Schreibe deine Bewertung oder Idee…",
-            btnSubmit: "Feedback senden", errRating: "Bitte bewerte", errMessage: "Bitte schreibe ein paar Worte",
-            thanksTitle: "Danke für dein Feedback!", thanksSub: "Deine Meinung hilft Azkar, besser zu werden",
-            btnShare: "Teilen", btnDone: "Fertig",
-            toastDeleted: "Bewertung gelöscht", toastCopied: "Kopiert",
-            reviewsTitle: "Alle Bewertungen", searchPh: "Bewertungen durchsuchen…", filterAll: "Alle",
-            emptyTitle: "Noch keine Bewertungen", emptySub: "Sei der Erste – erzähl uns, was du über Azkar denkst",
-            emptyFilterTitle: "Nichts gefunden", emptyFilterSub: "Ändere den Filter oder die Suche",
-            guest: "Gast", confirmDeleteTitle: "Bewertung löschen?", confirmDeleteSub: "Diese Aktion kann nicht rückgängig gemacht werden",
-            btnYes: "Ja", btnNo: "Nein",
-            actCopy: "Kopieren", actShare: "Teilen", actDelete: "Löschen",
-            settingsTitle: "Einstellungen", secLang: "Sprache", secTheme: "Design",
-            themeDark: "Dunkel", themeLight: "Hell", btnClose: "Schließen",
-            themeToggleAria: "Design wechseln", settingsAria: "Einstellungen", madeWith: "gemacht mit"
-        },
-        es: {
-            docTitle: "Azkar — Comentarios y sugerencias", headerTitle: "Comentarios y sugerencias", back: "Volver a la app",
-            subtitle: "Comparte una opinión o idea — leemos todas",
-            statReviews: "Comentarios", statAverage: "Valoración media",
-            formTitle: "Deja tu opinión", labelCategory: "¿Qué quieres contar?",
-            catPraise: "Opinión", catIdea: "Sugerencia", catBug: "Problema", catOther: "Otro",
-            labelRating: "Tu valoración", ratingEmpty: "Toca una estrella",
-            ratingTexts: ["Muy mal", "Mal", "Normal", "Bien", "Excelente"],
-            labelName: "Nombre", optLabel: "opcional", phName: "¿Cómo te llamamos?",
-            labelMessage: "Mensaje", phMessage: "Escribe tu opinión o sugerencia…",
-            btnSubmit: "Enviar opinión", errRating: "Pon una valoración", errMessage: "Escribe al menos unas palabras",
-            thanksTitle: "¡Gracias por tu opinión!", thanksSub: "Tu opinión ayuda a mejorar Azkar",
-            btnShare: "Compartir", btnDone: "Listo",
-            toastDeleted: "Opinión eliminada", toastCopied: "Copiado",
-            reviewsTitle: "Todas las opiniones", searchPh: "Buscar opiniones…", filterAll: "Todas",
-            emptyTitle: "Aún no hay opiniones", emptySub: "Sé el primero: cuéntanos qué piensas de Azkar",
-            emptyFilterTitle: "No se encontró nada", emptyFilterSub: "Prueba a cambiar el filtro o la búsqueda",
-            guest: "Invitado", confirmDeleteTitle: "¿Eliminar opinión?", confirmDeleteSub: "Esta acción no se puede deshacer",
-            btnYes: "Sí", btnNo: "No",
-            actCopy: "Copiar", actShare: "Compartir", actDelete: "Eliminar",
-            settingsTitle: "Ajustes", secLang: "Idioma", secTheme: "Tema",
-            themeDark: "Oscuros", themeLight: "Claros", btnClose: "Cerrar",
-            themeToggleAria: "Cambiar tema", settingsAria: "Ajustes", madeWith: "hecho con"
-        },
-        fr: {
-            docTitle: "Azkar — Avis et suggestions", headerTitle: "Avis et suggestions", back: "Retour à l'app",
-            subtitle: "Partagez un avis ou une idée — nous lisons tout",
-            statReviews: "Avis", statAverage: "Note moyenne",
-            formTitle: "Laisser un avis", labelCategory: "Que souhaitez-vous partager ?",
-            catPraise: "Avis", catIdea: "Suggestion", catBug: "Problème", catOther: "Autre",
-            labelRating: "Votre note", ratingEmpty: "Touchez une étoile",
-            ratingTexts: ["Très mauvais", "Mauvais", "Moyen", "Bien", "Excellent"],
-            labelName: "Nom", optLabel: "facultatif", phName: "Comment vous appeler ?",
-            labelMessage: "Message", phMessage: "Écrivez votre avis ou suggestion…",
-            btnSubmit: "Envoyer l'avis", errRating: "Veuillez donner une note", errMessage: "Écrivez quelques mots",
-            thanksTitle: "Merci pour votre avis !", thanksSub: "Votre avis aide Azkar à s'améliorer",
-            btnShare: "Partager", btnDone: "Terminé",
-            toastDeleted: "Avis supprimé", toastCopied: "Copié",
-            reviewsTitle: "Tous les avis", searchPh: "Rechercher des avis…", filterAll: "Tous",
-            emptyTitle: "Aucun avis pour l'instant", emptySub: "Soyez le premier — dites-nous ce que vous pensez d'Azkar",
-            emptyFilterTitle: "Rien trouvé", emptyFilterSub: "Essayez de modifier le filtre ou la recherche",
-            guest: "Invité", confirmDeleteTitle: "Supprimer l'avis ?", confirmDeleteSub: "Cette action est irréversible",
-            btnYes: "Oui", btnNo: "Non",
-            actCopy: "Copier", actShare: "Partager", actDelete: "Supprimer",
-            settingsTitle: "Paramètres", secLang: "Langue", secTheme: "Thème",
-            themeDark: "Sombres", themeLight: "Clairs", btnClose: "Fermer",
-            themeToggleAria: "Changer de thème", settingsAria: "Paramètres", madeWith: "fait avec"
-        },
-        it: {
-            docTitle: "Azkar — Feedback e suggerimenti", headerTitle: "Feedback e suggerimenti", back: "Torna all'app",
-            subtitle: "Condividi un'opinione o un'idea — le leggiamo tutte",
-            statReviews: "Recensioni", statAverage: "Voto medio",
-            formTitle: "Lascia un feedback", labelCategory: "Cosa vuoi condividere?",
-            catPraise: "Recensione", catIdea: "Suggerimento", catBug: "Problema", catOther: "Altro",
-            labelRating: "Il tuo voto", ratingEmpty: "Tocca una stella",
-            ratingTexts: ["Molto male", "Male", "Normale", "Bene", "Ottimo"],
-            labelName: "Nome", optLabel: "facoltativo", phName: "Come ti chiamiamo?",
-            labelMessage: "Messaggio", phMessage: "Scrivi la tua recensione o idea…",
-            btnSubmit: "Invia feedback", errRating: "Dai un voto", errMessage: "Scrivi qualche parola",
-            thanksTitle: "Grazie per il tuo feedback!", thanksSub: "La tua opinione aiuta Azkar a migliorare",
-            btnShare: "Condividi", btnDone: "Fatto",
-            toastDeleted: "Recensione eliminata", toastCopied: "Copiato",
-            reviewsTitle: "Tutte le recensioni", searchPh: "Cerca nelle recensioni…", filterAll: "Tutte",
-            emptyTitle: "Ancora nessuna recensione", emptySub: "Sii il primo — raccontaci cosa pensi di Azkar",
-            emptyFilterTitle: "Nessun risultato", emptyFilterSub: "Prova a cambiare filtro o ricerca",
-            guest: "Ospite", confirmDeleteTitle: "Eliminare la recensione?", confirmDeleteSub: "Questa azione non può essere annullata",
-            btnYes: "Sì", btnNo: "No",
-            actCopy: "Copia", actShare: "Condividi", actDelete: "Elimina",
-            settingsTitle: "Impostazioni", secLang: "Lingua", secTheme: "Tema",
-            themeDark: "Scuri", themeLight: "Chiari", btnClose: "Chiudi",
-            themeToggleAria: "Cambia tema", settingsAria: "Impostazioni", madeWith: "fatto con"
-        },
-        ja: {
-            docTitle: "Azkar — フィードバックと要望", headerTitle: "フィードバックと要望", back: "アプリに戻る",
-            subtitle: "ご意見やアイデアをお聞かせください — すべて拝見します",
-            statReviews: "レビュー", statAverage: "平均評価",
-            formTitle: "フィードバックを送る", labelCategory: "どんな内容ですか？",
-            catPraise: "レビュー", catIdea: "提案", catBug: "問題", catOther: "その他",
-            labelRating: "評価", ratingEmpty: "星をタップ",
-            ratingTexts: ["とても悪い", "悪い", "普通", "良い", "素晴らしい"],
-            labelName: "名前", optLabel: "任意", phName: "お名前（ニックネーム可）",
-            labelMessage: "メッセージ", phMessage: "レビューやご提案を書いてください…",
-            btnSubmit: "送信する", errRating: "評価を選んでください", errMessage: "もう少し書いてください",
-            thanksTitle: "ありがとうございます！", thanksSub: "あなたの声がAzkarをより良くします",
-            btnShare: "共有", btnDone: "完了",
-            toastDeleted: "レビューを削除しました", toastCopied: "コピーしました",
-            reviewsTitle: "すべてのレビュー", searchPh: "レビューを検索…", filterAll: "すべて",
-            emptyTitle: "まだレビューはありません", emptySub: "最初の一人に — Azkarの感想をお聞かせください",
-            emptyFilterTitle: "見つかりません", emptyFilterSub: "フィルターや検索語を変えてみてください",
-            guest: "ゲスト", confirmDeleteTitle: "レビューを削除しますか？", confirmDeleteSub: "この操作は元に戻せません",
-            btnYes: "はい", btnNo: "いいえ",
-            actCopy: "コピー", actShare: "共有", actDelete: "削除",
-            settingsTitle: "設定", secLang: "言語", secTheme: "テーマ",
-            themeDark: "ダーク", themeLight: "ライト", btnClose: "閉じる",
-            themeToggleAria: "テーマを切り替え", settingsAria: "設定", madeWith: "心を込めて"
-        },
-        ko: {
-            docTitle: "Azkar — 피드백 및 제안", headerTitle: "피드백 및 제안", back: "앱으로 돌아가기",
-            subtitle: "의견이나 아이디어를 들려주세요 — 모두 읽습니다",
-            statReviews: "리뷰", statAverage: "평균 평점",
-            formTitle: "피드백 남기기", labelCategory: "어떤 내용인가요?",
-            catPraise: "리뷰", catIdea: "제안", catBug: "문제", catOther: "기타",
-            labelRating: "평점", ratingEmpty: "별을 눌러주세요",
-            ratingTexts: ["매우 나쁨", "나쁨", "보통", "좋음", "훌륭함"],
-            labelName: "이름", optLabel: "선택", phName: "어떻게 불러드릴까요?",
-            labelMessage: "메시지", phMessage: "리뷰나 제안을 적어주세요…",
-            btnSubmit: "보내기", errRating: "평점을 선택하세요", errMessage: "몇 글자만 더 적어주세요",
-            thanksTitle: "감사합니다!", thanksSub: "여러분의 의견이 Azkar를 더 좋게 만듭니다",
-            btnShare: "공유", btnDone: "완료",
-            toastDeleted: "리뷰가 삭제되었습니다", toastCopied: "복사되었습니다",
-            reviewsTitle: "모든 리뷰", searchPh: "리뷰 검색…", filterAll: "전체",
-            emptyTitle: "아직 리뷰가 없습니다", emptySub: "첫 번째가 되어 Azkar에 대한 생각을 들려주세요",
-            emptyFilterTitle: "결과가 없습니다", emptyFilterSub: "필터나 검색어를 바꿔보세요",
-            guest: "게스트", confirmDeleteTitle: "리뷰를 삭제할까요?", confirmDeleteSub: "이 작업은 되돌릴 수 없습니다",
-            btnYes: "예", btnNo: "아니요",
-            actCopy: "복사", actShare: "공유", actDelete: "삭제",
-            settingsTitle: "설정", secLang: "언어", secTheme: "테마",
-            themeDark: "어두운", themeLight: "밝은", btnClose: "닫기",
-            themeToggleAria: "테마 전환", settingsAria: "설정", madeWith: "정성을 담아"
-        },
-        zh: {
-            docTitle: "Azkar — 反馈与建议", headerTitle: "反馈与建议", back: "返回应用",
-            subtitle: "分享您的评价或想法 — 我们都会看",
-            statReviews: "评价", statAverage: "平均评分",
-            formTitle: "留下反馈", labelCategory: "想分享什么？",
-            catPraise: "评价", catIdea: "建议", catBug: "问题", catOther: "其他",
-            labelRating: "您的评分", ratingEmpty: "点击星星评分",
-            ratingTexts: ["很差", "较差", "一般", "很好", "极好"],
-            labelName: "姓名", optLabel: "选填", phName: "怎么称呼您？",
-            labelMessage: "留言", phMessage: "写下您的评价或建议…",
-            btnSubmit: "发送反馈", errRating: "请先评分", errMessage: "请多写几个字",
-            thanksTitle: "感谢您的反馈！", thanksSub: "您的意见会让 Azkar 变得更好",
-            btnShare: "分享", btnDone: "完成",
-            toastDeleted: "评价已删除", toastCopied: "已复制",
-            reviewsTitle: "全部评价", searchPh: "搜索评价…", filterAll: "全部",
-            emptyTitle: "还没有评价", emptySub: "来当第一个吧——说说您对 Azkar 的看法",
-            emptyFilterTitle: "没有找到内容", emptyFilterSub: "试试更换筛选或关键词",
-            guest: "访客", confirmDeleteTitle: "删除这条评价？", confirmDeleteSub: "此操作无法撤销",
-            btnYes: "是", btnNo: "否",
-            actCopy: "复制", actShare: "分享", actDelete: "删除",
-            settingsTitle: "设置", secLang: "语言", secTheme: "主题",
-            themeDark: "深色", themeLight: "浅色", btnClose: "关闭",
-            themeToggleAria: "切换主题", settingsAria: "设置", madeWith: "用心制作"
-        },
-        tr: {
-            docTitle: "Azkar — Geri bildirim ve öneriler", headerTitle: "Geri bildirim ve öneriler", back: "Uygulamaya dön",
-            subtitle: "Görüşünü veya fikrini paylaş — hepsini okuyoruz",
-            statReviews: "Geri bildirim", statAverage: "Ortalama puan",
-            formTitle: "Geri bildirim bırak", labelCategory: "Neyi paylaşmak istersin?",
-            catPraise: "Değerlendirme", catIdea: "Öneri", catBug: "Sorun", catOther: "Diğer",
-            labelRating: "Puanın", ratingEmpty: "Bir yıldıza dokun",
-            ratingTexts: ["Çok kötü", "Kötü", "Orta", "İyi", "Mükemmel"],
-            labelName: "İsim", optLabel: "isteğe bağlı", phName: "Sana nasıl hitap edelim?",
-            labelMessage: "Mesaj", phMessage: "Değerlendirmeni veya önerini yaz…",
-            btnSubmit: "Gönder", errRating: "Lütfen puan ver", errMessage: "Birkaç kelime yaz",
-            thanksTitle: "Geri bildirimin için teşekkürler!", thanksSub: "Görüşün Azkar'ı daha iyi yapar",
-            btnShare: "Paylaş", btnDone: "Tamam",
-            toastDeleted: "Geri bildirim silindi", toastCopied: "Kopyalandı",
-            reviewsTitle: "Tüm geri bildirimler", searchPh: "Geri bildirimlerde ara…", filterAll: "Tümü",
-            emptyTitle: "Henüz geri bildirim yok", emptySub: "İlk sen ol — Azkar hakkındaki düşüncelerini anlat",
-            emptyFilterTitle: "Sonuç bulunamadı", emptyFilterSub: "Filtreyi veya aramayı değiştirmeyi dene",
-            guest: "Misafir", confirmDeleteTitle: "Geri bildirim silinsin mi?", confirmDeleteSub: "Bu işlem geri alınamaz",
-            btnYes: "Evet", btnNo: "Hayır",
-            actCopy: "Kopyala", actShare: "Paylaş", actDelete: "Sil",
-            settingsTitle: "Ayarlar", secLang: "Dil", secTheme: "Tema",
-            themeDark: "Koyu", themeLight: "Açık", btnClose: "Kapat",
-            themeToggleAria: "Temayı değiştir", settingsAria: "Ayarlar", madeWith: "sevgiyle"
-        },
-        hi: {
-            docTitle: "Azkar — प्रतिक्रिया और सुझाव", headerTitle: "प्रतिक्रिया और सुझाव", back: "ऐप पर वापस जाएँ",
-            subtitle: "अपनी राय या सुझाव साझा करें — हम सब पढ़ते हैं",
-            statReviews: "प्रतिक्रियाएँ", statAverage: "औसत रेटिंग",
-            formTitle: "प्रतिक्रिया दें", labelCategory: "क्या साझा करना चाहेंगे?",
-            catPraise: "समीक्षा", catIdea: "सुझाव", catBug: "समस्या", catOther: "अन्य",
-            labelRating: "आपकी रेटिंग", ratingEmpty: "स्टार पर टैप करें",
-            ratingTexts: ["बहुत ख़राब", "ख़राब", "ठीक-ठाक", "अच्छा", "बहुत अच्छा"],
-            labelName: "नाम", optLabel: "वैकल्पिक", phName: "आपको क्या कहकर बुलाएँ?",
-            labelMessage: "संदेश", phMessage: "अपनी राय या सुझाव लिखें…",
-            btnSubmit: "भेजें", errRating: "रेटिंग दें", errMessage: "कुछ शब्द लिखें",
-            thanksTitle: "आपकी प्रतिक्रिया के लिए धन्यवाद!", thanksSub: "आपकी राय से Azkar बेहतर बनता है",
-            btnShare: "साझा करें", btnDone: "ठीक है",
-            toastDeleted: "प्रतिक्रिया हटाई गई", toastCopied: "कॉपी हो गया",
-            reviewsTitle: "सभी प्रतिक्रियाएँ", searchPh: "प्रतिक्रियाओं में खोजें…", filterAll: "सभी",
-            emptyTitle: "अभी कोई प्रतिक्रिया नहीं", emptySub: "पहले बनें — Azkar के बारे में अपनी राय बताएँ",
-            emptyFilterTitle: "कुछ नहीं मिला", emptyFilterSub: "फ़िल्टर या खोज बदलकर देखें",
-            guest: "अतिथि", confirmDeleteTitle: "प्रतिक्रिया हटाएँ?", confirmDeleteSub: "इस क्रिया को वापस नहीं किया जा सकता",
-            btnYes: "हाँ", btnNo: "नहीं",
-            actCopy: "कॉपी करें", actShare: "साझा करें", actDelete: "हटाएँ",
-            settingsTitle: "सेटिंग्स", secLang: "भाषा", secTheme: "थीम",
-            themeDark: "गहरी", themeLight: "हल्की", btnClose: "बंद करें",
-            themeToggleAria: "थीम बदलें", settingsAria: "सेटिंग्स", madeWith: "प्यार से बना"
-        },
-        id: {
-            docTitle: "Azkar — Masukan & saran", headerTitle: "Masukan & saran", back: "Kembali ke aplikasi",
-            subtitle: "Bagikan ulasan atau ide — semuanya kami baca",
-            statReviews: "Ulasan", statAverage: "Rata-rata nilai",
-            formTitle: "Tinggalkan masukan", labelCategory: "Apa yang ingin Anda bagikan?",
-            catPraise: "Ulasan", catIdea: "Saran", catBug: "Masalah", catOther: "Lainnya",
-            labelRating: "Penilaian Anda", ratingEmpty: "Ketuk bintang",
-            ratingTexts: ["Sangat buruk", "Buruk", "Biasa", "Bagus", "Sangat bagus"],
-            labelName: "Nama", optLabel: "opsional", phName: "Siapa nama Anda?",
-            labelMessage: "Pesan", phMessage: "Tulis ulasan atau saran Anda…",
-            btnSubmit: "Kirim", errRating: "Beri penilaian", errMessage: "Tulis beberapa kata",
-            thanksTitle: "Terima kasih atas masukan Anda!", thanksSub: "Pendapat Anda membantu Azkar lebih baik",
-            btnShare: "Bagikan", btnDone: "Selesai",
-            toastDeleted: "Ulasan dihapus", toastCopied: "Disalin",
-            reviewsTitle: "Semua ulasan", searchPh: "Cari ulasan…", filterAll: "Semua",
-            emptyTitle: "Belum ada ulasan", emptySub: "Jadilah yang pertama — ceritakan pendapat Anda tentang Azkar",
-            emptyFilterTitle: "Tidak ditemukan", emptyFilterSub: "Coba ubah filter atau kata kunci",
-            guest: "Tamu", confirmDeleteTitle: "Hapus ulasan?", confirmDeleteSub: "Tindakan ini tidak dapat dibatalkan",
-            btnYes: "Ya", btnNo: "Tidak",
-            actCopy: "Salin", actShare: "Bagikan", actDelete: "Hapus",
-            settingsTitle: "Pengaturan", secLang: "Bahasa", secTheme: "Tema",
-            themeDark: "Gelap", themeLight: "Terang", btnClose: "Tutup",
-            themeToggleAria: "Ganti tema", settingsAria: "Pengaturan", madeWith: "dibuat dengan"
-        },
-        ms: {
-            docTitle: "Azkar — Maklum balas & cadangan", headerTitle: "Maklum balas & cadangan", back: "Kembali ke app",
-            subtitle: "Kongsi ulasan atau idea — semuanya kami baca",
-            statReviews: "Maklum balas", statAverage: "Purata penilaian",
-            formTitle: "Tinggalkan maklum balas", labelCategory: "Apa yang anda ingin kongsi?",
-            catPraise: "Ulasan", catIdea: "Cadangan", catBug: "Masalah", catOther: "Lain-lain",
-            labelRating: "Penilaian anda", ratingEmpty: "Ketik bintang",
-            ratingTexts: ["Sangat teruk", "Teruk", "Sederhana", "Baik", "Cemerlang"],
-            labelName: "Nama", optLabel: "pilihan", phName: "Siapa nama anda?",
-            labelMessage: "Mesej", phMessage: "Tulis ulasan atau cadangan anda…",
-            btnSubmit: "Hantar", errRating: "Beri penilaian", errMessage: "Tulis beberapa patah perkataan",
-            thanksTitle: "Terima kasih atas maklum balas anda!", thanksSub: "Pandangan anda membantu Azkar menjadi lebih baik",
-            btnShare: "Kongsi", btnDone: "Selesai",
-            toastDeleted: "Maklum balas dipadam", toastCopied: "Disalin",
-            reviewsTitle: "Semua maklum balas", searchPh: "Cari maklum balas…", filterAll: "Semua",
-            emptyTitle: "Belum ada maklum balas", emptySub: "Jadilah yang pertama — kongsi pendapat anda tentang Azkar",
-            emptyFilterTitle: "Tiada hasil", emptyFilterSub: "Cuba ubah penapis atau carian",
-            guest: "Tetamu", confirmDeleteTitle: "Padam maklum balas?", confirmDeleteSub: "Tindakan ini tidak boleh dibatalkan",
-            btnYes: "Ya", btnNo: "Tidak",
-            actCopy: "Salin", actShare: "Kongsi", actDelete: "Padam",
-            settingsTitle: "Tetapan", secLang: "Bahasa", secTheme: "Tema",
-            themeDark: "Gelap", themeLight: "Cerah", btnClose: "Tutup",
-            themeToggleAria: "Tukar tema", settingsAria: "Tetapan", madeWith: "dibuat dengan"
-        },
-        th: {
-            docTitle: "Azkar — ข้อเสนอแนะและความคิดเห็น", headerTitle: "ข้อเสนอแนะและความคิดเห็น", back: "กลับไปที่แอป",
-            subtitle: "แบ่งปันความคิดเห็นหรือไอเดีย — เราอ่านทุกข้อความ",
-            statReviews: "รีวิว", statAverage: "คะแนนเฉลี่ย",
-            formTitle: "แสดงความคิดเห็น", labelCategory: "อยากแบ่งปันเรื่องอะไร?",
-            catPraise: "รีวิว", catIdea: "ข้อเสนอแนะ", catBug: "ปัญหา", catOther: "อื่น ๆ",
-            labelRating: "คะแนนของคุณ", ratingEmpty: "แตะที่ดาว",
-            ratingTexts: ["แย่มาก", "แย่", "พอใช้", "ดี", "ยอดเยี่ยม"],
-            labelName: "ชื่อ", optLabel: "ไม่บังคับ", phName: "ให้เราเรียกคุณว่าอะไร?",
-            labelMessage: "ข้อความ", phMessage: "เขียนรีวิวหรือข้อเสนอแนะของคุณ…",
-            btnSubmit: "ส่งความคิดเห็น", errRating: "กรุณาให้คะแนน", errMessage: "เขียนสักเล็กน้อย",
-            thanksTitle: "ขอบคุณสำหรับความคิดเห็น!", thanksSub: "ความคิดเห็นของคุณช่วยให้ Azkar ดีขึ้น",
-            btnShare: "แชร์", btnDone: "เสร็จสิ้น",
-            toastDeleted: "ลบรีวิวแล้ว", toastCopied: "คัดลอกแล้ว",
-            reviewsTitle: "รีวิวทั้งหมด", searchPh: "ค้นหารีวิว…", filterAll: "ทั้งหมด",
-            emptyTitle: "ยังไม่มีรีวิว", emptySub: "เป็นคนแรก — บอกเราว่าคุณคิดอย่างไรกับ Azkar",
-            emptyFilterTitle: "ไม่พบข้อมูล", emptyFilterSub: "ลองเปลี่ยนตัวกรองหรือคำค้นหา",
-            guest: "ผู้เยี่ยมชม", confirmDeleteTitle: "ลบรีวิวนี้?", confirmDeleteSub: "การกระทำนี้ไม่สามารถย้อนกลับได้",
-            btnYes: "ใช่", btnNo: "ไม่",
-            actCopy: "คัดลอก", actShare: "แชร์", actDelete: "ลบ",
-            settingsTitle: "การตั้งค่า", secLang: "ภาษา", secTheme: "ธีม",
-            themeDark: "มืด", themeLight: "สว่าง", btnClose: "ปิด",
-            themeToggleAria: "เปลี่ยนธีม", settingsAria: "การตั้งค่า", madeWith: "ทำด้วยใจ"
-        }
-    };
+    var FB = (window.AZKAR_UI_TRANSLATIONS && window.AZKAR_UI_TRANSLATIONS.feedbackPage) || {};
 
     /* Названия языков — из i18n.js приложения, с запасным списком */
     var LANG_META_FALLBACK = {
@@ -8518,6 +8213,7 @@
             }
         }
         function renderStats() {
+            if (!$("statsCard")) return;
             var n = reviews.length;
             var has = n > 0;
             $("statsCard").classList.toggle("hidden", !has);
@@ -8785,8 +8481,6 @@
             lang = detectLang();
             buildStarsGroup();
             buildStarsRow();
-            buildAvgStars();
-            buildDistBars();
             initReviewActions();
             bindEvents();
 
@@ -8812,73 +8506,6 @@
     
 })();
     </script>
-
-    <div class="navbar">
-        <div class="nav-inner">
-            <div class="nav-item active" data-tab="azkar" onclick="switchTab('azkar')">
-                <div class="nav-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
-                  <!-- Нить круга -->
-                  <circle cx="12" cy="10" r="7" stroke-width="1.3" fill="none" opacity="0.5"/>
-                  <!-- Бусины по кругу (10 штук) -->
-                  <circle cx="12"   cy="3.2"  r="1.5" fill="currentColor" stroke="none"/>
-                  <circle cx="16.5" cy="4.5"  r="1.5" fill="currentColor" stroke="none"/>
-                  <circle cx="19.2" cy="8.2"  r="1.5" fill="currentColor" stroke="none"/>
-                  <circle cx="19.2" cy="12.2" r="1.5" fill="currentColor" stroke="none"/>
-                  <circle cx="16.5" cy="15.8" r="1.5" fill="currentColor" stroke="none"/>
-                  <circle cx="12"   cy="17"   r="1.5" fill="currentColor" stroke="none"/>
-                  <circle cx="7.5"  cy="15.8" r="1.5" fill="currentColor" stroke="none"/>
-                  <circle cx="4.8"  cy="12.2" r="1.5" fill="currentColor" stroke="none"/>
-                  <circle cx="4.8"  cy="8.2"  r="1.5" fill="currentColor" stroke="none"/>
-                  <circle cx="7.5"  cy="4.5"  r="1.5" fill="currentColor" stroke="none"/>
-                  <!-- Хвостик от нижней бусины -->
-                  <line x1="12" y1="17" x2="12" y2="20" stroke-width="1.3"/>
-                  <!-- Маркерная бусина -->
-                  <circle cx="12" cy="21" r="1.8" fill="currentColor" stroke="none"/>
-                </svg></div>
-                <span class="nav-label" id="navAzkar">Зикр</span>
-            </div>
-            <div class="nav-item" data-tab="dua" onclick="switchTab('dua')">
-                <div class="nav-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <!-- Открытая книга — современная, с закладкой -->
-                  <path d="M2 6.5C2 5.4 2.9 4.5 4 4.5H10.5C11.3 4.5 12 5.2 12 6V19C12 19 10 18.5 8 18.5H4C2.9 18.5 2 17.6 2 16.5V6.5Z"/>
-                  <path d="M22 6.5C22 5.4 21.1 4.5 20 4.5H13.5C12.7 4.5 12 5.2 12 6V19C12 19 14 18.5 16 18.5H20C21.1 18.5 22 17.6 22 16.5V6.5Z"/>
-                  <line x1="12" y1="6" x2="12" y2="19" stroke-width="1"/>
-                  <path d="M6 8H9M6 11H9M6 14H8" stroke-width="1.2" opacity="0.7"/>
-                </svg></div>
-                <span class="nav-label" id="navDua">Дуа</span>
-            </div>
-            <div class="nav-item" data-tab="favorites" onclick="switchTab('favorites')">
-                <div class="nav-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                </svg></div>
-                <span class="nav-label" id="navFav">Избранное</span>
-            </div>
-            <div class="nav-item" data-tab="stats" onclick="switchTab('stats')">
-                <div class="nav-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3"  y="12" width="4" height="9" rx="1"/>
-                  <rect x="10" y="7"  width="4" height="14" rx="1"/>
-                  <rect x="17" y="3"  width="4" height="18" rx="1"/>
-                </svg></div>
-                <span class="nav-label" id="navStats">Статистика</span>
-            </div>
-            <div class="nav-item" data-tab="settings" onclick="switchTab('settings')">
-                <div class="nav-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="4" y1="6" x2="20" y2="6"/>
-                  <line x1="4" y1="12" x2="20" y2="12"/>
-                  <line x1="4" y1="18" x2="20" y2="18"/>
-                  <circle cx="8"  cy="6"  r="2.2" fill="var(--bg, #0a0a0a)" stroke="currentColor"/>
-                  <circle cx="16" cy="12" r="2.2" fill="var(--bg, #0a0a0a)" stroke="currentColor"/>
-                  <circle cx="10" cy="18" r="2.2" fill="var(--bg, #0a0a0a)" stroke="currentColor"/>
-                </svg></div>
-                <span class="nav-label" id="navSettings">Настройки</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Данные хадисов вынесены в отдельный файл. Если его удалить — приложение
-         продолжит работать как обычно, просто без показа хадисов. -->
-    <script src="hadiths.js"></script>
-    <script src="i18n.js"></script>
     <script src="allah-names.js"></script>
     <script>
         // ==================== I18N ====================
@@ -16854,6 +16481,7 @@
             }
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('screen-' + tab).classList.add('active');
+            document.body.classList.toggle('fb-page', tab === 'feedback');
             if (tab === 'feedback' && window.fbOpen) window.fbOpen();
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             const navEl = document.querySelector(`[data-tab="${tab}"]`);
