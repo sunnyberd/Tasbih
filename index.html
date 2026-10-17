@@ -1385,9 +1385,6 @@
         .overlay-btn-cancel {
             background: transparent; border: 1px solid rgba(128,128,128,0.2); color: var(--text-muted);
         }
-        .overlay-btn-cancel[id*="No"], .overlay-btn-cancel[id*="no"] {
-            background: rgba(74, 222, 128, 0.08); border: 1px solid var(--success); color: var(--success);
-        }
         .special-resume-actions { flex-direction: column; }
         .special-resume-actions button { width: 100%; flex: none; }
         .special-resume-continue {
@@ -10809,19 +10806,6 @@
                     svg.appendChild(hit);
                 });
 
-                // Peak label — show max value
-                const maxIdx = data.indexOf(Math.max(...data));
-                if (data[maxIdx] > 0) {
-                    const peak = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                    peak.setAttribute('x', points[maxIdx].x);
-                    peak.setAttribute('y', points[maxIdx].y - 9);
-                    peak.setAttribute('text-anchor', 'middle');
-                    peak.setAttribute('font-size', '9');
-                    peak.setAttribute('fill', 'var(--gold)');
-                    peak.setAttribute('font-weight', '700');
-                    peak.textContent = data[maxIdx];
-                    svg.appendChild(peak);
-                }
             }
         }
 
