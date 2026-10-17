@@ -3845,8 +3845,8 @@
             cursor: pointer;
             transition: border-color 0.2s ease, transform 0.12s ease, box-shadow 0.2s ease;
         }
-        .checklist-overall-progress.clickable:hover { border-color: var(--border-hover); }
-        .checklist-overall-progress.clickable:active { transform: scale(0.985); }
+        .checklist-overall-progress.clickable:hover { border-color: var(--gold); }
+        .checklist-overall-progress.clickable:active { transform: none; }
         .cop-right { display: flex; align-items: center; gap: 8px; }
         .cop-stats-icon { width: 16px; height: 16px; stroke: var(--gold); opacity: 0.85; flex-shrink: 0; }
         /* Карточка прогресса зикров не содержит полоски-бара (только число),
@@ -5099,7 +5099,7 @@
                 background: color-mix(in srgb, var(--gold) 6%, transparent);
             }
             .goal-chip:hover, .period-btn:hover, .dua-card:hover, .special-card:hover,
-            .stat-card:hover, .counter-center:hover, .back-btn:hover,
+            .counter-center:hover, .back-btn:hover,
             .special-action-btn:hover, .dua-action-btn:hover, .fab:hover {
                 filter: brightness(1.08);
             }
@@ -5123,25 +5123,21 @@
         .account-ghost-btn:not([hidden]) { margin-left: auto; }
 
         /* Блок аккаунта: без эффекта нажатия на свободном месте */
+        .set-row[style*="cursor:default"]:hover { background: transparent; }
         .set-row.account-row:active,
         .set-row.account-row:hover { background: transparent; box-shadow: none; }
         .account-profile.is-clickable { cursor: pointer; transition: box-shadow 0.3s ease, border-color 0.3s ease; -webkit-tap-highlight-color: transparent; }
         .account-profile.is-clickable:active { transform: none; }
+        .stat-card:active { transform: none; }
         @media (hover: hover) and (pointer: fine) {
-            .account-profile.is-clickable:hover {
-                border-color: color-mix(in srgb, var(--gold) 40%, transparent);
-                box-shadow: 0 0 20px -6px color-mix(in srgb, var(--gold) 55%, transparent);
+            .account-profile.is-clickable:hover,
+            .acc-fb:not(.is-locked):hover,
+            .google-signin-btn:hover,
+            .stat-card:hover,
+            .checklist-overall-progress.clickable:hover {
+                background-image: linear-gradient(color-mix(in srgb, var(--gold) 7%, transparent), color-mix(in srgb, var(--gold) 7%, transparent));
             }
-            .acc-fb:not(.is-locked):hover {
-                border-color: color-mix(in srgb, var(--gold) 40%, transparent);
-                box-shadow: 0 0 20px -6px color-mix(in srgb, var(--gold) 55%, transparent);
-            }
-            .google-signin-btn:hover {
-                box-shadow: 0 0 20px -6px color-mix(in srgb, var(--gold) 55%, transparent);
-            }
-            .acc-fb:not(.is-locked):hover .acc-pill {
-                box-shadow: var(--rich-gold-gloss), 0 0 22px -4px color-mix(in srgb, var(--gold) 65%, transparent);
-            }
+            .acc-fb:not(.is-locked):hover .acc-pill { filter: brightness(1.08); }
         }
         .account-profile { position: relative; padding-right: 48px; }
         .acc-signout {
@@ -5158,7 +5154,7 @@
         .acc-signout[hidden] { display: none !important; }
         .acc-signout:active { transform: translateY(-50%) scale(0.9); }
         @media (hover: hover) and (pointer: fine) {
-            .acc-signout:hover { background: color-mix(in srgb, var(--gold) 14%, transparent); border-color: color-mix(in srgb, var(--gold) 40%, transparent); box-shadow: 0 0 18px -4px color-mix(in srgb, var(--gold) 60%, transparent); }
+            .acc-signout:hover { background: color-mix(in srgb, var(--gold) 14%, transparent); border-color: color-mix(in srgb, var(--gold) 40%, transparent); }
         }
 
         /* Блок «Отзывы и пожелания»: обводка, вся область кликабельна */
@@ -5566,6 +5562,7 @@
     </div>
 
     <div class="screen" id="screen-stats">
+        <div class="screen-sticky-head">
         <div class="screen-header">
             <h2 id="titleStats">Статистика</h2>
         </div>
@@ -5581,6 +5578,7 @@
                     <svg class="cop-stats-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                 </span>
             </div>
+        </div>
         </div>
 
         <div class="stats-summary">
