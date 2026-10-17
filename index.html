@@ -6704,6 +6704,9 @@
         body.fb-page .navbar { display: none !important; }
         body.fb-page #pipCounterBtn { display: none !important; }
         body.fb-page #screen-feedback { padding-bottom: calc(var(--safe-b) + 16px); }
+        body.fb-page #onlinePresence { display: none !important; }
+        #screen-feedback.active { flex-direction: column; }
+        #fbHost { flex: 1 0 auto; }
     </style>
     <div class="screen" id="screen-feedback"><div id="fbHost"></div></div>
     <template id="fbTemplate">
@@ -7547,6 +7550,10 @@
 .rv-like.on svg { fill: currentColor; }
 .rv-like-n { font-size: 0.8rem; font-weight: 600; }
 
+:host { display: flex; flex-direction: column; }
+.wrap { flex: 1 0 auto; display: flex; flex-direction: column; }
+.footer { margin-top: auto; padding-top: 28px; }
+
 </style>
 <div class="fb-ambient" aria-hidden="true"></div>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="moonGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--grad-start)"/><stop offset="1" stop-color="var(--grad-end)"/></linearGradient></defs></svg>
@@ -7620,11 +7627,6 @@
 
         <!-- ===== СПИСОК ОТЗЫВОВ ===== -->
         <section class="list-section reveal" id="listSection">
-            <div class="section-head">
-                <h2 class="h2-grad" data-i18n="reviewsTitle">Все отзывы</h2>
-                
-            </div>
-
             <div class="controls" id="controls">
                 <div class="filter-row" id="filterRow" role="tablist">
                     <button type="button" class="chip active" data-cat="all" role="tab" aria-selected="true"><span data-i18n="filterAll">Все</span></button>
