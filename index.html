@@ -15230,8 +15230,8 @@
                     const clock = _pad2(at.getHours()) + ':' + _pad2(at.getMinutes());
                     if (wantPrayer) {
                         out.push({ ts, tag: 'azkar-prayer-' + p.key + '-' + dk, icon: '🕌',
-                            title: names[p.key] || p.key,
-                            body: tn('notifPrayerBody', 'Время намаза') + ' · ' + clock });
+                            title: tn('notifPrayerTitle', 'Время намаза'),
+                            body: (names[p.key] || p.key) + ' · ' + clock });
                     }
                     if (wantUmama && (p.key === 'fajr' || p.key === 'asr')) {
                         out.push({ ts: ts + UMAMA_DELAY_MS, tag: 'azkar-umama-' + p.key + '-' + dk, icon: '🤲',
