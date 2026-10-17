@@ -5132,6 +5132,10 @@
                 border-color: color-mix(in srgb, var(--gold) 40%, transparent);
                 box-shadow: 0 0 20px -6px color-mix(in srgb, var(--gold) 55%, transparent);
             }
+            .acc-fb:not(.is-locked):hover {
+                border-color: color-mix(in srgb, var(--gold) 40%, transparent);
+                box-shadow: 0 0 20px -6px color-mix(in srgb, var(--gold) 55%, transparent);
+            }
             .google-signin-btn:hover {
                 box-shadow: 0 0 20px -6px color-mix(in srgb, var(--gold) 55%, transparent);
             }
@@ -14322,7 +14326,7 @@
             setText('labelGoogleAccount', L.title);
             setText('googleAccountStatus', signedIn ? L.connected : L.disconnected);
             setText('googleSignInText', googleSignInBusy ? L.signInBusy : L.signIn);
-            setText('googleSignOutBtn', L.signOut);
+            { const so = document.getElementById('googleSignOutBtn'); if (so) so.setAttribute('aria-label', L.signOut); }
 
             const accountSectionTitle = document.getElementById('setSecAccount');
             if (accountSectionTitle) {
@@ -20107,24 +20111,30 @@
     <script>
     // ===== Отзывы и пожелания: блок в настройках аккаунта =====
     const PF_FEEDBACK_URL = 'feedback.html'; // временная пустая страница, позже заменим на форму
-    const PF_TITLE = { ru: 'Отзывы и пожелания', en: 'Feedback & suggestions', uz: 'Fikr va takliflar' };
-    const PF_WRITE = { ru: 'Написать', en: 'Write', uz: 'Yozish' };
-    const PF_OK = { ru: 'Чтобы приложение стало лучше.', en: 'To make the app better.', uz: 'Ilovani yaxshilash uchun.' };
-    const PF_LOCKED = { ru: 'Войдите в аккаунт, чтобы оставить отзыв.', en: 'Sign in to leave feedback.', uz: 'Fikr qoldirish uchun hisobga kiring.' };
+    const PF_I18N = {
+        en: { title: 'Feedback & suggestions', write: 'Write', ok: 'To make the app better.', locked: 'Sign in to leave feedback.' },
+        de: { title: 'Feedback & Vorschläge', write: 'Schreiben', ok: 'Damit die App besser wird.', locked: 'Melde dich an, um Feedback zu geben.' },
+        es: { title: 'Comentarios y sugerencias', write: 'Escribir', ok: 'Para mejorar la app.', locked: 'Inicia sesión para dejar comentarios.' },
+        fr: { title: 'Avis et suggestions', write: 'Écrire', ok: "Pour améliorer l'application.", locked: 'Connectez-vous pour laisser un avis.' },
+        it: { title: 'Feedback e suggerimenti', write: 'Scrivi', ok: "Per migliorare l'app.", locked: 'Accedi per lasciare un feedback.' },
+        ja: { title: 'フィードバックと要望', write: '書く', ok: 'アプリをより良くするために。', locked: 'フィードバックを送るにはサインインしてください。' },
+        ko: { title: '피드백 및 제안', write: '작성', ok: '앱을 더 좋게 만들기 위해.', locked: '피드백을 남기려면 로그인하세요.' },
+        ru: { title: 'Отзывы и пожелания', write: 'Написать', ok: 'Чтобы приложение стало лучше.', locked: 'Войдите в аккаунт, чтобы оставить отзыв.' },
+        uz: { title: 'Fikr va takliflar', write: 'Yozish', ok: 'Ilovani yaxshilash uchun.', locked: 'Fikr qoldirish uchun hisobga kiring.' },
+        zh: { title: '反馈与建议', write: '写评价', ok: '让应用变得更好。', locked: '登录后即可提交反馈。' },
+        tr: { title: 'Geri bildirim ve öneriler', write: 'Yaz', ok: 'Uygulamayı daha iyi hale getirmek için.', locked: 'Geri bildirim bırakmak için giriş yapın.' },
+        hi: { title: 'प्रतिक्रिया और सुझाव', write: 'लिखें', ok: 'ऐप को और बेहतर बनाने के लिए।', locked: 'फ़ीडबैक देने के लिए साइन इन करें।' },
+        id: { title: 'Masukan & saran', write: 'Tulis', ok: 'Agar aplikasi makin baik.', locked: 'Masuk untuk memberikan masukan.' },
+        ms: { title: 'Maklum balas & cadangan', write: 'Tulis', ok: 'Untuk menjadikan aplikasi lebih baik.', locked: 'Log masuk untuk memberi maklum balas.' },
+        th: { title: 'ข้อเสนอแนะและความคิดเห็น', write: 'เขียน', ok: 'เพื่อทำให้แอปดียิ่งขึ้น', locked: 'เข้าสู่ระบบเพื่อส่งข้อเสนอแนะ' }
+    };
 
     const pfEl = (id) => document.getElementById(id);
     const pfSet = (id, v) => { const e = pfEl(id); if (e) e.textContent = v; };
-    const pfPick = (dict) => dict[(typeof currentLang !== 'undefined' && dict[currentLang]) ? currentLang : 'en'];
+    const pfT = (key) => ((PF_I18N[typeof currentLang !== 'undefined' ? currentLang : 'en'] || PF_I18N.en)[key] || PF_I18N.en[key]);
 
     function pfSignedIn() {
         return typeof firebaseAuth !== 'undefined' && !!firebaseAuth && !!firebaseAuth.currentUser;
-    }
-
-    // Имя для отзыва: имя из Google-аккаунта, если его нет, то часть почты до @
-    function pfAuthorName() {
-        if (!pfSignedIn()) return '';
-        const u = firebaseAuth.currentUser;
-        return ((u.displayName || (u.email || '').split('@')[0] || '')).trim();
     }
 
     function pfRender() {
@@ -20133,9 +20143,9 @@
         const signed = pfSignedIn();
         row.classList.toggle('is-locked', !signed);
         row.setAttribute('aria-disabled', String(!signed));
-        pfSet('accFbTitle', pfPick(PF_TITLE));
-        pfSet('accFbHint', signed ? pfPick(PF_OK) : pfPick(PF_LOCKED));
-        pfSet('accFbBtn', pfPick(PF_WRITE));
+        pfSet('accFbTitle', pfT('title'));
+        pfSet('accFbHint', signed ? pfT('ok') : pfT('locked'));
+        pfSet('accFbBtn', pfT('write'));
     }
 
     function pfOpenFeedback() {
@@ -20144,14 +20154,14 @@
         if (!w) location.href = PF_FEEDBACK_URL;
     }
 
-    // Обновляем блок вместе с состоянием входа
+    // Обновляем блок при входе/выходе и при смене языка
     if (typeof updateGoogleAccountUI === 'function') {
         const pfOrigUpdate = updateGoogleAccountUI;
-        updateGoogleAccountUI = function () {
-            const r = pfOrigUpdate.apply(this, arguments);
-            pfRender();
-            return r;
-        };
+        updateGoogleAccountUI = function () { const r = pfOrigUpdate.apply(this, arguments); pfRender(); return r; };
+    }
+    if (typeof applyLanguage === 'function') {
+        const pfOrigApply = applyLanguage;
+        applyLanguage = function () { const r = pfOrigApply.apply(this, arguments); pfRender(); return r; };
     }
     window.addEventListener('focus', pfRender);
     pfRender();
