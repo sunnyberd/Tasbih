@@ -3339,9 +3339,9 @@
         "searchPh": "Поиск по отзывам…",
         "filterAll": "Все",
         "emptyTitle": "Пока нет отзывов",
-        "emptySub": "Станьте первым — расскажите, что вы думаете об Azkar",
+        "emptySub": "Будьте первым, кто поделится мнением",
         "emptyFilterTitle": "Ничего не найдено",
-        "emptyFilterSub": "Попробуйте изменить фильтр или запрос",
+        "emptyFilterSub": "Будьте первым, кто оставит запись",
         "guest": "Гость",
         "confirmDeleteTitle": "Удалить отзыв?",
         "confirmDeleteSub": "Это действие нельзя отменить",
@@ -3364,7 +3364,9 @@
         "btnSave": "Сохранить",
         "btnCancel": "Отмена",
         "formTitleEdit": "Изменить отзыв",
-        "toastUpdated": "Отзыв обновлён"
+        "toastUpdated": "Отзыв обновлён",
+        "emptyTitleIdea": "Пока нет пожеланий",
+        "emptyTitleBug": "Проблем пока нет"
       },
       "en": {
         "docTitle": "Azkar — Feedback & Suggestions",
@@ -3406,9 +3408,9 @@
         "searchPh": "Search reviews…",
         "filterAll": "All",
         "emptyTitle": "No reviews yet",
-        "emptySub": "Be the first — tell us what you think about Azkar",
+        "emptySub": "Be the first to share your feedback",
         "emptyFilterTitle": "Nothing found",
-        "emptyFilterSub": "Try changing the filter or your query",
+        "emptyFilterSub": "Be the first to post one",
         "guest": "Guest",
         "confirmDeleteTitle": "Delete review?",
         "confirmDeleteSub": "This action cannot be undone",
@@ -3431,7 +3433,9 @@
         "btnSave": "Save",
         "btnCancel": "Cancel",
         "formTitleEdit": "Edit review",
-        "toastUpdated": "Review updated"
+        "toastUpdated": "Review updated",
+        "emptyTitleIdea": "No suggestions yet",
+        "emptyTitleBug": "No problems reported"
       },
       "uz": {
         "docTitle": "Azkar — Fikr va takliflar",
@@ -3472,10 +3476,10 @@
         "reviewsTitle": "Barcha fikrlar",
         "searchPh": "Fikrlardan qidirish…",
         "filterAll": "Barchasi",
-        "emptyTitle": "Hozircha fikr yo'q",
-        "emptySub": "Birinchi bo'ling — Azkar haqidagi fikringizni yozing",
+        "emptyTitle": "Hozircha sharhlar yo'q",
+        "emptySub": "Birinchi bo'lib fikringizni bildiring",
         "emptyFilterTitle": "Hech narsa topilmadi",
-        "emptyFilterSub": "Filtr yoki so'rovni o'zgartirib ko'ring",
+        "emptyFilterSub": "Birinchi bo'lib yozing",
         "guest": "Mehmon",
         "confirmDeleteTitle": "Fikr o'chirilsinmi?",
         "confirmDeleteSub": "Bu amalni ortga qaytarib bo'lmaydi",
@@ -3498,7 +3502,9 @@
         "btnSave": "Saqlash",
         "btnCancel": "Bekor qilish",
         "formTitleEdit": "Sharhni tahrirlash",
-        "toastUpdated": "Fikr yangilandi"
+        "toastUpdated": "Fikr yangilandi",
+        "emptyTitleIdea": "Hozircha takliflar yo'q",
+        "emptyTitleBug": "Hozircha muammolar yo'q"
       },
       "de": {
         "docTitle": "Azkar — Feedback & Vorschläge",
@@ -3540,9 +3546,9 @@
         "searchPh": "Bewertungen durchsuchen…",
         "filterAll": "Alle",
         "emptyTitle": "Noch keine Bewertungen",
-        "emptySub": "Sei der Erste – erzähl uns, was du über Azkar denkst",
+        "emptySub": "Sei der Erste, der seine Meinung teilt",
         "emptyFilterTitle": "Nichts gefunden",
-        "emptyFilterSub": "Ändere den Filter oder die Suche",
+        "emptyFilterSub": "Schreibe den ersten Eintrag",
         "guest": "Gast",
         "confirmDeleteTitle": "Bewertung löschen?",
         "confirmDeleteSub": "Diese Aktion kann nicht rückgängig gemacht werden",
@@ -3565,7 +3571,9 @@
         "btnSave": "Speichern",
         "btnCancel": "Abbrechen",
         "formTitleEdit": "Bewertung bearbeiten",
-        "toastUpdated": "Bewertung aktualisiert"
+        "toastUpdated": "Bewertung aktualisiert",
+        "emptyTitleIdea": "Noch keine Vorschläge",
+        "emptyTitleBug": "Noch keine Probleme gemeldet"
       },
       "es": {
         "docTitle": "Azkar — Comentarios y sugerencias",
@@ -3607,9 +3615,9 @@
         "searchPh": "Buscar opiniones…",
         "filterAll": "Todas",
         "emptyTitle": "Aún no hay opiniones",
-        "emptySub": "Sé el primero: cuéntanos qué piensas de Azkar",
+        "emptySub": "Sé el primero en compartir tu opinión",
         "emptyFilterTitle": "No se encontró nada",
-        "emptyFilterSub": "Prueba a cambiar el filtro o la búsqueda",
+        "emptyFilterSub": "Sé el primero en escribir uno",
         "guest": "Invitado",
         "confirmDeleteTitle": "¿Eliminar opinión?",
         "confirmDeleteSub": "Esta acción no se puede deshacer",
@@ -3632,7 +3640,9 @@
         "btnSave": "Guardar",
         "btnCancel": "Cancelar",
         "formTitleEdit": "Editar opinión",
-        "toastUpdated": "Opinión actualizada"
+        "toastUpdated": "Opinión actualizada",
+        "emptyTitleIdea": "Aún no hay sugerencias",
+        "emptyTitleBug": "No hay problemas reportados"
       },
       "fr": {
         "docTitle": "Azkar — Avis et suggestions",
@@ -3673,10 +3683,10 @@
         "reviewsTitle": "Tous les avis",
         "searchPh": "Rechercher des avis…",
         "filterAll": "Tous",
-        "emptyTitle": "Aucun avis pour l'instant",
-        "emptySub": "Soyez le premier — dites-nous ce que vous pensez d'Azkar",
+        "emptyTitle": "Aucun avis pour le moment",
+        "emptySub": "Soyez le premier à partager votre avis",
         "emptyFilterTitle": "Rien trouvé",
-        "emptyFilterSub": "Essayez de modifier le filtre ou la recherche",
+        "emptyFilterSub": "Soyez le premier à en publier un",
         "guest": "Invité",
         "confirmDeleteTitle": "Supprimer l'avis ?",
         "confirmDeleteSub": "Cette action est irréversible",
@@ -3699,7 +3709,9 @@
         "btnSave": "Enregistrer",
         "btnCancel": "Annuler",
         "formTitleEdit": "Modifier l'avis",
-        "toastUpdated": "Avis mis à jour"
+        "toastUpdated": "Avis mis à jour",
+        "emptyTitleIdea": "Aucune suggestion pour le moment",
+        "emptyTitleBug": "Aucun problème signalé"
       },
       "it": {
         "docTitle": "Azkar — Feedback e suggerimenti",
@@ -3740,10 +3752,10 @@
         "reviewsTitle": "Tutte le recensioni",
         "searchPh": "Cerca nelle recensioni…",
         "filterAll": "Tutte",
-        "emptyTitle": "Ancora nessuna recensione",
-        "emptySub": "Sii il primo — raccontaci cosa pensi di Azkar",
+        "emptyTitle": "Nessuna recensione per ora",
+        "emptySub": "Sii il primo a condividere il tuo parere",
         "emptyFilterTitle": "Nessun risultato",
-        "emptyFilterSub": "Prova a cambiare filtro o ricerca",
+        "emptyFilterSub": "Sii il primo a scriverne uno",
         "guest": "Ospite",
         "confirmDeleteTitle": "Eliminare la recensione?",
         "confirmDeleteSub": "Questa azione non può essere annullata",
@@ -3766,7 +3778,9 @@
         "btnSave": "Salva",
         "btnCancel": "Annulla",
         "formTitleEdit": "Modifica recensione",
-        "toastUpdated": "Recensione aggiornata"
+        "toastUpdated": "Recensione aggiornata",
+        "emptyTitleIdea": "Nessun suggerimento per ora",
+        "emptyTitleBug": "Nessun problema segnalato"
       },
       "ja": {
         "docTitle": "Azkar — フィードバックと要望",
@@ -3808,9 +3822,9 @@
         "searchPh": "レビューを検索…",
         "filterAll": "すべて",
         "emptyTitle": "まだレビューはありません",
-        "emptySub": "最初の一人に — Azkarの感想をお聞かせください",
+        "emptySub": "最初のフィードバックを送ってみましょう",
         "emptyFilterTitle": "見つかりません",
-        "emptyFilterSub": "フィルターや検索語を変えてみてください",
+        "emptyFilterSub": "最初の投稿をしてみましょう",
         "guest": "ゲスト",
         "confirmDeleteTitle": "レビューを削除しますか？",
         "confirmDeleteSub": "この操作は元に戻せません",
@@ -3833,7 +3847,9 @@
         "btnSave": "保存",
         "btnCancel": "キャンセル",
         "formTitleEdit": "レビューを編集",
-        "toastUpdated": "レビューを更新しました"
+        "toastUpdated": "レビューを更新しました",
+        "emptyTitleIdea": "まだ提案はありません",
+        "emptyTitleBug": "報告された問題はありません"
       },
       "ko": {
         "docTitle": "Azkar — 피드백 및 제안",
@@ -3875,9 +3891,9 @@
         "searchPh": "리뷰 검색…",
         "filterAll": "전체",
         "emptyTitle": "아직 리뷰가 없습니다",
-        "emptySub": "첫 번째가 되어 Azkar에 대한 생각을 들려주세요",
+        "emptySub": "첫 번째로 의견을 남겨 주세요",
         "emptyFilterTitle": "결과가 없습니다",
-        "emptyFilterSub": "필터나 검색어를 바꿔보세요",
+        "emptyFilterSub": "첫 번째 글을 남겨 보세요",
         "guest": "게스트",
         "confirmDeleteTitle": "리뷰를 삭제할까요?",
         "confirmDeleteSub": "이 작업은 되돌릴 수 없습니다",
@@ -3900,7 +3916,9 @@
         "btnSave": "저장",
         "btnCancel": "취소",
         "formTitleEdit": "리뷰 수정",
-        "toastUpdated": "리뷰가 수정되었습니다"
+        "toastUpdated": "리뷰가 수정되었습니다",
+        "emptyTitleIdea": "아직 제안이 없습니다",
+        "emptyTitleBug": "접수된 문제가 없습니다"
       },
       "zh": {
         "docTitle": "Azkar — 反馈与建议",
@@ -3941,10 +3959,10 @@
         "reviewsTitle": "全部评价",
         "searchPh": "搜索评价…",
         "filterAll": "全部",
-        "emptyTitle": "还没有评价",
-        "emptySub": "来当第一个吧——说说您对 Azkar 的看法",
+        "emptyTitle": "暂无评价",
+        "emptySub": "成为第一个分享意见的人",
         "emptyFilterTitle": "没有找到内容",
-        "emptyFilterSub": "试试更换筛选或关键词",
+        "emptyFilterSub": "成为第一个发布的人",
         "guest": "访客",
         "confirmDeleteTitle": "删除这条评价？",
         "confirmDeleteSub": "此操作无法撤销",
@@ -3967,7 +3985,9 @@
         "btnSave": "保存",
         "btnCancel": "取消",
         "formTitleEdit": "编辑评价",
-        "toastUpdated": "评价已更新"
+        "toastUpdated": "评价已更新",
+        "emptyTitleIdea": "暂无建议",
+        "emptyTitleBug": "暂无问题反馈"
       },
       "tr": {
         "docTitle": "Azkar — Geri bildirim ve öneriler",
@@ -4008,10 +4028,10 @@
         "reviewsTitle": "Tüm geri bildirimler",
         "searchPh": "Geri bildirimlerde ara…",
         "filterAll": "Tümü",
-        "emptyTitle": "Henüz geri bildirim yok",
-        "emptySub": "İlk sen ol — Azkar hakkındaki düşüncelerini anlat",
+        "emptyTitle": "Henüz değerlendirme yok",
+        "emptySub": "Görüşünü paylaşan ilk kişi ol",
         "emptyFilterTitle": "Sonuç bulunamadı",
-        "emptyFilterSub": "Filtreyi veya aramayı değiştirmeyi dene",
+        "emptyFilterSub": "İlk sen yaz",
         "guest": "Misafir",
         "confirmDeleteTitle": "Geri bildirim silinsin mi?",
         "confirmDeleteSub": "Bu işlem geri alınamaz",
@@ -4034,7 +4054,9 @@
         "btnSave": "Kaydet",
         "btnCancel": "İptal",
         "formTitleEdit": "Değerlendirmeyi düzenle",
-        "toastUpdated": "Değerlendirme güncellendi"
+        "toastUpdated": "Değerlendirme güncellendi",
+        "emptyTitleIdea": "Henüz öneri yok",
+        "emptyTitleBug": "Henüz bildirilen sorun yok"
       },
       "hi": {
         "docTitle": "Azkar — प्रतिक्रिया और सुझाव",
@@ -4075,10 +4097,10 @@
         "reviewsTitle": "सभी प्रतिक्रियाएँ",
         "searchPh": "प्रतिक्रियाओं में खोजें…",
         "filterAll": "सभी",
-        "emptyTitle": "अभी कोई प्रतिक्रिया नहीं",
-        "emptySub": "पहले बनें — Azkar के बारे में अपनी राय बताएँ",
+        "emptyTitle": "अभी कोई समीक्षा नहीं है",
+        "emptySub": "अपनी राय साझा करने वाले पहले व्यक्ति बनें",
         "emptyFilterTitle": "कुछ नहीं मिला",
-        "emptyFilterSub": "फ़िल्टर या खोज बदलकर देखें",
+        "emptyFilterSub": "पहला संदेश आप लिखें",
         "guest": "अतिथि",
         "confirmDeleteTitle": "प्रतिक्रिया हटाएँ?",
         "confirmDeleteSub": "इस क्रिया को वापस नहीं किया जा सकता",
@@ -4101,7 +4123,9 @@
         "btnSave": "सहेजें",
         "btnCancel": "रद्द करें",
         "formTitleEdit": "समीक्षा संपादित करें",
-        "toastUpdated": "समीक्षा अपडेट हुई"
+        "toastUpdated": "समीक्षा अपडेट हुई",
+        "emptyTitleIdea": "अभी कोई सुझाव नहीं है",
+        "emptyTitleBug": "अभी तक कोई समस्या रिपोर्ट नहीं हुई"
       },
       "id": {
         "docTitle": "Azkar — Masukan & saran",
@@ -4143,9 +4167,9 @@
         "searchPh": "Cari ulasan…",
         "filterAll": "Semua",
         "emptyTitle": "Belum ada ulasan",
-        "emptySub": "Jadilah yang pertama — ceritakan pendapat Anda tentang Azkar",
+        "emptySub": "Jadilah yang pertama berbagi masukan",
         "emptyFilterTitle": "Tidak ditemukan",
-        "emptyFilterSub": "Coba ubah filter atau kata kunci",
+        "emptyFilterSub": "Jadilah yang pertama menulis",
         "guest": "Tamu",
         "confirmDeleteTitle": "Hapus ulasan?",
         "confirmDeleteSub": "Tindakan ini tidak dapat dibatalkan",
@@ -4168,7 +4192,9 @@
         "btnSave": "Simpan",
         "btnCancel": "Batal",
         "formTitleEdit": "Edit ulasan",
-        "toastUpdated": "Ulasan diperbarui"
+        "toastUpdated": "Ulasan diperbarui",
+        "emptyTitleIdea": "Belum ada saran",
+        "emptyTitleBug": "Belum ada masalah yang dilaporkan"
       },
       "ms": {
         "docTitle": "Azkar — Maklum balas & cadangan",
@@ -4209,10 +4235,10 @@
         "reviewsTitle": "Semua maklum balas",
         "searchPh": "Cari maklum balas…",
         "filterAll": "Semua",
-        "emptyTitle": "Belum ada maklum balas",
-        "emptySub": "Jadilah yang pertama — kongsi pendapat anda tentang Azkar",
+        "emptyTitle": "Belum ada ulasan",
+        "emptySub": "Jadilah orang pertama berkongsi maklum balas",
         "emptyFilterTitle": "Tiada hasil",
-        "emptyFilterSub": "Cuba ubah penapis atau carian",
+        "emptyFilterSub": "Jadilah yang pertama menulis",
         "guest": "Tetamu",
         "confirmDeleteTitle": "Padam maklum balas?",
         "confirmDeleteSub": "Tindakan ini tidak boleh dibatalkan",
@@ -4235,7 +4261,9 @@
         "btnSave": "Simpan",
         "btnCancel": "Batal",
         "formTitleEdit": "Edit ulasan",
-        "toastUpdated": "Ulasan dikemas kini"
+        "toastUpdated": "Ulasan dikemas kini",
+        "emptyTitleIdea": "Belum ada cadangan",
+        "emptyTitleBug": "Tiada masalah dilaporkan"
       },
       "th": {
         "docTitle": "Azkar — ข้อเสนอแนะและความคิดเห็น",
@@ -4277,9 +4305,9 @@
         "searchPh": "ค้นหารีวิว…",
         "filterAll": "ทั้งหมด",
         "emptyTitle": "ยังไม่มีรีวิว",
-        "emptySub": "เป็นคนแรก — บอกเราว่าคุณคิดอย่างไรกับ Azkar",
+        "emptySub": "เป็นคนแรกที่แชร์ความคิดเห็น",
         "emptyFilterTitle": "ไม่พบข้อมูล",
-        "emptyFilterSub": "ลองเปลี่ยนตัวกรองหรือคำค้นหา",
+        "emptyFilterSub": "เป็นคนแรกที่เขียน",
         "guest": "ผู้เยี่ยมชม",
         "confirmDeleteTitle": "ลบรีวิวนี้?",
         "confirmDeleteSub": "การกระทำนี้ไม่สามารถย้อนกลับได้",
@@ -4302,7 +4330,9 @@
         "btnSave": "บันทึก",
         "btnCancel": "ยกเลิก",
         "formTitleEdit": "แก้ไขรีวิว",
-        "toastUpdated": "อัปเดตรีวิวแล้ว"
+        "toastUpdated": "อัปเดตรีวิวแล้ว",
+        "emptyTitleIdea": "ยังไม่มีข้อเสนอแนะ",
+        "emptyTitleBug": "ยังไม่มีปัญหาที่รายงาน"
       }
     };
 })();

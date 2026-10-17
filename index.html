@@ -7555,7 +7555,6 @@
 .footer { margin-top: auto; padding-top: 28px; }
 
 </style>
-<div class="fb-ambient" aria-hidden="true"></div>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="moonGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--grad-start)"/><stop offset="1" stop-color="var(--grad-end)"/></linearGradient></defs></svg>
 <main class="wrap">
 
@@ -7644,18 +7643,7 @@
             </div>
         </section>
 
-        <!-- ===== ПОДВАЛ ===== -->
-        <footer class="footer">
-            <div class="ornament" aria-hidden="true">
-                <span class="ornament-line"></span><span class="ornament-star">✦</span><span class="ornament-line"></span>
-            </div>
-            <div class="footer-made">
-                <span data-i18n="madeWith">сделано с</span>
-                <span class="heart"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></span>
-                <span>Azkar</span>
-            </div>
-        </footer>
-    </main>
+        </main>
 
     <!-- ===== ТОСТ ===== -->
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -8299,7 +8287,7 @@
             } else if (!filtered.length) {
                 empty.classList.remove("hidden");
                 list.classList.add("hidden");
-                $("emptyTitle").textContent = t("emptyFilterTitle");
+                $("emptyTitle").textContent = t(filterCat === "idea" ? "emptyTitleIdea" : filterCat === "bug" ? "emptyTitleBug" : "emptyTitle");
                 $("emptySub").textContent = t("emptyFilterSub");
             } else {
                 empty.classList.add("hidden");
