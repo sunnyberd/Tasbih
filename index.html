@@ -5106,7 +5106,7 @@
         }
     
         /* ===== Профиль: никнейм и отзывы ===== */
-        .acc-nick { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; border-top:1px solid color-mix(in srgb, var(--gold) 14%, transparent); }
+        .acc-nick { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; }
         .acc-nick[hidden] { display:none; }
         .acc-info { display:flex; flex-direction:column; min-width:0; gap:2px; }
         .acc-kicker { font-size:.66rem; letter-spacing:.12em; text-transform:uppercase; color:var(--text-dim); }
@@ -5120,6 +5120,7 @@
         @media (hover: hover) and (pointer: fine) {
             .acc-btn:not(:disabled):hover { filter:brightness(1.08); }
         }
+        .account-ghost-btn:not([hidden]) { margin-left: auto; }
         #accFbBtn:not(:disabled) {
             background: var(--rich-gold-fill);
             color: var(--rich-ink);
@@ -20134,7 +20135,7 @@
     let pfProfile = null;   // { nickname, nicknameChanges }
     let pfUid = null;
 
-    function pfSignedIn() { return !!(window.firebaseAuth && firebaseAuth.currentUser); }
+    function pfSignedIn() { return typeof firebaseAuth !== 'undefined' && !!firebaseAuth && !!firebaseAuth.currentUser; }
 
     async function pfLoad() {
         const ctx = await initFirebaseAccount();
@@ -20305,7 +20306,8 @@
     const PF_FEEDBACK_URL = 'feedback.html'; // временная пустая страница, позже заменим на форму
     function pfOpenFeedback() {
         if (!pfSignedIn()) return;
-        window.open(PF_FEEDBACK_URL, '_blank', 'noopener');
+        const w = window.open(PF_FEEDBACK_URL, '_blank');
+        if (!w) location.href = PF_FEEDBACK_URL;
     }
 
     async function pfSendFeedbackUI() {
