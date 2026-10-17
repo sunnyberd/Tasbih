@@ -3308,7 +3308,7 @@
         "statAverage": "Средняя оценка",
         "formTitle": "Оставить отзыв",
         "labelCategory": "Что хотите рассказать?",
-        "catPraise": "Отзыв",
+        "catPraise": "Отзывы",
         "catIdea": "Пожелание",
         "catBug": "Проблема",
         "catOther": "Другое",
@@ -3358,7 +3358,13 @@
         "btnClose": "Закрыть",
         "themeToggleAria": "Переключить тему",
         "settingsAria": "Настройки",
-        "madeWith": "сделано с"
+        "madeWith": "сделано с",
+        "actEdit": "Редактировать",
+        "actLike": "Нравится",
+        "btnSave": "Сохранить",
+        "btnCancel": "Отмена",
+        "formTitleEdit": "Изменить отзыв",
+        "toastUpdated": "Отзыв обновлён"
       },
       "en": {
         "docTitle": "Azkar — Feedback & Suggestions",
@@ -3369,7 +3375,7 @@
         "statAverage": "Average rating",
         "formTitle": "Leave feedback",
         "labelCategory": "What would you like to share?",
-        "catPraise": "Review",
+        "catPraise": "Reviews",
         "catIdea": "Suggestion",
         "catBug": "Problem",
         "catOther": "Other",
@@ -3419,7 +3425,13 @@
         "btnClose": "Close",
         "themeToggleAria": "Toggle theme",
         "settingsAria": "Settings",
-        "madeWith": "made with"
+        "madeWith": "made with",
+        "actEdit": "Edit",
+        "actLike": "Like",
+        "btnSave": "Save",
+        "btnCancel": "Cancel",
+        "formTitleEdit": "Edit review",
+        "toastUpdated": "Review updated"
       },
       "uz": {
         "docTitle": "Azkar — Fikr va takliflar",
@@ -3430,7 +3442,7 @@
         "statAverage": "O'rtacha baho",
         "formTitle": "Fikr qoldirish",
         "labelCategory": "Nima haqida yozmoqchisiz?",
-        "catPraise": "Fikr",
+        "catPraise": "Fikrlar",
         "catIdea": "Taklif",
         "catBug": "Muammo",
         "catOther": "Boshqa",
@@ -3480,7 +3492,13 @@
         "btnClose": "Yopish",
         "themeToggleAria": "Mavzuni almashtirish",
         "settingsAria": "Sozlamalar",
-        "madeWith": "mehr bilan"
+        "madeWith": "mehr bilan",
+        "actEdit": "Tahrirlash",
+        "actLike": "Yoqdi",
+        "btnSave": "Saqlash",
+        "btnCancel": "Bekor qilish",
+        "formTitleEdit": "Sharhni tahrirlash",
+        "toastUpdated": "Fikr yangilandi"
       },
       "de": {
         "docTitle": "Azkar — Feedback & Vorschläge",
@@ -3491,7 +3509,7 @@
         "statAverage": "Ø Bewertung",
         "formTitle": "Feedback geben",
         "labelCategory": "Was möchtest du teilen?",
-        "catPraise": "Bewertung",
+        "catPraise": "Bewertungen",
         "catIdea": "Vorschlag",
         "catBug": "Problem",
         "catOther": "Sonstiges",
@@ -3541,7 +3559,13 @@
         "btnClose": "Schließen",
         "themeToggleAria": "Design wechseln",
         "settingsAria": "Einstellungen",
-        "madeWith": "gemacht mit"
+        "madeWith": "gemacht mit",
+        "actEdit": "Bearbeiten",
+        "actLike": "Gefällt mir",
+        "btnSave": "Speichern",
+        "btnCancel": "Abbrechen",
+        "formTitleEdit": "Bewertung bearbeiten",
+        "toastUpdated": "Bewertung aktualisiert"
       },
       "es": {
         "docTitle": "Azkar — Comentarios y sugerencias",
@@ -3552,7 +3576,7 @@
         "statAverage": "Valoración media",
         "formTitle": "Deja tu opinión",
         "labelCategory": "¿Qué quieres contar?",
-        "catPraise": "Opinión",
+        "catPraise": "Opiniones",
         "catIdea": "Sugerencia",
         "catBug": "Problema",
         "catOther": "Otro",
@@ -3602,7 +3626,13 @@
         "btnClose": "Cerrar",
         "themeToggleAria": "Cambiar tema",
         "settingsAria": "Ajustes",
-        "madeWith": "hecho con"
+        "madeWith": "hecho con",
+        "actEdit": "Editar",
+        "actLike": "Me gusta",
+        "btnSave": "Guardar",
+        "btnCancel": "Cancelar",
+        "formTitleEdit": "Editar opinión",
+        "toastUpdated": "Opinión actualizada"
       },
       "fr": {
         "docTitle": "Azkar — Avis et suggestions",
@@ -3663,7 +3693,13 @@
         "btnClose": "Fermer",
         "themeToggleAria": "Changer de thème",
         "settingsAria": "Paramètres",
-        "madeWith": "fait avec"
+        "madeWith": "fait avec",
+        "actEdit": "Modifier",
+        "actLike": "J'aime",
+        "btnSave": "Enregistrer",
+        "btnCancel": "Annuler",
+        "formTitleEdit": "Modifier l'avis",
+        "toastUpdated": "Avis mis à jour"
       },
       "it": {
         "docTitle": "Azkar — Feedback e suggerimenti",
@@ -3674,7 +3710,7 @@
         "statAverage": "Voto medio",
         "formTitle": "Lascia un feedback",
         "labelCategory": "Cosa vuoi condividere?",
-        "catPraise": "Recensione",
+        "catPraise": "Recensioni",
         "catIdea": "Suggerimento",
         "catBug": "Problema",
         "catOther": "Altro",
@@ -3724,7 +3760,13 @@
         "btnClose": "Chiudi",
         "themeToggleAria": "Cambia tema",
         "settingsAria": "Impostazioni",
-        "madeWith": "fatto con"
+        "madeWith": "fatto con",
+        "actEdit": "Modifica",
+        "actLike": "Mi piace",
+        "btnSave": "Salva",
+        "btnCancel": "Annulla",
+        "formTitleEdit": "Modifica recensione",
+        "toastUpdated": "Recensione aggiornata"
       },
       "ja": {
         "docTitle": "Azkar — フィードバックと要望",
@@ -3785,7 +3827,13 @@
         "btnClose": "閉じる",
         "themeToggleAria": "テーマを切り替え",
         "settingsAria": "設定",
-        "madeWith": "心を込めて"
+        "madeWith": "心を込めて",
+        "actEdit": "編集",
+        "actLike": "いいね",
+        "btnSave": "保存",
+        "btnCancel": "キャンセル",
+        "formTitleEdit": "レビューを編集",
+        "toastUpdated": "レビューを更新しました"
       },
       "ko": {
         "docTitle": "Azkar — 피드백 및 제안",
@@ -3846,7 +3894,13 @@
         "btnClose": "닫기",
         "themeToggleAria": "테마 전환",
         "settingsAria": "설정",
-        "madeWith": "정성을 담아"
+        "madeWith": "정성을 담아",
+        "actEdit": "수정",
+        "actLike": "좋아요",
+        "btnSave": "저장",
+        "btnCancel": "취소",
+        "formTitleEdit": "리뷰 수정",
+        "toastUpdated": "리뷰가 수정되었습니다"
       },
       "zh": {
         "docTitle": "Azkar — 反馈与建议",
@@ -3907,7 +3961,13 @@
         "btnClose": "关闭",
         "themeToggleAria": "切换主题",
         "settingsAria": "设置",
-        "madeWith": "用心制作"
+        "madeWith": "用心制作",
+        "actEdit": "编辑",
+        "actLike": "赞",
+        "btnSave": "保存",
+        "btnCancel": "取消",
+        "formTitleEdit": "编辑评价",
+        "toastUpdated": "评价已更新"
       },
       "tr": {
         "docTitle": "Azkar — Geri bildirim ve öneriler",
@@ -3918,7 +3978,7 @@
         "statAverage": "Ortalama puan",
         "formTitle": "Geri bildirim bırak",
         "labelCategory": "Neyi paylaşmak istersin?",
-        "catPraise": "Değerlendirme",
+        "catPraise": "Değerlendirmeler",
         "catIdea": "Öneri",
         "catBug": "Sorun",
         "catOther": "Diğer",
@@ -3968,7 +4028,13 @@
         "btnClose": "Kapat",
         "themeToggleAria": "Temayı değiştir",
         "settingsAria": "Ayarlar",
-        "madeWith": "sevgiyle"
+        "madeWith": "sevgiyle",
+        "actEdit": "Düzenle",
+        "actLike": "Beğen",
+        "btnSave": "Kaydet",
+        "btnCancel": "İptal",
+        "formTitleEdit": "Değerlendirmeyi düzenle",
+        "toastUpdated": "Değerlendirme güncellendi"
       },
       "hi": {
         "docTitle": "Azkar — प्रतिक्रिया और सुझाव",
@@ -3979,7 +4045,7 @@
         "statAverage": "औसत रेटिंग",
         "formTitle": "प्रतिक्रिया दें",
         "labelCategory": "क्या साझा करना चाहेंगे?",
-        "catPraise": "समीक्षा",
+        "catPraise": "समीक्षाएँ",
         "catIdea": "सुझाव",
         "catBug": "समस्या",
         "catOther": "अन्य",
@@ -4029,7 +4095,13 @@
         "btnClose": "बंद करें",
         "themeToggleAria": "थीम बदलें",
         "settingsAria": "सेटिंग्स",
-        "madeWith": "प्यार से बना"
+        "madeWith": "प्यार से बना",
+        "actEdit": "संपादित करें",
+        "actLike": "पसंद है",
+        "btnSave": "सहेजें",
+        "btnCancel": "रद्द करें",
+        "formTitleEdit": "समीक्षा संपादित करें",
+        "toastUpdated": "समीक्षा अपडेट हुई"
       },
       "id": {
         "docTitle": "Azkar — Masukan & saran",
@@ -4090,7 +4162,13 @@
         "btnClose": "Tutup",
         "themeToggleAria": "Ganti tema",
         "settingsAria": "Pengaturan",
-        "madeWith": "dibuat dengan"
+        "madeWith": "dibuat dengan",
+        "actEdit": "Edit",
+        "actLike": "Suka",
+        "btnSave": "Simpan",
+        "btnCancel": "Batal",
+        "formTitleEdit": "Edit ulasan",
+        "toastUpdated": "Ulasan diperbarui"
       },
       "ms": {
         "docTitle": "Azkar — Maklum balas & cadangan",
@@ -4151,7 +4229,13 @@
         "btnClose": "Tutup",
         "themeToggleAria": "Tukar tema",
         "settingsAria": "Tetapan",
-        "madeWith": "dibuat dengan"
+        "madeWith": "dibuat dengan",
+        "actEdit": "Edit",
+        "actLike": "Suka",
+        "btnSave": "Simpan",
+        "btnCancel": "Batal",
+        "formTitleEdit": "Edit ulasan",
+        "toastUpdated": "Ulasan dikemas kini"
       },
       "th": {
         "docTitle": "Azkar — ข้อเสนอแนะและความคิดเห็น",
@@ -4212,7 +4296,13 @@
         "btnClose": "ปิด",
         "themeToggleAria": "เปลี่ยนธีม",
         "settingsAria": "การตั้งค่า",
-        "madeWith": "ทำด้วยใจ"
+        "madeWith": "ทำด้วยใจ",
+        "actEdit": "แก้ไข",
+        "actLike": "ถูกใจ",
+        "btnSave": "บันทึก",
+        "btnCancel": "ยกเลิก",
+        "formTitleEdit": "แก้ไขรีวิว",
+        "toastUpdated": "อัปเดตรีวิวแล้ว"
       }
     };
 })();

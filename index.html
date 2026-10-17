@@ -6930,7 +6930,7 @@
             z-index: 1;
             max-width: 620px;
             margin: 0 auto;
-            padding: calc(var(--safe-t) + 18px) 16px calc(var(--safe-b) + 24px);
+            padding: 0 16px calc(var(--safe-b) + 24px);
         }
         .hidden { display: none !important; }
 
@@ -7538,13 +7538,22 @@
 .hero-row .icon-btn { justify-self: start; }
 .hero-spacer { display: block; width: 40px; height: 40px; }
 
+.hero.fb-sticky { position: sticky; top: 0; z-index: 30; margin: 0 -16px; padding: calc(var(--safe-t) + 14px) 16px 8px; background: color-mix(in srgb, var(--bg) 94%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.composer { scroll-margin-top: 190px; }
+.fb-cancel { display: block; width: 100%; margin-top: 10px; padding: 10px; background: none; border: none; color: var(--text-muted); font: inherit; font-size: 0.85rem; cursor: pointer; }
+.rv-like { display: inline-flex; align-items: center; gap: 6px; padding: 6px 8px; background: none; border: none; border-radius: 999px; color: var(--text-dim); font: inherit; cursor: pointer; }
+.rv-like svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.rv-like.on { color: #e05a6a; }
+.rv-like.on svg { fill: currentColor; }
+.rv-like-n { font-size: 0.8rem; font-weight: 600; }
+
 </style>
 <div class="fb-ambient" aria-hidden="true"></div>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="moonGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--grad-start)"/><stop offset="1" stop-color="var(--grad-end)"/></linearGradient></defs></svg>
 <main class="wrap">
 
         <!-- ===== ШАПКА ===== -->
-        <section class="hero">
+        <section class="hero fb-sticky">
             <div class="hero-row">
                 <button class="icon-btn" type="button" id="backBtn" aria-label="В приложение">
                     <svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
@@ -7560,7 +7569,7 @@
 
         <!-- ===== ФОРМА ОТЗЫВА ===== -->
         <section class="composer card reveal" id="composer">
-            <h2 class="form-title" data-i18n="formTitle">Оставить отзыв</h2>
+            <h2 class="form-title" id="formTitle">Оставить отзыв</h2>
 
             <div class="form-group">
                 <div class="form-label" id="catLabel"><span data-i18n="labelCategory">Что хотите рассказать?</span></div>
@@ -7577,17 +7586,12 @@
                         <svg viewBox="0 0 24 24"><path d="m8 2 1.88 1.88"/><path d="M14.12 3.88 16 2"/><path d="M9 7.13v-1a3 3 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6z"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg>
                         <span data-i18n="catBug">Проблема</span>
                     </button>
-                    <button type="button" class="chip" data-cat="other" role="radio" aria-checked="false">
-                        <svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/><path d="M19 15v4"/><path d="M17 17h4"/></svg>
-                        <span data-i18n="catOther">Другое</span>
-                    </button>
-                </div>
+                    </div>
             </div>
 
             <div class="form-group">
                 <div class="form-label" id="ratingLabel"><span data-i18n="labelRating">Ваша оценка</span></div>
                 <div class="stars-row" id="starsRow" role="radiogroup" aria-labelledby="ratingLabel"></div>
-                <p class="rating-caption empty" id="ratingCaption" data-i18n="ratingEmpty">Нажмите на звезду</p>
                 <div class="field-err" id="errRating" data-i18n="errRating">Поставьте оценку</div>
             </div>
 
@@ -7609,29 +7613,25 @@
             <button type="button" class="btn-submit" id="submitBtn">
                 <svg class="ic-send" viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
                 <svg class="spin" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.2-8.56" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                <span data-i18n="btnSubmit">Отправить отзыв</span>
+                <span id="submitLabel">Отправить отзыв</span>
             </button>
+            <button type="button" class="fb-cancel hidden" id="cancelEditBtn"><span data-i18n="btnCancel">Отмена</span></button>
         </section>
 
         <!-- ===== СПИСОК ОТЗЫВОВ ===== -->
         <section class="list-section reveal" id="listSection">
             <div class="section-head">
                 <h2 class="h2-grad" data-i18n="reviewsTitle">Все отзывы</h2>
-                <span class="pill" id="cntBadge">0</span>
+                
             </div>
 
             <div class="controls" id="controls">
-                <div class="search-wrap">
-                    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
-                    <input class="input search-input" id="searchInput" type="search" data-i18n-ph="searchPh" placeholder="Поиск по отзывам…">
-                </div>
                 <div class="filter-row" id="filterRow" role="tablist">
                     <button type="button" class="chip active" data-cat="all" role="tab" aria-selected="true"><span data-i18n="filterAll">Все</span></button>
                     <button type="button" class="chip" data-cat="praise" role="tab" aria-selected="false"><span data-i18n="catPraise">Отзыв</span></button>
                     <button type="button" class="chip" data-cat="idea" role="tab" aria-selected="false"><span data-i18n="catIdea">Пожелание</span></button>
                     <button type="button" class="chip" data-cat="bug" role="tab" aria-selected="false"><span data-i18n="catBug">Проблема</span></button>
-                    <button type="button" class="chip" data-cat="other" role="tab" aria-selected="false"><span data-i18n="catOther">Другое</span></button>
-                </div>
+                    </div>
             </div>
 
             <div class="reviews" id="reviewsList"></div>
@@ -7853,6 +7853,7 @@
         var searchQ = "";
         var pendingDeleteId = null;
         var lastSharedReview = null;
+        var editingId = null;
         var searchTimer = null;
         var draftTimer = null;
         var toastTimer = null;
@@ -7882,6 +7883,7 @@
                         updateRatingCaption();
             updateCharCount();
             updateStarsAria();
+            updateComposerMode();
         }
         function updateStarsAria() {
             var texts = tArr("ratingTexts");
@@ -8048,7 +8050,88 @@
         }
 
         /* ===== ЧЕРНОВИК ===== */
+        var LS_LIKES = "azkar_feedback_likes";
+        var HEART_PATH = "M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z";
+        function readLikes() {
+            try { var a = JSON.parse(readStr(LS_LIKES, "[]")); return Array.isArray(a) ? a : []; } catch (e) { return []; }
+        }
+        function toggleLike(id) {
+            var r = reviews.filter(function (x) { return x.id === id; })[0];
+            if (!r) return;
+            var liked = readLikes();
+            var idx = liked.indexOf(id);
+            if (idx > -1) { liked.splice(idx, 1); r.likes = Math.max(0, (r.likes | 0) - 1); }
+            else { liked.push(id); r.likes = (r.likes | 0) + 1; vibrate(10); }
+            writeStr(LS_LIKES, JSON.stringify(liked));
+            persistReviews();
+            renderList(false);
+        }
+        function updateComposerMode() {
+            var own = reviews.some(function (r) { return r.mine !== false; });
+            var editing = !!editingId;
+            var comp = $("composer");
+            if (comp) comp.classList.toggle("hidden", own && !editing);
+            var title = $("formTitle");
+            if (title) title.textContent = t(editing ? "formTitleEdit" : "formTitle");
+            var lbl = $("submitLabel");
+            if (lbl) lbl.textContent = t(editing ? "btnSave" : "btnSubmit");
+            var cancel = $("cancelEditBtn");
+            if (cancel) cancel.classList.toggle("hidden", !editing);
+        }
+        function startEdit(id) {
+            var r = reviews.filter(function (x) { return x.id === id; })[0];
+            if (!r) return;
+            editingId = id;
+            $("nameInput").value = r.name || "";
+            $("msgInput").value = r.text;
+            setCategory(r.category, false);
+            setRating(r.rating, false);
+            hideErr("errRating");
+            hideErr("errMsg");
+            autoGrow();
+            updateCharCount();
+            updateComposerMode();
+            var comp = $("composer");
+            if (comp && comp.scrollIntoView) comp.scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "start" });
+        }
+        function cancelEdit() {
+            editingId = null;
+            $("msgInput").value = "";
+            $("nameInput").value = readStr(LS_NAME, "");
+            setCategory("praise", false);
+            setRating(0, false);
+            hideErr("errRating");
+            hideErr("errMsg");
+            autoGrow();
+            updateCharCount();
+            updateComposerMode();
+        }
+        function finishEdit(name, text) {
+            var r = reviews.filter(function (x) { return x.id === editingId; })[0];
+            editingId = null;
+            if (r) {
+                r.name = name;
+                r.text = text.slice(0, MAX_TEXT);
+                r.rating = state.rating;
+                r.category = state.category;
+            }
+            persistReviews();
+            if (name) writeStr(LS_NAME, name);
+            $("msgInput").value = "";
+            autoGrow();
+            updateCharCount();
+            setRating(0, false);
+            setCategory("praise", false);
+            hideErr("errRating");
+            hideErr("errMsg");
+            renderStats();
+            renderList(false);
+            updateComposerMode();
+            showToast(t("toastUpdated"));
+        }
+
         function saveDraft() {
+            if (editingId) return;
             writeStr(LS_DRAFT, JSON.stringify({
                 name: $("nameInput").value,
                 text: $("msgInput").value,
@@ -8124,7 +8207,9 @@
                         text: r.text.slice(0, MAX_TEXT),
                         rating: Math.round(r.rating),
                         category: CATS.indexOf(r.category) > -1 ? r.category : "other",
-                        ts: r.ts
+                        ts: r.ts,
+                        mine: r.mine !== false,
+                        likes: typeof r.likes === "number" ? r.likes : 0
                     };
                 });
             } catch (e) { return []; }
@@ -8159,6 +8244,14 @@
             var stars = "";
             for (var i = 1; i <= 5; i++) stars += starSvg(i <= r.rating ? "f" : "", 12);
             var q = searchQ.trim();
+            var liked = readLikes().indexOf(r.id) > -1;
+            var likes = r.likes | 0;
+            var mine = r.mine !== false;
+            var likeLabel = esc(t("actLike"));
+            var likeBtn = '<button type="button" class="rv-like' + (liked ? " on" : "") + '" data-act="like" aria-pressed="' + (liked ? "true" : "false") + '" aria-label="' + likeLabel + '" title="' + likeLabel + '">' +
+                '<svg viewBox="0 0 24 24"><path d="' + HEART_PATH + '"/></svg>' +
+                (likes > 0 ? '<span class="rv-like-n">' + likes + "</span>" : "") + "</button>";
+            var editBtn = mine ? '<button type="button" class="rv-act" data-act="edit" aria-label="' + esc(t("actEdit")) + '" title="' + esc(t("actEdit")) + '"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>' : "";
             return '<article class="review card selectable' + (isNew ? " new" : "") + '" data-id="' + esc(r.id) + '" style="' + delay + '">' +
                 '<div class="rv-head">' +
                     '<div class="rv-avatar' + (r.name ? "" : " guest") + '" aria-hidden="true">' + initial + "</div>" +
@@ -8170,9 +8263,9 @@
                 "</div>" +
                 '<p class="rv-text">' + highlightText(r.text, q) + "</p>" +
                 '<div class="rv-foot">' +
-                    '<span class="rv-tag">' + catIconSvg(r.category) + esc(t(catKey(r.category))) + "</span>" +
+                    likeBtn +
                     '<div class="rv-actions">' +
-                        '<button type="button" class="rv-act" data-act="copy" aria-label="' + esc(t("actCopy")) + '" title="' + esc(t("actCopy")) + '"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>' +
+                        editBtn +
                         '<button type="button" class="rv-act" data-act="share" aria-label="' + esc(t("actShare")) + '" title="' + esc(t("actShare")) + '"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4"/><path d="m15.4 6.5-6.8 4"/></svg></button>' +
                         '<button type="button" class="rv-act danger" data-act="del" aria-label="' + esc(t("actDelete")) + '" title="' + esc(t("actDelete")) + '"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
                     "</div>" +
@@ -8189,7 +8282,6 @@
                     return (r.text + " " + r.name).toLowerCase().indexOf(q) > -1;
                 });
             }
-            $("cntBadge").textContent = String(reviews.length);
             var hasAny = reviews.length > 0;
             $("controls").classList.toggle("hidden", !hasAny);
 
@@ -8309,13 +8401,15 @@
 
             wait(320).then(function () {
                 var name = $("nameInput").value.trim().slice(0, 40);
+                if (editingId) { finishEdit(name, text); btn.classList.remove("loading"); btn.disabled = false; return; }
                 var review = {
                     id: uid(),
                     name: name,
                     text: text.slice(0, MAX_TEXT),
                     rating: state.rating,
                     category: state.category,
-                    ts: Date.now()
+                    ts: Date.now(),
+                    mine: true
                 };
                 reviews.unshift(review);
                 if (reviews.length > 500) reviews = reviews.slice(0, 500);
@@ -8328,6 +8422,7 @@
                 autoGrow();
                 updateCharCount();
                 setRating(0, false);
+                updateComposerMode();
                 hideErr("errRating");
                 hideErr("errMsg");
 
@@ -8373,7 +8468,9 @@
             persistReviews();
             closeConfirm();
             renderStats();
+            if (editingId === pendingDeleteId) cancelEdit();
             renderList(false);
+            updateComposerMode();
             showToast(t("toastDeleted"));
             vibrate(20);
         }
@@ -8388,7 +8485,9 @@
                 var review = reviews.filter(function (r) { return r.id === card.dataset.id; })[0];
                 if (!review) return;
                 var act = btn.dataset.act;
-                if (act === "copy") copyText(buildShareText(review));
+                if (act === "like") toggleLike(review.id);
+                else if (act === "edit") startEdit(review.id);
+                else if (act === "copy") copyText(buildShareText(review));
                 else if (act === "share") tryShare(buildShareText(review));
                 else if (act === "del") openConfirm(review.id);
             });
@@ -8415,6 +8514,8 @@
             var back = $("backBtn");
             if (back) back.addEventListener("click", function () { switchTab("settings"); });
 
+            $("cancelEditBtn").addEventListener("click", cancelEdit);
+
             // Категории
             $("catRow").addEventListener("click", function (e) {
                 var chip = e.target.closest(".chip");
@@ -8432,16 +8533,6 @@
                     c.setAttribute("aria-selected", on ? "true" : "false");
                 });
                 renderList(false);
-            });
-
-            // Поиск
-            $("searchInput").addEventListener("input", function () {
-                var value = this.value;
-                clearTimeout(searchTimer);
-                searchTimer = setTimeout(function () {
-                    searchQ = value;
-                    renderList(false);
-                }, 140);
             });
 
             // Ввод текста
@@ -8493,6 +8584,7 @@
             restoreDraft();
             renderStats();
             renderList(false);
+            updateComposerMode();
             initReveal();
         }
 

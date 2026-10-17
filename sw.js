@@ -10,7 +10,7 @@
 // (HADITH_NOTIFIED), чтобы та начала новое окно; в настройках снова есть
 // переключатель хадисов.
 // Бампать CACHE_NAME при каждом релизе → activate-handler выкинет старый кэш.
-const CACHE_NAME = 'azkar-v88';
+const CACHE_NAME = 'azkar-v89';
 
 // ===== УСТАНОВКА И КЭШ =====
 self.addEventListener('install', (event) => {
