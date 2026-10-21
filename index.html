@@ -2469,6 +2469,9 @@
         .data-btn:focus:not(:focus-visible) { outline: none; }
         .data-btn.export-btn:focus-visible { border-color: var(--gold); color: var(--gold); background: var(--accent-glow); }
         .data-btn.import-btn:focus-visible { border-color: var(--success); color: var(--success); background: rgba(74,222,128,0.08); }
+        /* Цвет при самом нажатии (пока палец на кнопке); после отпускания возвращается сам */
+        .data-btn.export-btn:active { border-color: var(--gold); color: var(--gold); background: var(--accent-glow); }
+        .data-btn.import-btn:active { border-color: var(--success); color: var(--success); background: rgba(74,222,128,0.08); }
         #importFileInput { display: none; }
 
         /* ===== NAMES ===== */
