@@ -2461,17 +2461,8 @@
         }
         .data-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
         .data-btn:active { transform: scale(0.96) translateZ(0); }
-        /* Подсветка только для мыши (на тач-экранах hover «залипает» после тапа) и для клавиатуры */
-        @media (hover: hover) {
-            .data-btn.export-btn:hover { border-color: var(--gold); color: var(--gold); background: var(--accent-glow); }
-            .data-btn.import-btn:hover { border-color: var(--success); color: var(--success); background: rgba(74,222,128,0.08); }
-        }
-        .data-btn:focus:not(:focus-visible) { outline: none; }
-        .data-btn.export-btn:focus-visible { border-color: var(--gold); color: var(--gold); background: var(--accent-glow); }
-        .data-btn.import-btn:focus-visible { border-color: var(--success); color: var(--success); background: rgba(74,222,128,0.08); }
-        /* Цвет при самом нажатии (пока палец на кнопке); после отпускания возвращается сам */
-        .data-btn.export-btn:active { border-color: var(--gold); color: var(--gold); background: var(--accent-glow); }
-        .data-btn.import-btn:active { border-color: var(--success); color: var(--success); background: rgba(74,222,128,0.08); }
+        .data-btn.export-btn:hover, .data-btn.export-btn:focus { border-color: var(--gold); color: var(--gold); background: var(--accent-glow); }
+        .data-btn.import-btn:hover, .data-btn.import-btn:focus { border-color: var(--success); color: var(--success); background: rgba(74,222,128,0.08); }
         #importFileInput { display: none; }
 
         /* ===== NAMES ===== */
@@ -16677,8 +16668,9 @@
         function clearHadithTimer() {
             if (_hadithTimer) { clearTimeout(_hadithTimer); _hadithTimer = null; }
         }
-        const HADITH_MIN_MS = 3 * 60 * 60 * 1000; // 3 часа — начало окна
-        const HADITH_MAX_MS = 6 * 60 * 60 * 1000; // 6 часов — конец окна
+        // ТЕСТ: хадисы каждую 1 минуту. Для возврата к 2–4 часам: 2*60*60*1000 и 4*60*60*1000
+        const HADITH_MIN_MS = 60 * 1000; // ТЕСТ: 1 минута
+        const HADITH_MAX_MS = 60 * 1000; // ТЕСТ: 1 минута
         const HADITH_NEXT_KEY = 'azkar_hadith_next_at';
         const HADITH_OVERDUE_DELAY_MS = 3000;     // если время прошло, пока приложение было закрыто
 
@@ -16794,8 +16786,7 @@
             let next = _hadithReadNext();
             const now = Date.now();
             // нет сохранённого времени или оно подозрительно далеко (сбилось время на устройстве) — новый бросок
-            // Время в прошлом (приложение было закрыто) — не показываем сразу при открытии, а начинаем новое окно
-            if (!next || next <= now || next - now > HADITH_MAX_MS) next = _hadithRollNext();
+            if (!next || next - now > HADITH_MAX_MS) next = _hadithRollNext();
             const delay = Math.max(next - now, HADITH_OVERDUE_DELAY_MS);
             sendHadithScheduleToSW(delay);
             _hadithTimer = setTimeout(_hadithFireAndReschedule, delay);
