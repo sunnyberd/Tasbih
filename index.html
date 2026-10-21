@@ -16668,8 +16668,9 @@
         function clearHadithTimer() {
             if (_hadithTimer) { clearTimeout(_hadithTimer); _hadithTimer = null; }
         }
-        const HADITH_MIN_MS = 2 * 60 * 60 * 1000; // 2 часа — начало окна
-        const HADITH_MAX_MS = 4 * 60 * 60 * 1000; // 4 часа — конец окна
+        // ТЕСТ: хадисы каждую 1 минуту. Для возврата к 2–4 часам: 2*60*60*1000 и 4*60*60*1000
+        const HADITH_MIN_MS = 60 * 1000; // ТЕСТ: 1 минута
+        const HADITH_MAX_MS = 60 * 1000; // ТЕСТ: 1 минута
         const HADITH_NEXT_KEY = 'azkar_hadith_next_at';
         const HADITH_OVERDUE_DELAY_MS = 3000;     // если время прошло, пока приложение было закрыто
 
@@ -16710,10 +16711,11 @@
                 _hadithLastIdx = idx;
                 const body = _hadithText(list[idx]);
                 if (!body) return false;
+                const source = _hadithSource(list[idx]);
                 navigator.serviceWorker.ready.then(reg => reg.showNotification(t('hadithLabel'), {
                     body: body, icon: 'icon-192.png', badge: 'icon-192.png',
-                    tag: 'azkar-hadith', renotify: true, requireInteraction: false,
-                    data: { url: reg.scope }
+                    tag: 'azkar-hadith-' + Date.now(), renotify: false, requireInteraction: false,
+                    data: { url: reg.scope, hadithText: body, hadithSource: source }
                 })).catch(() => {});
                 return true;
             } catch (e) { return false; }
@@ -16849,14 +16851,39 @@
             requestAnimationFrame(() => requestAnimationFrame(() => banner.classList.add('show')));
             if (_hadithBannerTimer) clearTimeout(_hadithBannerTimer);
             // Авто-скрытие через 7 сек, если пользователь не нажал
-            _hadithBannerTimer = setTimeout(hideHadithBanner, 7000);
+            _hadithBannerTimer = setTimeout(() => hideHadithBanner({ pin: true }), 7000);
         }
-        function hideHadithBanner() {
+        function hideHadithBanner(opts) {
             const banner = document.getElementById('hadithBanner');
             if (!banner) return;
             if (_hadithBannerTimer) { clearTimeout(_hadithBannerTimer); _hadithBannerTimer = null; }
+            // Хадис не открыли (исчез сам или смахнули) → остаётся системным уведомлением
+            if (opts && opts.pin && _hadithCurrent) _pinHadithNotification(_hadithCurrent);
             banner.classList.remove('show');
             setTimeout(() => { banner.style.display = 'none'; }, 320);
+        }
+        // Хадис показан в баннере, но не открыт → кладём его в шторку уведомлений
+        function _pinHadithNotification(h) {
+            try {
+                if (!('Notification' in window) || Notification.permission !== 'granted' || !('serviceWorker' in navigator)) return;
+                const body = _hadithText(h);
+                if (!body) return;
+                const source = _hadithSource(h);
+                navigator.serviceWorker.ready.then(reg => reg.showNotification(t('hadithLabel'), {
+                    body: body, icon: 'icon-192.png', badge: 'icon-192.png',
+                    tag: 'azkar-hadith-' + Date.now(), renotify: false, requireInteraction: false,
+                    data: { url: reg.scope, hadithText: body, hadithSource: source }
+                })).catch(() => {});
+            } catch (e) {}
+        }
+        // Попап по готовому тексту (из системного уведомления)
+        function openHadithPopupRaw(text, source) {
+            if (!text) return;
+            document.getElementById('hadithTranslationText').textContent = text;
+            document.getElementById('hadithSourceText').textContent = source ? '— ' + source : '';
+            const overlay = document.getElementById('hadithPopupOverlay');
+            overlay.style.display = 'flex';
+            requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('show')));
         }
         // Тап по баннеру → открыть полноценный попап
         function openHadithFromBanner() {
@@ -21925,7 +21952,7 @@
                         banner.style.transition = '';
                         banner.style.transform = '';
                         banner.style.opacity = '';
-                        if (typeof hideHadithBanner === 'function') hideHadithBanner();
+                        if (typeof hideHadithBanner === 'function') hideHadithBanner({ pin: true });
                     }, 300);
                 } else {
                     // Недостаточно — возвращаем
@@ -22026,5 +22053,24 @@
     pfRender();
     </script>
 
+<script>
+// Тап по системному уведомлению с хадисом → открыть попап с этим хадисом
+(function () {
+    try {
+        const p = new URLSearchParams(location.search);
+        const text = p.get('hadith');
+        if (text) {
+            const src = p.get('src') || '';
+            history.replaceState(null, '', location.pathname);
+            window.addEventListener('load', () => setTimeout(() => openHadithPopupRaw(text, src), 600));
+        }
+    } catch (e) {}
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.addEventListener('message', e => {
+            if (e.data && e.data.type === 'OPEN_HADITH_POPUP') openHadithPopupRaw(e.data.text, e.data.source || '');
+        });
+    }
+})();
+</script>
 </body>
 </html>
