@@ -2461,8 +2461,22 @@
         }
         .data-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
         .data-btn:active { transform: scale(0.96) translateZ(0); }
-        .data-btn.export-btn:hover, .data-btn.export-btn:focus { border-color: var(--gold); color: var(--gold); background: var(--accent-glow); }
-        .data-btn.import-btn:hover, .data-btn.import-btn:focus { border-color: var(--success); color: var(--success); background: rgba(74,222,128,0.08); }
+        /* Подсветка только для мыши (на тач-экранах hover «залипает» после тапа) и для клавиатуры */
+        @media (hover: hover) {
+            .data-btn.export-btn:hover { border-color: var(--gold); color: var(--gold); background: var(--accent-glow); }
+            .data-btn.import-btn:hover { border-color: var(--success); color: var(--success); background: rgba(74,222,128,0.08); }
+        }
+        .data-btn:focus:not(:focus-visible) { outline: none; }
+        .data-btn.export-btn:focus-visible { border-color: var(--gold); color: var(--gold); background: var(--accent-glow); }
+        .data-btn.import-btn:focus-visible { border-color: var(--success); color: var(--success); background: rgba(74,222,128,0.08); }
+        /* Вспышка цвета при нажатии — как у остальных кнопок настроек (запускается сразу на pointerdown) */
+        .data-btn.export-btn.data-flash { animation: dataFlashExport 0.5s ease-out; }
+        .data-btn.import-btn.data-flash { animation: dataFlashImport 0.5s ease-out; }
+        @keyframes dataFlashExport { 0% { border-color: var(--gold); color: var(--gold); background: var(--accent-glow); } }
+        @keyframes dataFlashImport { 0% { border-color: var(--success); color: var(--success); background: rgba(74,222,128,0.14); } }
+        /* Цвет при самом нажатии (пока палец на кнопке); после отпускания возвращается сам */
+        .data-btn.export-btn:active { border-color: var(--gold); color: var(--gold); background: var(--accent-glow); }
+        .data-btn.import-btn:active { border-color: var(--success); color: var(--success); background: rgba(74,222,128,0.08); }
         #importFileInput { display: none; }
 
         /* ===== NAMES ===== */
@@ -16668,9 +16682,8 @@
         function clearHadithTimer() {
             if (_hadithTimer) { clearTimeout(_hadithTimer); _hadithTimer = null; }
         }
-        // ТЕСТ: хадисы каждую 1 минуту. Для возврата к 2–4 часам: 2*60*60*1000 и 4*60*60*1000
-        const HADITH_MIN_MS = 60 * 1000; // ТЕСТ: 1 минута
-        const HADITH_MAX_MS = 60 * 1000; // ТЕСТ: 1 минута
+        const HADITH_MIN_MS = 3 * 60 * 60 * 1000; // 3 часа — начало окна
+        const HADITH_MAX_MS = 6 * 60 * 60 * 1000; // 6 часов — конец окна
         const HADITH_NEXT_KEY = 'azkar_hadith_next_at';
         const HADITH_OVERDUE_DELAY_MS = 3000;     // если время прошло, пока приложение было закрыто
 
@@ -16786,7 +16799,8 @@
             let next = _hadithReadNext();
             const now = Date.now();
             // нет сохранённого времени или оно подозрительно далеко (сбилось время на устройстве) — новый бросок
-            if (!next || next - now > HADITH_MAX_MS) next = _hadithRollNext();
+            // Время в прошлом (приложение было закрыто) — не показываем сразу при открытии, а начинаем новое окно
+            if (!next || next <= now || next - now > HADITH_MAX_MS) next = _hadithRollNext();
             const delay = Math.max(next - now, HADITH_OVERDUE_DELAY_MS);
             sendHadithScheduleToSW(delay);
             _hadithTimer = setTimeout(_hadithFireAndReschedule, delay);
@@ -22070,6 +22084,21 @@
             if (e.data && e.data.type === 'OPEN_HADITH_POPUP') openHadithPopupRaw(e.data.text, e.data.source || '');
         });
     }
+})();
+</script>
+<script>
+// Вспышка кнопок Экспорт/Импорт при нажатии (палец/мышь), без залипания
+(function () {
+    document.addEventListener('pointerdown', function (e) {
+        const b = e.target.closest && e.target.closest('.data-btn.export-btn, .data-btn.import-btn');
+        if (!b) return;
+        b.classList.remove('data-flash');
+        void b.offsetWidth;
+        b.classList.add('data-flash');
+    }, { passive: true });
+    document.addEventListener('animationend', function (e) {
+        if (e.target.classList && e.target.classList.contains('data-flash')) e.target.classList.remove('data-flash');
+    });
 })();
 </script>
 </body>
