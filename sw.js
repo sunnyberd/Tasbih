@@ -10,8 +10,10 @@
 // (HADITH_NOTIFIED), чтобы та начала новое окно; в настройках снова есть
 // переключатель хадисов.
 // Бампать CACHE_NAME при каждом релизе → activate-handler выкинет старый кэш.
-const CACHE_NAME = 'azkar-v89';
+const CACHE_NAME = 'azkar-v90';
 
+// v90 — хадис, показанный в баннере и не открытый, остаётся в шторке уведомлений;
+// тап по такому уведомлению открывает попап с этим хадисом; тестовый интервал 1 мин.
 // ===== УСТАНОВКА И КЭШ =====
 self.addEventListener('install', (event) => {
     self.skipWaiting();
@@ -118,10 +120,10 @@ function fireHadith() {
                 body: text,
                 icon: c.icon,
                 badge: c.badge,
-                tag: 'azkar-hadith',
-                renotify: true,
+                tag: 'azkar-hadith-' + Date.now(),
+                renotify: false,
                 requireInteraction: false,
-                data: { url: self.registration.scope }
+                data: { url: self.registration.scope, hadithText: text }
             }).then(() => {
                 // Сообщаем странице (если она где-то жива), что хадис уже показан
                 clients.forEach(cl => cl.postMessage({ type: 'HADITH_NOTIFIED' }));
@@ -228,19 +230,24 @@ function fireDueEvents() {
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
 
-    const targetUrl = (event.notification.data && event.notification.data.url)
-        ? event.notification.data.url
-        : self.registration.scope;
+    const data = event.notification.data || {};
+    const baseUrl = data.url || self.registration.scope;
+    const hadith = data.hadithText || null;
+    const source = data.hadithSource || '';
 
     event.waitUntil(
         self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
-            // Если приложение уже открыто — фокусируемся на нём
+            // Приложение уже открыто — фокусируемся и просим показать хадис
             const existing = clients.find(c => c.url.startsWith(self.registration.scope));
             if (existing) {
+                if (hadith) existing.postMessage({ type: 'OPEN_HADITH_POPUP', text: hadith, source: source });
                 return existing.focus();
             }
-            // Иначе открываем новую вкладку
-            return self.clients.openWindow(targetUrl);
+            // Иначе открываем приложение; хадис передаём в адресе
+            const url = hadith
+                ? baseUrl + (baseUrl.includes('?') ? '&' : '?') + 'hadith=' + encodeURIComponent(hadith) + '&src=' + encodeURIComponent(source)
+                : baseUrl;
+            return self.clients.openWindow(url);
         })
     );
 });
