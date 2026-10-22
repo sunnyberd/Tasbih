@@ -11133,9 +11133,9 @@ function safeParse(key, fallback) {
             card.innerHTML = `
                 <div class="special-drag-handle" title="Перетащить"><svg viewBox="0 0 24 24"><circle cx="9" cy="5" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="9" cy="19" r="1.2" fill="currentColor"/><circle cx="15" cy="5" r="1.2" fill="currentColor"/><circle cx="15" cy="12" r="1.2" fill="currentColor"/><circle cx="15" cy="19" r="1.2" fill="currentColor"/></svg></div>
                 <div class="special-card-body">
-                    <div class="special-card-name">${name}</div>
-                    ${text ? `<div class="special-card-text">${text}</div>` : ''}
-                    ${desc ? `<div class="special-card-desc">${desc}</div>` : ''}
+                    <div class="special-card-name">${esc(name)}</div>
+                    ${text ? `<div class="special-card-text">${esc(text)}</div>` : ''}
+                    ${desc ? `<div class="special-card-desc">${esc(desc)}</div>` : ''}
                 </div>
                 <div class="special-card-controls">
                     <button class="special-action-btn" data-id="${dhikr.id}" data-action="edit" title="${escAttr(t('titleEdit'))}">
@@ -11291,15 +11291,15 @@ function safeParse(key, fallback) {
             const detail = getSpecialDetail(dhikr);
             // Страница 1 — как обычно: название, текст, описание, кнопка «Начать»
             const page1 = `
-                <div class="detail-title">${name}</div>
-                ${text ? `<div class="detail-text">${text}</div>` : ''}
-                ${desc ? `<div class="detail-desc">${desc}</div>` : ''}
+                <div class="detail-title">${esc(name)}</div>
+                ${text ? `<div class="detail-text">${esc(text)}</div>` : ''}
+                ${desc ? `<div class="detail-desc">${esc(desc)}</div>` : ''}
                 <button class="special-start-btn" onclick="startSpecialDhikr('${dhikr.id}')">${t('specialStartBtn')}</button>`;
             // Страница 2 — «Подробнее»: расширенное описание (без кнопки «Начать»).
             // Показывается только если оно заполнено.
             const page2 = detail ? `
                 <div class="detail-more-label">${t('detailMoreLabel')}</div>
-                <div class="detail-desc">${detail}</div>` : '';
+                <div class="detail-desc">${esc(detail)}</div>` : '';
             _renderDetailPager(card, [page1, page2]);
             document.getElementById('specialDetailOverlay').classList.add('show');
         }
@@ -13197,13 +13197,13 @@ function safeParse(key, fallback) {
             const detail = d.detail || '';
             // Страница 1 — как обычно: название, текст и описание дуа
             const page1 = `
-                ${name ? `<div class="detail-title">${name}</div>` : ''}
-                <div class="detail-text">${text}</div>
-                ${trans ? `<div class="detail-desc">${trans}</div>` : ''}`;
+                ${name ? `<div class="detail-title">${esc(name)}</div>` : ''}
+                <div class="detail-text">${esc(text)}</div>
+                ${trans ? `<div class="detail-desc">${esc(trans)}</div>` : ''}`;
             // Страница 2 — «Подробнее»: расширенное описание (если заполнено)
             const page2 = detail ? `
                 <div class="detail-more-label">${t('detailMoreLabel')}</div>
-                <div class="detail-desc">${detail}</div>` : '';
+                <div class="detail-desc">${esc(detail)}</div>` : '';
             _renderDetailPager(card, [page1, page2]);
             document.getElementById('duaDetailOverlay').classList.add('show');
         }
