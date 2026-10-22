@@ -14,7 +14,15 @@
     <link rel="apple-touch-icon" href="icon-192.png">
     <title>Azkar — Dhikr, Tasbih Counter &amp; Duas</title>
     <script src="language-routing.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+@font-face{font-family:'Amiri';src:url('fonts/amiri-regular.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap;}
+@font-face{font-family:'Amiri';src:url('fonts/amiri-bold.woff2') format('woff2');font-weight:700;font-style:normal;font-display:swap;}
+@font-face{font-family:'Cormorant Garamond';src:url('fonts/cormorantgaramond.woff2') format('woff2');font-weight:300 700;font-style:normal;font-display:swap;}
+@font-face{font-family:'Montserrat';src:url('fonts/montserrat.woff2') format('woff2');font-weight:300 700;font-style:normal;font-display:swap;}
+@font-face{font-family:'Noto Naskh Arabic';src:url('fonts/notonaskharabic.woff2') format('woff2');font-weight:400 700;font-style:normal;font-display:swap;}
+@font-face{font-family:'Scheherazade New';src:url('fonts/scheherazadenew-regular.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap;}
+@font-face{font-family:'Scheherazade New';src:url('fonts/scheherazadenew-bold.woff2') format('woff2');font-weight:700;font-style:normal;font-display:swap;}
+    </style>
     
 
     <style>
@@ -17537,7 +17545,7 @@
                         cursor:pointer;transition:background 0.12s,transform 0.1s;letter-spacing:0.5px;}
                     #pb:active{background:${accent}22;transform:scale(0.94);}
                 </style>
-                <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&display=swap" rel="stylesheet">`;
+                <style>@font-face{font-family:'Cormorant Garamond';src:url('${new URL('fonts/cormorantgaramond.woff2', location.href).href}') format('woff2');font-weight:300 700;font-display:swap;}</style>`;
 
                 const label = currentLang === 'en' ? 'DHIKR' : currentLang === 'uz' ? 'ZIKR' : 'ЗИКР';
                 const tapLabel = currentLang === 'en' ? 'TAP' : currentLang === 'uz' ? 'BOSING' : 'НАЖМИ';
