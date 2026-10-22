@@ -751,7 +751,7 @@
         .screen { content-visibility: auto; contain-intrinsic-size: 0 800px; }
         .screen.active { content-visibility: visible; }
         .navbar { will-change: transform; }
-        .dua-card, .name-card, .stat-card { contain: layout style paint; }
+        .dua-card, .stat-card { contain: layout style paint; }
         .modal-overlay { contain: layout style; }
 
         html {
@@ -1467,7 +1467,7 @@
         }
 
         /* Detail overlays — backdrop-filter only on static layers */
-        .stats-detail-overlay, .name-detail-overlay, .special-detail-overlay {
+        .stats-detail-overlay, .special-detail-overlay {
             position: fixed; inset: 0;
             background: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(6px);
@@ -1479,9 +1479,8 @@
             will-change: opacity;
         }
         .stats-detail-overlay.show,
-        .name-detail-overlay.show,
         .special-detail-overlay.show { visibility: visible; opacity: 1; }
-        .stats-detail-card, .name-detail-card, .special-detail-card {
+        .stats-detail-card, .special-detail-card {
             background: var(--surface); border: 1px solid var(--border-hover);
             border-radius: 32px; padding: 24px; text-align: center;
             max-width: min(320px, 90vw); width: 90%; box-shadow: var(--shadow-lg);
@@ -2478,24 +2477,6 @@
         .data-btn.export-btn:active { border-color: var(--gold); color: var(--gold); background: var(--accent-glow); }
         .data-btn.import-btn:active { border-color: var(--success); color: var(--success); background: rgba(74,222,128,0.08); }
         #importFileInput { display: none; }
-
-        /* ===== NAMES ===== */
-        .names-header { display: flex; align-items: center; justify-content: center; padding: clamp(14px, 4vw, 20px) 20px 8px; }
-        .names-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.6rem, 6vw, 2rem); font-weight: 600; background: linear-gradient(135deg, var(--grad-start), var(--grad-mid)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .names-list { padding: 6px clamp(10px, 4vw, 16px); display: flex; flex-direction: column; gap: 10px; }
-        .name-card {
-            background: var(--surface); border: 1px solid var(--gold);
-            border-radius: 32px; padding: clamp(12px, 3.5vw, 16px) 20px;
-            box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 6px;
-            transition: transform 0.1s ease, background 0.1s;
-            will-change: transform;
-            cursor: pointer; contain: layout style;
-        }
-        .name-card:active { transform: scale(0.98) translateZ(0); background: var(--accent-glow); }
-        .name-top-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-        .name-arabic { font-family: 'Amiri', serif; font-size: clamp(1.5rem, 6vw, 1.8rem); color: var(--gold); text-align: right; line-height: 1.2; }
-        .name-translit { font-family: 'Amiri', serif; font-size: clamp(1.5rem, 6vw, 1.8rem); color: var(--gold); text-align: left; line-height: 1.2; }
-        .name-meaning { font-size: clamp(0.88rem, 3.5vw, 0.95rem); color: var(--text); margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--border); }
 
         /* ===== SPECIAL ===== */
         .special-card {
@@ -3621,7 +3602,6 @@
         .screen-header h2     { font-size: clamp(1.4rem, 5.5vw, 2rem); }
         .screen-header p      { font-size: clamp(0.68rem, 2.5vw, 0.76rem); }
         .settings-list        { padding: 0 var(--screen-pad-h); }
-        .names-list           { padding: 6px var(--screen-pad-h); }
         .dua-list             { padding: 6px var(--screen-pad-h); }
         .stats-summary        { padding: 4px var(--screen-pad-h); gap: clamp(7px, 2.5vw, 12px); }
         .stats-chart-area,
@@ -5571,15 +5551,6 @@
         <div class="dua-list" id="duaList"></div>
     </div>
 
-    <div class="screen" id="screen-names">
-        <div class="screen-sticky-head">
-            <div class="names-header">
-                <div class="names-title" id="namesTitle">99 имён Аллаха</div>
-            </div>
-        </div>
-        <div class="names-list" id="namesList"></div>
-    </div>
-
     <div class="screen" id="screen-favorites">
         <div class="screen-sticky-head">
             <div class="screen-header">
@@ -6677,10 +6648,6 @@
         <div class="stats-detail-card" id="statsDetailCard"></div>
     </div>
 
-    <div class="name-detail-overlay" id="nameDetailOverlay" onclick="closeNameDetail()">
-        <div class="name-detail-card" id="nameDetailCard"></div>
-    </div>
-
     <div class="special-detail-overlay" id="specialDetailOverlay" onclick="closeSpecialDetail()">
         <div class="special-detail-card" id="specialDetailCard"></div>
     </div>
@@ -7737,11 +7704,15 @@
                 </svg></div>
                 <span class="nav-label" id="navDua">Дуа</span>
             </div>
-            <div class="nav-item" data-tab="favorites" onclick="switchTab('favorites')">
+            <div class="nav-item" data-tab="checklist" onclick="switchTab('checklist')">
                 <div class="nav-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                  <!-- Чек-лист: планшет с галочкой и строками задач -->
+                  <rect x="4.5" y="3.5" width="15" height="17" rx="2.5"/>
+                  <path d="M8.4 9.2l1.8 1.8 3.7-3.7"/>
+                  <line x1="8.6" y1="14.6" x2="15.4" y2="14.6"/>
+                  <line x1="8.6" y1="17.6" x2="13.2" y2="17.6"/>
                 </svg></div>
-                <span class="nav-label" id="navFav">Избранное</span>
+                <span class="nav-label" id="navChecklist">Задачи</span>
             </div>
             <div class="nav-item" data-tab="stats" onclick="switchTab('stats')">
                 <div class="nav-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -9819,9 +9790,8 @@
                 btnYes: 'btnYes', btnNo: 'btnNo', btnYesReset: 'btnYes',
                 btnNoReset: 'btnNo', btnYesClear: 'btnYes', btnNoClear: 'btnNo',
                 btnYesClearStats: 'btnYes', btnNoClearStats: 'btnNo',
-                navAzkar: 'navAzkar', navDua: 'navDua', navFav: 'navFav', navStats: 'navStats', navSettings: 'navSettings',
+                navAzkar: 'navAzkar', navDua: 'navDua', navChecklist: 'titleChecklist', navStats: 'navStats', navSettings: 'navSettings',
                 periodWeek: 'periodWeek', periodMonth: 'periodMonth', periodYear: 'periodYear',
-                namesTitle: 'namesTitle',
                 specialListTitle: 'specialListTitle', specialListSubtitle: 'specialListSubtitle',
                 labelPip: 'labelPip',
                 labelReminder: 'labelReminder',
@@ -9948,10 +9918,12 @@
             if (settings && hadithOn() && typeof sendHadithScheduleToSW === 'function') {
                 sendHadithScheduleToSW();
             }
+            // Default "99 Names of Allah" folder: refresh its name and the
+            // localized name/meaning/description of every seeded dua.
+            if (typeof _syncNames99FolderLanguage === 'function') _syncNames99FolderLanguage();
             renderDuas();
             renderDuaFolders();
             renderFavorites();
-            renderNames();
             renderStats();
             // Обновляем название системной папки «Особые Награды» при смене языка
             (function() {
@@ -10030,7 +10002,7 @@
             if (event.key === 'Escape') closeAboutApp();
         });
 
-        function changeLanguage(lang) { currentLang = lang; applyLanguage(lang); saveDataDebounced(); markDirty('dua','favorites','stats','names','special'); }
+        function changeLanguage(lang) { currentLang = lang; applyLanguage(lang); saveDataDebounced(); markDirty('dua','favorites','stats','special'); }
 
         // ===== LANGUAGE DROPDOWN =====
         const _langMeta = UI_I18N.languageMeta || {};
@@ -11687,70 +11659,30 @@
             try { if (typeof window._stealthDeactivate === 'function') window._stealthDeactivate(); } catch(e) {}
         }
 
-        // ==================== NAMES RENDER ====================
-        function renderNames() {
-            const container = document.getElementById('namesList');
-            if (!container) return;
-            container.innerHTML = '';
-            const fragment = document.createDocumentFragment();
-            names99.forEach((name) => {
-                const card = document.createElement('div');
-                card.className = 'name-card';
-                const localTranslit = getTranslit(name, currentLang);
-                card.innerHTML = `
-                    <div class="name-top-row">
-                        <div class="name-translit">${localTranslit}</div>
-                        <div class="name-arabic">${name.arabic}</div>
-                    </div>
-                    <div class="name-meaning">${name[currentLang] || name.en || name.ru}</div>
-                `;
-                card.addEventListener('click', () => showNameDetail(name));
-                fragment.appendChild(card);
-            });
-            container.appendChild(fragment);
-        }
-
-        function showNameDetail(name) {
-            const card = document.getElementById('nameDetailCard');
-            const lang = currentLang;
-            const descKey = 'desc_' + lang;
-            const desc = name[descKey] || name.desc_en || name.desc_ru;
-            const localTranslit = getTranslit(name, lang);
-            card.innerHTML = `
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom: 10px;">
-                    <div style="font-family: 'Amiri', serif; font-size: 1.6rem; color: var(--gold); line-height: 1.2;">${localTranslit}</div>
-                    <div style="font-family: 'Amiri', serif; font-size: 1.6rem; color: var(--gold); line-height: 1.2; text-align: right;">${name.arabic}</div>
-                </div>
-                <div style="font-size: 1.2rem; color: var(--text); margin-bottom: 8px; padding-top: 8px; border-top: 1px solid var(--border);">${name[lang] || name.en || name.ru}</div>
-                <div style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.4;">${desc}</div>
-            `;
-            document.getElementById('nameDetailOverlay').classList.add('show');
-        }
-
-        function closeNameDetail() {
-            document.getElementById('nameDetailOverlay').classList.remove('show');
-        }
+        // ==================== NAMES (default Duas folder data) ====================
+        // The 99 names are seeded into Duas as a built-in folder
+        // (see ensureNames99DuaFolder). The old dedicated screen was removed.
 
         function setupSwipe() {
             const azkarScreen = document.getElementById('screen-azkar');
             const duaScreen = document.getElementById('screen-dua');
-            const namesScreen = document.getElementById('screen-names');
+            const favoritesScreen = document.getElementById('screen-favorites');
             const specialListScreen = document.getElementById('screen-special-list');
             const specialCounterScreen = document.getElementById('screen-special-counter');
-            const statsScreen = document.getElementById('screen-stats');
-            const checklistScreen = document.getElementById('screen-checklist');
             const qiblaScreen = document.getElementById('screen-qibla');
             let startX = 0;
 
             function handleTouchStart(e) { startX = e.touches[0].clientX; }
 
-            function handleTouchEndDuaNames(e) {
+            // Duas ↔ Favorites: swipe from Duas opens the favorites list,
+            // swipe back returns to all duas. Favorites is no longer a nav tab.
+            function handleTouchEndDuaFav(e) {
                 if (!startX) return;
                 const diff = startX - e.changedTouches[0].clientX;
                 if (Math.abs(diff) > 50) {
                     if (diff > 0 && duaScreen.classList.contains('active')) {
-                        showNamesScreen();
-                    } else if (diff < 0 && namesScreen.classList.contains('active')) {
+                        showFavoritesScreen();
+                    } else if (diff < 0 && favoritesScreen.classList.contains('active')) {
                         goBackToDuas();
                     }
                 }
@@ -11794,35 +11726,17 @@
                 startX = 0;
             }
 
-            // Swipe left on stats → checklist, swipe right on checklist → stats
-            function handleTouchEndStatsChecklist(e) {
-                if (!startX) return;
-                const diff = startX - e.changedTouches[0].clientX;
-                if (Math.abs(diff) > 50) {
-                    if (diff > 0 && statsScreen.classList.contains('active')) {
-                        switchTab('checklist');
-                    } else if (diff < 0 && checklistScreen.classList.contains('active')) {
-                        switchTab('stats');
-                    }
-                }
-                startX = 0;
-            }
-
             // Touch events
             duaScreen.addEventListener('touchstart', handleTouchStart, { passive: true });
-            duaScreen.addEventListener('touchend', handleTouchEndDuaNames, { passive: true });
-            namesScreen.addEventListener('touchstart', handleTouchStart, { passive: true });
-            namesScreen.addEventListener('touchend', handleTouchEndDuaNames, { passive: true });
+            duaScreen.addEventListener('touchend', handleTouchEndDuaFav, { passive: true });
+            favoritesScreen.addEventListener('touchstart', handleTouchStart, { passive: true });
+            favoritesScreen.addEventListener('touchend', handleTouchEndDuaFav, { passive: true });
             azkarScreen.addEventListener('touchstart', handleTouchStart, { passive: true });
             azkarScreen.addEventListener('touchend', handleTouchEndAzkarSpecial, { passive: true });
             specialListScreen.addEventListener('touchstart', handleTouchStart, { passive: true });
             specialListScreen.addEventListener('touchend', handleTouchEndAzkarSpecial, { passive: true });
             specialCounterScreen.addEventListener('touchstart', handleTouchStart, { passive: true });
             specialCounterScreen.addEventListener('touchend', handleTouchEndSpecialCounter, { passive: true });
-            statsScreen.addEventListener('touchstart', handleTouchStart, { passive: true });
-            statsScreen.addEventListener('touchend', handleTouchEndStatsChecklist, { passive: true });
-            checklistScreen.addEventListener('touchstart', handleTouchStart, { passive: true });
-            checklistScreen.addEventListener('touchend', handleTouchEndStatsChecklist, { passive: true });
             qiblaScreen.addEventListener('touchstart', handleTouchStart, { passive: true });
             qiblaScreen.addEventListener('touchend', handleTouchEndQibla, { passive: true });
 
@@ -11830,7 +11744,7 @@
             function addMouseSwipe(screen, endHandler) {
                 screen.addEventListener('mousedown', function(e) {
                     // Don't intercept clicks on interactive elements
-                    if (e.target.closest('button, input, textarea, select, a, [onclick], .cl-task, .cl-task-card, .dua-card, .name-card, .special-card, .goal-chip, .nav-item, .setting-item, .theme-swatch, .special-action-btn, .dua-action-btn')) return;
+                    if (e.target.closest('button, input, textarea, select, a, [onclick], .cl-task, .cl-task-card, .dua-card, .special-card, .goal-chip, .nav-item, .setting-item, .theme-swatch, .special-action-btn, .dua-action-btn')) return;
                     startX = e.clientX;
                     let moved = false;
                     function onMove(ev) { moved = Math.abs(ev.clientX - startX) > 10; }
@@ -11853,25 +11767,24 @@
                 });
             }
 
-            addMouseSwipe(duaScreen, handleTouchEndDuaNames);
-            addMouseSwipe(namesScreen, handleTouchEndDuaNames);
+            addMouseSwipe(duaScreen, handleTouchEndDuaFav);
+            addMouseSwipe(favoritesScreen, handleTouchEndDuaFav);
             addMouseSwipe(azkarScreen, handleTouchEndAzkarSpecial);
             addMouseSwipe(specialListScreen, handleTouchEndAzkarSpecial);
             addMouseSwipe(specialCounterScreen, handleTouchEndSpecialCounter);
-            addMouseSwipe(statsScreen, handleTouchEndStatsChecklist);
-            addMouseSwipe(checklistScreen, handleTouchEndStatsChecklist);
             addMouseSwipe(qiblaScreen, handleTouchEndQibla);
         }
 
-        function showNamesScreen() {
+        function showFavoritesScreen() {
             document.getElementById('screen-dua').classList.remove('active');
-            document.getElementById('screen-names').classList.add('active');
+            document.getElementById('screen-favorites').classList.add('active');
             const duaFab = document.getElementById('duaAddFab');
             if (duaFab) duaFab.style.display = 'none';
-            renderNames();
+            renderFavorites();
+            _dirty.favorites = false;
         }
         function goBackToDuas() {
-            document.getElementById('screen-names').classList.remove('active');
+            document.getElementById('screen-favorites').classList.remove('active');
             document.getElementById('screen-dua').classList.add('active');
             const duaFab = document.getElementById('duaAddFab');
             if (duaFab) duaFab.style.display = '';
@@ -13230,7 +13143,11 @@
             const trans = document.getElementById('duaTrans').value.trim();
             const editId = document.getElementById('duaEditId').value;
             if (editId) {
-                const dua = duas.find(d => d.id === editId); if (dua) { dua.text = text; dua.name = name; dua.translation = trans; }
+                const dua = duas.find(d => d.id === editId);
+                if (dua) {
+                    dua.text = text; dua.name = name; dua.translation = trans;
+                    if (dua.builtin) delete dua.builtin;
+                }
             } else {
                 duas.push({ id: 'dua_' + Date.now(), text, name, translation: trans, favorite: false, created: Date.now() });
             }
@@ -13283,6 +13200,81 @@
         function saveDuaFolders() {
             localStorage.setItem('azkar_dua_folders', JSON.stringify(duaFolders));
             markDataChanged();
+        }
+
+        // ==================== DEFAULT "99 NAMES OF ALLAH" DUA FOLDER ====================
+        // The 99 names now ship as ordinary user content: one default folder
+        // inside Duas, containing 99 duas (Arabic text + localized translit,
+        // meaning and description). Seeded once. Deleting the folder leaves a
+        // tombstone so it is never resurrected behind the user's back.
+        const NAMES99_FOLDER_ID = 'duafolder_names99';
+        const NAMES99_DELETED_KEY = 'azkar_names99_dua_deleted';
+
+        function _names99DuaFields(n, lang) {
+            return {
+                text: n.arabic,
+                name: getTranslit(n, lang),
+                // Full translations exist for ru/en/uz; other languages fall
+                // back to English exactly like the old names screen did.
+                translation: n[lang] || n.en || n.ru || '',
+                detail: n['desc_' + lang] || n.desc_en || n.desc_ru || ''
+            };
+        }
+
+        function ensureNames99DuaFolder() {
+            if (!Array.isArray(names99) || names99.length === 0) return;
+            // The folder id is stable even if the user renames the folder.
+            if (duaFolders.some(f => f && f.id === NAMES99_FOLDER_ID)) return;
+            try {
+                if (localStorage.getItem(NAMES99_DELETED_KEY) === '1') return;
+            } catch (e) {}
+
+            const ids = [];
+            names99.forEach((n, i) => {
+                const id = 'name99_' + i;
+                let dua = duas.find(d => d.id === id);
+                if (!dua) {
+                    dua = { id: id, favorite: false, created: Date.now(), builtin: 'name99' };
+                    Object.assign(dua, _names99DuaFields(n, currentLang));
+                    duas.push(dua);
+                } else if (dua.builtin === 'name99') {
+                    Object.assign(dua, _names99DuaFields(n, currentLang));
+                }
+                ids.push(id);
+            });
+            duaFolders.unshift({
+                id: NAMES99_FOLDER_ID,
+                name: t('namesTitle'),
+                builtin: 'names99',
+                duaIds: ids
+            });
+            try {
+                localStorage.setItem('azkar_duas', JSON.stringify(duas));
+                localStorage.setItem('azkar_dua_folders', JSON.stringify(duaFolders));
+            } catch (e) {}
+            markDataChanged();
+            // The seed happens after the startup render, so refresh both the
+            // folder list and the flat list (otherwise the new folder would
+            // only show up after a language change or a reload).
+            if (document.getElementById('duaFoldersContainer')) {
+                renderDuaFolders();
+                renderDuas();
+                _dirty.dua = false;
+            }
+        }
+
+        // Re-localize the built-in folder after a language change. The folder
+        // name is only updated while it still carries the builtin marker (a
+        // user rename clears it), but the 99 entries themselves stay localized.
+        function _syncNames99FolderLanguage() {
+            const folder = duaFolders.find(f => f && f.id === NAMES99_FOLDER_ID);
+            if (folder && folder.builtin === 'names99') folder.name = t('namesTitle');
+            if (!Array.isArray(names99) || names99.length === 0) return;
+            const byId = new Map(duas.map(d => [d.id, d]));
+            names99.forEach((n, i) => {
+                const d = byId.get('name99_' + i);
+                if (d && d.builtin === 'name99') Object.assign(d, _names99DuaFields(n, currentLang));
+            });
         }
 
         function closeOpenDuaFolders() {
@@ -13861,7 +13853,12 @@
                 // Режим редактирования существующего дуа
                 if (!duaText) { showToast(t('toastEnterText')); if (dTextEl) dTextEl.focus(); return; }
                 const dua = duas.find(d => d.id === _duaFolderEditId);
-                if (dua) { dua.text = duaText; dua.name = duaName; dua.translation = duaTrans; dua.detail = duaDetail; }
+                if (dua) {
+                    dua.text = duaText; dua.name = duaName; dua.translation = duaTrans; dua.detail = duaDetail;
+                    // A manual edit turns a seeded name into user content: stop
+                    // auto-localizing it on future language changes.
+                    if (dua.builtin) delete dua.builtin;
+                }
                 _duaFolderEditId = null;
                 saveDataDebounced(); markDirty('dua','favorites'); renderDuaFolders(); renderDuas(); _dirty.dua = false; renderFavorites(); _dirty.favorites = false;
                 closeDuaFolderModal();
@@ -13918,11 +13915,24 @@
         }
         function confirmDeleteDuaFolder() {
             if (_deleteDuaFolderIdx === null) return;
+            const folder = duaFolders[_deleteDuaFolderIdx];
+            const removingNames99 = !!(folder && folder.id === NAMES99_FOLDER_ID);
             duaFolders.splice(_deleteDuaFolderIdx, 1);
             _deleteDuaFolderIdx = null;
+            if (removingNames99) {
+                // Deleting the built-in names folder removes its generated
+                // content and remembers the choice so it never reappears.
+                try { localStorage.setItem(NAMES99_DELETED_KEY, '1'); } catch(e) {}
+                const ids = new Set(folder.duaIds || []);
+                duas = duas.filter(d => !(ids.has(d.id) && d.builtin === 'name99'));
+                try { flushSave(); } catch(e) {}
+            }
             saveDuaFolders();
             renderDuaFolders();
             renderDuas();
+            renderFavorites();
+            _dirty.dua = false;
+            _dirty.favorites = false;
             document.getElementById('deleteDuaFolderOverlay').classList.remove('show');
         }
         function cancelDeleteDuaFolder() {
@@ -13995,6 +14005,8 @@
             if (_renameFolderType === 'dua' && duaFolders[_renameFolderIdx]) {
                 const idx = _renameFolderIdx;
                 duaFolders[idx].name = name;
+                // Custom name: stop auto-updating it on language changes.
+                delete duaFolders[idx].builtin;
                 saveDuaFolders();
                 renderDuaFolders();
                 openDuaFolder(idx);
@@ -14310,11 +14322,12 @@
                         // имена, статистику, спец-зикры И задачи (папки/подпапки).
                         applyTheme(settings.theme || 'dark');
                         applyLanguage(currentLang);
+                        ensureNames99DuaFolder();
                         updateDisplay();
                         updateSettingsUI();
                         updateHadithUI();
                         try { updateDhikrOverallProgress(); } catch(e5) {}
-                        markDirty('dua','favorites','names','stats','special');
+                        markDirty('dua','favorites','stats','special');
                         try { showToast(t('toastImported')); } catch(e3) {}
                         return;
                     }
@@ -14365,7 +14378,7 @@
                     try { updateDhikrOverallProgress(); } catch(e6) {}
                     // После импорта — помечаем все разделы устаревшими,
                     // они перерисуются при следующем переходе в них
-                    markDirty('dua','favorites','names','stats','special');
+                    markDirty('dua','favorites','stats','special');
                     updateSettingsUI();
 
                 } catch (err) {
@@ -16512,7 +16525,7 @@
         /* ===== ЛЕНИВЫЙ РЕНДЕР: флаги «грязных» разделов =====
            true = раздел ещё не отрисован или данные изменились → нужен рендер
            false = актуален, повторный рендер не нужен                         */
-        const _dirty = { dua: true, favorites: true, stats: true, names: true, special: true };
+        const _dirty = { dua: true, favorites: true, stats: true, special: true };
 
         /* Помечаем разделы устаревшими. Вызывается везде, где меняются данные. */
         function markDirty(...tabs) {
@@ -16592,7 +16605,6 @@
             if (tab === 'stats') { try { updateDhikrOverallProgress(); } catch(e) {} }
             if (tab === 'favorites'    && _dirty.favorites) { renderFavorites();   _dirty.favorites = false; }
             if (tab === 'dua'          && _dirty.dua)       { renderDuas();        _dirty.dua = false; }
-            if (tab === 'names'        && _dirty.names)     { renderNames();       _dirty.names = false; }
             if (tab === 'special-list' && _dirty.special)   { renderSpecialList(); _dirty.special = false; }
             // Show special FAB only on special-list tab
             const specialFab = document.getElementById('specialAddFab');
@@ -17769,7 +17781,7 @@
         // "local + database" is a small, contained change with no data loss.
         const APP_DATA_KEYS = [
             'azkar_count', 'azkar_goal', 'azkar_goal_baseline', 'azkar_custom_goal',
-            'azkar_duas', 'azkar_dua_folders', 'azkar_checklist_lists_v5', 'azkar_checklist_v4', 'azkar_stats_v2',
+            'azkar_duas', 'azkar_dua_folders', 'azkar_names99_dua_deleted', 'azkar_checklist_lists_v5', 'azkar_checklist_v4', 'azkar_stats_v2',
             'azkar_special_completed', 'azkar_special_progress', 'azkar_custom_special_dhikrs',
             'azkar_special_resume_sessions',
             'azkar_special_deleted_defaults', 'azkar_last_special_id', 'azkar_settings',
@@ -17891,12 +17903,13 @@
                 try { loadChecklist(); } catch(e) {}
                 applyTheme(settings.theme || 'dark', { animate: false });
                 applyLanguage(currentLang);
+                ensureNames99DuaFolder();
                 updateDisplay();
                 updateSettingsUI();
                 updateHadithUI();
                 updatePipCounter();
                 try { updateDhikrOverallProgress(); } catch(e) {}
-                markDirty('dua','favorites','names','stats','special');
+                markDirty('dua','favorites','stats','special');
             } catch(e) {
                 console.warn('[Storage] Reload failed:', e);
             }
@@ -20287,6 +20300,7 @@
         }
 
         loadData();
+        ensureNames99DuaFolder();
         loadChecklist();
         initDuaFolderOutsideClose();
         initChecklistFolderOutsideClose();
@@ -20295,7 +20309,7 @@
         updateDisplay();
         initManualAddHint();
         // Разделы теперь рендерятся лениво — только при первом переходе в них.
-        // renderDuas / renderFavorites / renderStats / renderNames / renderSpecialList
+        // renderDuas / renderFavorites / renderStats / renderSpecialList
         // вызываются через switchTab() по мере необходимости.
         updateSettingsUI();
         initFirebaseAccount().catch(function(e) { console.warn('[Firebase] Init failed:', e); });
@@ -21666,11 +21680,12 @@
                         try { if (typeof loadChecklist === 'function') loadChecklist(); } catch(e4) {}
                         if (typeof applyTheme === 'function') applyTheme(settings.theme || 'dark');
                         if (typeof applyLanguage === 'function') applyLanguage(currentLang);
+                        if (typeof ensureNames99DuaFolder === 'function') ensureNames99DuaFolder();
                         if (typeof updateDisplay === 'function') updateDisplay();
                         if (typeof updateSettingsUI === 'function') updateSettingsUI();
                         if (typeof updateHadithUI === 'function') updateHadithUI();
                         try { if (typeof updateDhikrOverallProgress === 'function') updateDhikrOverallProgress(); } catch(e5) {}
-                        if (typeof markDirty === 'function') markDirty('dua','favorites','names','stats','special');
+                        if (typeof markDirty === 'function') markDirty('dua','favorites','stats','special');
                         closeBackupModal();
                         try { showToast(t('toastImported')); } catch(e3) {}
                         return;
@@ -21704,7 +21719,7 @@
                     if (typeof applyLanguage === 'function') applyLanguage(currentLang);
                     if (typeof updateDisplay === 'function') updateDisplay();
                     try { if (typeof updateDhikrOverallProgress === 'function') updateDhikrOverallProgress(); } catch(e7) {}
-                    if (typeof markDirty === 'function') markDirty('dua','favorites','names','stats','special');
+                    if (typeof markDirty === 'function') markDirty('dua','favorites','stats','special');
                     if (typeof updateSettingsUI === 'function') updateSettingsUI();
                     closeBackupModal();
                     try { showToast(t('toastImported')); } catch(e3) {}

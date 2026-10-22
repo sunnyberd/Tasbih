@@ -1,4 +1,5 @@
-// The 99 Names of Allah used by the Azkar names page.
+// The 99 Names of Allah. Seeded as the default "99 Names of Allah" folder
+// inside the Duas section (see ensureNames99DuaFolder in index.html).
 (function () {
     const names99 = [
             { arabic: "الله", translit: "Allah", translit_ru: "Аллах", translit_uz: "Alloh", ru: "Аллах", en: "Allah", uz: "Alloh", desc_ru: "Величайшее имя, объемлющее все атрибуты совершенства.", desc_en: "The Greatest Name, encompassing all attributes of perfection.", desc_uz: "Barcha mukammallik sifatlarini o'z ichiga olgan eng ulug' ism." },
