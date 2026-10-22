@@ -240,7 +240,7 @@
                 toastTaskAdded: "Task \"{name}\" added",
                 toastFolderDeleted: "Folder deleted", toastSubfolderDeleted: "Subfolder deleted", toastTaskDeleted: "Task deleted",
                 addTaskBtn: "Add task",
-                labelTimer: "Zikr stopwatch", labelAutoAdvance: "Auto-advance dhikr", labelStealth: "Dark dhikr mode", stealthHint: "hold to exit",
+                labelTimer: "Dhikr stopwatch", labelAutoAdvance: "Auto-advance dhikr", labelStealth: "Dark dhikr mode", stealthHint: "hold to exit",
                 labelHadith: "Hadiths", labelNotifications: "Notifications", hadithLabel: "Hadith", hadithCloseHint: "Tap anywhere to close", hadithTestBtn: "Test — show a hadith",
                 newListTitle: "New list", renameListTitle: "Rename list", listNamePlaceholder: "List name", deleteListTitle: "Delete list?", deleteListSub: "The list and all tasks inside it will be permanently deleted", toastListCreated: "List «{name}» created", toastListRenamed: "List renamed", toastListDeleted: "List deleted", titleEditList: "Rename list", titleDeleteList: "Delete list", counterTaskToggle: "Counter task", counterTargetPlaceholder: "How many times (e.g. 342)", counterLeftLabel: "left",
                 badgeAuto: "Auto", madeWith: "made with",
