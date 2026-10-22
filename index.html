@@ -14,6 +14,18 @@
     <link rel="apple-touch-icon" href="icon-192.png">
     <title>Azkar — Dhikr, Tasbih Counter &amp; Duas</title>
     <script src="language-routing.js"></script>
+    <script>
+function safeParse(key, fallback) {
+    try {
+        const raw = localStorage.getItem(key);
+        if (raw === null || raw === undefined || raw === '') return fallback;
+        return JSON.parse(raw);
+    } catch (e) {
+        console.warn('[storage] bad JSON for', key, e);
+        return fallback;
+    }
+}
+</script>
     <style>
 @font-face{font-family:'Amiri';src:url('fonts/amiri-regular.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap;}
 @font-face{font-family:'Amiri';src:url('fonts/amiri-bold.woff2') format('woff2');font-weight:700;font-style:normal;font-display:swap;}
@@ -7823,7 +7835,7 @@
 
         /* ===== НАСТРОЙКИ (общие с приложением) ===== */
         var settings = {};
-        function readSettings() { try { return JSON.parse(localStorage.getItem(LS_SETTINGS) || "{}") || {}; } catch (e) { return {}; } }
+        function readSettings() { try { return safeParse(LS_SETTINGS, {}) || {}; } catch (e) { return {}; } }
         function saveSettings(patch) {
             /* настройки ведёт приложение, здесь ничего не пишем */
             return settings;
@@ -9312,7 +9324,7 @@
         // Множество дефолтных зикров, которые пользователь сознательно удалил.
         // Их НЕ нужно восстанавливать при merge, иначе удаление было бы бесполезным.
         function getDeletedDefaultIds() {
-            try { return new Set(JSON.parse(localStorage.getItem('azkar_special_deleted_defaults') || '[]')); }
+            try { return new Set(safeParse('azkar_special_deleted_defaults', [])); }
             catch (e) { return new Set(); }
         }
         function markDefaultDeleted(id) {
@@ -10109,7 +10121,7 @@
         // показа "сколько всего сделано" в статистике; не влияет на цели/прогресс.
         let dhikrTotals = {};
         function loadDhikrTotals() {
-            try { dhikrTotals = JSON.parse(localStorage.getItem('azkar_dhikr_totals') || '{}'); }
+            try { dhikrTotals = safeParse('azkar_dhikr_totals', {}); }
             catch (e) { dhikrTotals = {}; }
             if (!dhikrTotals || typeof dhikrTotals !== 'object') dhikrTotals = {};
         }
@@ -10344,7 +10356,7 @@
         let _statsCache = null;
         function getStats() {
             if (_statsCache === null) {
-                _statsCache = JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}');
+                _statsCache = safeParse('azkar_stats_v2', {});
             }
             return _statsCache;
         }
@@ -14287,8 +14299,8 @@
                     goal: isUnlimited ? 999999999 : goal,
                     customGoal: customGoal,
                     duas: duas,
-                    stats: JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}'),
-                    dhikrTotals: JSON.parse(localStorage.getItem('azkar_dhikr_totals') || '{}'),
+                    stats: safeParse('azkar_stats_v2', {}),
+                    dhikrTotals: safeParse('azkar_dhikr_totals', {}),
                     completedSpecial: completedSpecial,
                     specialProgress: specialProgress,
                     specialResumeSessions: specialResumeSessions,
@@ -14333,12 +14345,12 @@
                             goalBaseline = parseInt(localStorage.getItem('azkar_goal_baseline') || '0');
                             if (isNaN(goalBaseline) || goalBaseline < 0 || goalBaseline > count) goalBaseline = 0;
                             customGoal = parseInt(localStorage.getItem('azkar_custom_goal') || '0');
-                            duas = JSON.parse(localStorage.getItem('azkar_duas') || '[]');
+                            duas = safeParse('azkar_duas', []);
                             loadDuaFolders();
-                            _statsCache = JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}');
-                            completedSpecial = JSON.parse(localStorage.getItem('azkar_special_completed') || '{}');
-                            specialProgress = JSON.parse(localStorage.getItem('azkar_special_progress') || '{}');
-                            specialResumeSessions = JSON.parse(localStorage.getItem('azkar_special_resume_sessions') || '{}');
+                            _statsCache = safeParse('azkar_stats_v2', {});
+                            completedSpecial = safeParse('azkar_special_completed', {});
+                            specialProgress = safeParse('azkar_special_progress', {});
+                            specialResumeSessions = safeParse('azkar_special_resume_sessions', {});
                             // Перечитываем общий прогресс зикров (azkar_dhikr_totals) в память —
                             // иначе экран «Прогресс» останется пустым после импорта, пока
                             // страница не будет перезагружена.
@@ -15540,7 +15552,7 @@
 
         function readOnlinePresenceLease() {
             try {
-                const value = JSON.parse(localStorage.getItem(ONLINE_PRESENCE_LEASE_KEY) || 'null');
+                const value = safeParse(ONLINE_PRESENCE_LEASE_KEY, null);
                 return value && value.id ? value : null;
             } catch(e) { return null; }
         }
@@ -15770,7 +15782,7 @@
 
         function loadDhikrDeltaState(uid) {
             try {
-                const parsed = JSON.parse(localStorage.getItem(dhikrDeltaStorageKey(uid)) || 'null');
+                const parsed = safeParse(dhikrDeltaStorageKey(uid), null);
                 if (!parsed || typeof parsed !== 'object') return emptyDhikrDeltaState();
                 return {
                     cumulative: normalizeDhikrDeltaPart(parsed.cumulative),
@@ -17238,7 +17250,7 @@
             goalBaseline = parseInt(localStorage.getItem('azkar_goal_baseline') || '0');
             if (isNaN(goalBaseline) || goalBaseline < 0 || goalBaseline > count) goalBaseline = 0;
             customGoal = parseInt(localStorage.getItem('azkar_custom_goal') || '0');
-            duas = JSON.parse(localStorage.getItem('azkar_duas') || '[]');
+            duas = safeParse('azkar_duas', []);
             loadDuaFolders();
             loadSpecialFolders();
             currentLang = settings.language || 'en';
@@ -17250,10 +17262,10 @@
                 document.documentElement.classList.remove('no-transition');
             }));
             applyLanguage(currentLang);
-            _statsCache = JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}');
-            completedSpecial = JSON.parse(localStorage.getItem('azkar_special_completed') || '{}');
-            specialProgress = JSON.parse(localStorage.getItem('azkar_special_progress') || '{}');
-            specialResumeSessions = JSON.parse(localStorage.getItem('azkar_special_resume_sessions') || '{}');
+            _statsCache = safeParse('azkar_stats_v2', {});
+            completedSpecial = safeParse('azkar_special_completed', {});
+            specialProgress = safeParse('azkar_special_progress', {});
+            specialResumeSessions = safeParse('azkar_special_resume_sessions', {});
             loadDhikrTotals();
             // Сбрасываем completedSpecial и specialProgress прошлых дней сразу при загрузке.
             pruneCompletedSpecial();
@@ -17919,13 +17931,13 @@
                 goalBaseline = parseInt(localStorage.getItem('azkar_goal_baseline') || '0');
                 if (isNaN(goalBaseline) || goalBaseline < 0 || goalBaseline > count) goalBaseline = 0;
                 customGoal = parseInt(localStorage.getItem('azkar_custom_goal') || '0');
-                duas = JSON.parse(localStorage.getItem('azkar_duas') || '[]');
+                duas = safeParse('azkar_duas', []);
                 loadDuaFolders();
                 loadSpecialFolders();
-                _statsCache = JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}');
-                completedSpecial = JSON.parse(localStorage.getItem('azkar_special_completed') || '{}');
-                specialProgress = JSON.parse(localStorage.getItem('azkar_special_progress') || '{}');
-                specialResumeSessions = JSON.parse(localStorage.getItem('azkar_special_resume_sessions') || '{}');
+                _statsCache = safeParse('azkar_stats_v2', {});
+                completedSpecial = safeParse('azkar_special_completed', {});
+                specialProgress = safeParse('azkar_special_progress', {});
+                specialResumeSessions = safeParse('azkar_special_resume_sessions', {});
                 loadDhikrTotals();
                 loadCustomSpecialDhikrs();
                 pruneCompletedSpecial();
@@ -20585,7 +20597,7 @@
             // Hydrate from localStorage on startup so prayer times work even
             // before geolocation responds (or if user later denies).
             try {
-                const saved = JSON.parse(localStorage.getItem('azkar_geoloc') || 'null');
+                const saved = safeParse('azkar_geoloc', null);
                 if (saved && typeof saved.lat === 'number' && typeof saved.lng === 'number') {
                     uLat = saved.lat; uLng = saved.lng;
                 }
@@ -21697,12 +21709,12 @@
                             goalBaseline = parseInt(localStorage.getItem('azkar_goal_baseline') || '0');
                             if (isNaN(goalBaseline) || goalBaseline < 0 || goalBaseline > count) goalBaseline = 0;
                             customGoal = parseInt(localStorage.getItem('azkar_custom_goal') || '0');
-                            duas = JSON.parse(localStorage.getItem('azkar_duas') || '[]');
+                            duas = safeParse('azkar_duas', []);
                             if (typeof loadDuaFolders === 'function') loadDuaFolders();
-                            _statsCache = JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}');
-                            completedSpecial = JSON.parse(localStorage.getItem('azkar_special_completed') || '{}');
-                            specialProgress = JSON.parse(localStorage.getItem('azkar_special_progress') || '{}');
-                            specialResumeSessions = JSON.parse(localStorage.getItem('azkar_special_resume_sessions') || '{}');
+                            _statsCache = safeParse('azkar_stats_v2', {});
+                            completedSpecial = safeParse('azkar_special_completed', {});
+                            specialProgress = safeParse('azkar_special_progress', {});
+                            specialResumeSessions = safeParse('azkar_special_resume_sessions', {});
                             // Перечитываем общий прогресс зикров в память (см. importData).
                             if (typeof loadDhikrTotals === 'function') loadDhikrTotals();
                             if (typeof loadCustomSpecialDhikrs === 'function') loadCustomSpecialDhikrs();
@@ -21854,8 +21866,8 @@
                 goal: isUnlimited ? 999999999 : goal,
                 customGoal: customGoal,
                 duas: duas,
-                stats: JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}'),
-                dhikrTotals: JSON.parse(localStorage.getItem('azkar_dhikr_totals') || '{}'),
+                stats: safeParse('azkar_stats_v2', {}),
+                dhikrTotals: safeParse('azkar_dhikr_totals', {}),
                 completedSpecial: completedSpecial,
                 specialProgress: specialProgress,
                 specialResumeSessions: specialResumeSessions,
