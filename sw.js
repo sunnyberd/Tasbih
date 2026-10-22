@@ -14,12 +14,31 @@
 // v93 — 99 имён без арабского текста: название, значение, описание; новая иконка задач.
 // v92 — 99 имён Аллаха переехали в папку раздела «Дуа»; «Избранное» — свайп
 // из «Дуа»; «Задачи» вынесены в нижнюю навигацию вместо «Избранного».
-const CACHE_NAME = 'azkar-v94';
+// v95 — предзагрузка оболочки и шрифтов при установке (офлайн с первого запуска).
+const CACHE_NAME = 'azkar-v95';
+
+// Файлы, которые сохраняются при установке. Отсутствующие файлы пропускаются.
+const PRECACHE_URLS = [
+    './', './index.html', './manifest.json',
+    './language-routing.js', './i18n.js', './hadiths.js', './allah-names.js',
+    './icon-192.png', './icon-512.png',
+    './fonts/amiri-regular.woff2', './fonts/amiri-bold.woff2',
+    './fonts/cormorantgaramond.woff2', './fonts/montserrat.woff2',
+    './fonts/notonaskharabic.woff2',
+    './fonts/scheherazadenew-regular.woff2', './fonts/scheherazadenew-bold.woff2'
+];
 
 // v90 — хадис, показанный в баннере и не открытый, остаётся в шторке уведомлений;
 // тап по такому уведомлению открывает попап с этим хадисом; тестовый интервал 1 мин.
 // ===== УСТАНОВКА И КЭШ =====
 self.addEventListener('install', (event) => {
+    event.waitUntil(
+        caches.open(CACHE_NAME).then(cache =>
+            Promise.all(PRECACHE_URLS.map(url =>
+                cache.add(new Request(url, { cache: 'reload' })).catch(() => {})
+            ))
+        )
+    );
     self.skipWaiting();
 });
 
