@@ -7706,11 +7706,13 @@
             </div>
             <div class="nav-item" data-tab="checklist" onclick="switchTab('checklist')">
                 <div class="nav-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <!-- Чек-лист: планшет с галочкой и строками задач -->
-                  <rect x="4.5" y="3.5" width="15" height="17" rx="2.5"/>
-                  <path d="M8.4 9.2l1.8 1.8 3.7-3.7"/>
-                  <line x1="8.6" y1="14.6" x2="15.4" y2="14.6"/>
-                  <line x1="8.6" y1="17.6" x2="13.2" y2="17.6"/>
+                  <!-- Список задач: галочки и строки -->
+                  <path d="M3.5 6.2l1.6 1.6 3-3"/>
+                  <line x1="11" y1="6.2" x2="20.5" y2="6.2"/>
+                  <path d="M3.5 12.2l1.6 1.6 3-3"/>
+                  <line x1="11" y1="12.2" x2="20.5" y2="12.2"/>
+                  <path d="M3.5 18.2l1.6 1.6 3-3"/>
+                  <line x1="11" y1="18.2" x2="17" y2="18.2"/>
                 </svg></div>
                 <span class="nav-label" id="navChecklist">Задачи</span>
             </div>
@@ -13204,20 +13206,25 @@
 
         // ==================== DEFAULT "99 NAMES OF ALLAH" DUA FOLDER ====================
         // The 99 names now ship as ordinary user content: one default folder
-        // inside Duas, containing 99 duas (Arabic text + localized translit,
-        // meaning and description). Seeded once. Deleting the folder leaves a
-        // tombstone so it is never resurrected behind the user's back.
+        // inside Duas. Each entry has no Arabic text: title (translit), text
+        // (meaning), description (explanation) and an empty "details" field.
+        // Seeded once. Deleting the folder leaves a tombstone so it is never
+        // resurrected behind the user's back.
         const NAMES99_FOLDER_ID = 'duafolder_names99';
         const NAMES99_DELETED_KEY = 'azkar_names99_dua_deleted';
 
         function _names99DuaFields(n, lang) {
             return {
-                text: n.arabic,
+                // Name (title): localized transliteration, e.g. "Ар-Рахман".
                 name: getTranslit(n, lang),
+                // Text: the meaning of the name, e.g. "Милостивый".
+                text: n[lang] || n.en || n.ru || '',
+                // Description: the explanation previously shown under "Подробнее".
                 // Full translations exist for ru/en/uz; other languages fall
                 // back to English exactly like the old names screen did.
-                translation: n[lang] || n.en || n.ru || '',
-                detail: n['desc_' + lang] || n.desc_en || n.desc_ru || ''
+                translation: n['desc_' + lang] || n.desc_en || n.desc_ru || '',
+                // The "Подробнее" page stays empty.
+                detail: ''
             };
         }
 
@@ -13268,13 +13275,29 @@
         // user rename clears it), but the 99 entries themselves stay localized.
         function _syncNames99FolderLanguage() {
             const folder = duaFolders.find(f => f && f.id === NAMES99_FOLDER_ID);
-            if (folder && folder.builtin === 'names99') folder.name = t('namesTitle');
-            if (!Array.isArray(names99) || names99.length === 0) return;
-            const byId = new Map(duas.map(d => [d.id, d]));
-            names99.forEach((n, i) => {
-                const d = byId.get('name99_' + i);
-                if (d && d.builtin === 'name99') Object.assign(d, _names99DuaFields(n, currentLang));
-            });
+            let changed = false;
+            if (folder && folder.builtin === 'names99') {
+                const translatedName = t('namesTitle');
+                if (folder.name !== translatedName) {
+                    folder.name = translatedName;
+                    changed = true;
+                }
+            }
+            if (Array.isArray(names99) && names99.length) {
+                const byId = new Map(duas.map(d => [d.id, d]));
+                names99.forEach((n, i) => {
+                    const d = byId.get('name99_' + i);
+                    if (!d || d.builtin !== 'name99') return;
+                    const fields = _names99DuaFields(n, currentLang);
+                    if (d.name !== fields.name || d.text !== fields.text ||
+                        d.translation !== fields.translation || d.detail !== fields.detail) {
+                        Object.assign(d, fields);
+                        changed = true;
+                    }
+                });
+            }
+            // Persist the one-time migration from the old Arabic cards.
+            if (changed) saveDataDebounced();
         }
 
         function closeOpenDuaFolders() {
