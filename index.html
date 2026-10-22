@@ -15,6 +15,11 @@
     <title>Azkar — Dhikr, Tasbih Counter &amp; Duas</title>
     <script src="language-routing.js"></script>
     <script>
+function escText(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+}
 function safeParse(key, fallback) {
     try {
         const raw = localStorage.getItem(key);
@@ -11133,9 +11138,9 @@ function safeParse(key, fallback) {
             card.innerHTML = `
                 <div class="special-drag-handle" title="Перетащить"><svg viewBox="0 0 24 24"><circle cx="9" cy="5" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="9" cy="19" r="1.2" fill="currentColor"/><circle cx="15" cy="5" r="1.2" fill="currentColor"/><circle cx="15" cy="12" r="1.2" fill="currentColor"/><circle cx="15" cy="19" r="1.2" fill="currentColor"/></svg></div>
                 <div class="special-card-body">
-                    <div class="special-card-name">${esc(name)}</div>
-                    ${text ? `<div class="special-card-text">${esc(text)}</div>` : ''}
-                    ${desc ? `<div class="special-card-desc">${esc(desc)}</div>` : ''}
+                    <div class="special-card-name">${escText(name)}</div>
+                    ${text ? `<div class="special-card-text">${escText(text)}</div>` : ''}
+                    ${desc ? `<div class="special-card-desc">${escText(desc)}</div>` : ''}
                 </div>
                 <div class="special-card-controls">
                     <button class="special-action-btn" data-id="${dhikr.id}" data-action="edit" title="${escAttr(t('titleEdit'))}">
@@ -11291,15 +11296,15 @@ function safeParse(key, fallback) {
             const detail = getSpecialDetail(dhikr);
             // Страница 1 — как обычно: название, текст, описание, кнопка «Начать»
             const page1 = `
-                <div class="detail-title">${esc(name)}</div>
-                ${text ? `<div class="detail-text">${esc(text)}</div>` : ''}
-                ${desc ? `<div class="detail-desc">${esc(desc)}</div>` : ''}
+                <div class="detail-title">${escText(name)}</div>
+                ${text ? `<div class="detail-text">${escText(text)}</div>` : ''}
+                ${desc ? `<div class="detail-desc">${escText(desc)}</div>` : ''}
                 <button class="special-start-btn" onclick="startSpecialDhikr('${dhikr.id}')">${t('specialStartBtn')}</button>`;
             // Страница 2 — «Подробнее»: расширенное описание (без кнопки «Начать»).
             // Показывается только если оно заполнено.
             const page2 = detail ? `
                 <div class="detail-more-label">${t('detailMoreLabel')}</div>
-                <div class="detail-desc">${esc(detail)}</div>` : '';
+                <div class="detail-desc">${escText(detail)}</div>` : '';
             _renderDetailPager(card, [page1, page2]);
             document.getElementById('specialDetailOverlay').classList.add('show');
         }
@@ -13197,13 +13202,13 @@ function safeParse(key, fallback) {
             const detail = d.detail || '';
             // Страница 1 — как обычно: название, текст и описание дуа
             const page1 = `
-                ${name ? `<div class="detail-title">${esc(name)}</div>` : ''}
-                <div class="detail-text">${esc(text)}</div>
-                ${trans ? `<div class="detail-desc">${esc(trans)}</div>` : ''}`;
+                ${name ? `<div class="detail-title">${escText(name)}</div>` : ''}
+                <div class="detail-text">${escText(text)}</div>
+                ${trans ? `<div class="detail-desc">${escText(trans)}</div>` : ''}`;
             // Страница 2 — «Подробнее»: расширенное описание (если заполнено)
             const page2 = detail ? `
                 <div class="detail-more-label">${t('detailMoreLabel')}</div>
-                <div class="detail-desc">${esc(detail)}</div>` : '';
+                <div class="detail-desc">${escText(detail)}</div>` : '';
             _renderDetailPager(card, [page1, page2]);
             document.getElementById('duaDetailOverlay').classList.add('show');
         }
