@@ -14,32 +14,7 @@
     <link rel="apple-touch-icon" href="icon-192.png">
     <title>Azkar — Dhikr, Tasbih Counter &amp; Duas</title>
     <script src="language-routing.js"></script>
-    <script>
-function escText(value) {
-    return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
-        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
-    });
-}
-function safeParse(key, fallback) {
-    try {
-        const raw = localStorage.getItem(key);
-        if (raw === null || raw === undefined || raw === '') return fallback;
-        return JSON.parse(raw);
-    } catch (e) {
-        console.warn('[storage] bad JSON for', key, e);
-        return fallback;
-    }
-}
-</script>
-    <style>
-@font-face{font-family:'Amiri';src:url('fonts/amiri-regular.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap;}
-@font-face{font-family:'Amiri';src:url('fonts/amiri-bold.woff2') format('woff2');font-weight:700;font-style:normal;font-display:swap;}
-@font-face{font-family:'Cormorant Garamond';src:url('fonts/cormorantgaramond.woff2') format('woff2');font-weight:300 700;font-style:normal;font-display:swap;}
-@font-face{font-family:'Montserrat';src:url('fonts/montserrat.woff2') format('woff2');font-weight:300 700;font-style:normal;font-display:swap;}
-@font-face{font-family:'Noto Naskh Arabic';src:url('fonts/notonaskharabic.woff2') format('woff2');font-weight:400 700;font-style:normal;font-display:swap;}
-@font-face{font-family:'Scheherazade New';src:url('fonts/scheherazadenew-regular.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap;}
-@font-face{font-family:'Scheherazade New';src:url('fonts/scheherazadenew-bold.woff2') format('woff2');font-weight:700;font-style:normal;font-display:swap;}
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
     
 
     <style>
@@ -6320,17 +6295,6 @@ function safeParse(key, fallback) {
               </div>
             </div>
 
-            <!-- ===== Скрытые настройки (уведомления): сохранены в DOM для совместимости JS/локализации ===== -->
-            <div style="display:none;">
-            <!-- Reminder Notification -->
-            <div class="setting-item" id="reminderSettingItem" onclick="toggleReminderNotification()" oncontextmenu="return false;">
-                <div style="display:flex;align-items:center;gap:10px;">
-                    <span style="font-size:1.25rem;line-height:1;" id="reminderIcon">🔔</span>
-                    <span id="labelReminder">Напоминание о зикре</span>
-                </div>
-                <div class="toggle-switch" id="reminderToggle"></div>
-            </div>
-            </div>
             <div class="app-version" id="appVersion">
                 <div class="app-version-love">
                     <span class="app-version-name">Azkar</span>
@@ -6510,18 +6474,6 @@ function safeParse(key, fallback) {
             <div class="special-achieve-name" id="specialAchieveName"></div>
             <div class="special-achieve-sub" id="specialAchieveSub">Цель достигнута</div>
             <div class="special-achieve-hint" id="specialAchieveHint">Коснитесь экрана, чтобы продолжить</div>
-        </div>
-    </div>
-
-    <div class="overlay" id="reminderTimeOverlay">
-        <div class="overlay-card">
-            <div class="overlay-title" id="reminderTimeTitle">Время напоминания</div>
-            <div class="overlay-sub" id="reminderTimeSub">Выберите время ежедневного напоминания</div>
-            <input type="time" id="reminderTimeInput" style="margin:16px auto;display:block;font-size:1.2rem;padding:8px 16px;border-radius:12px;border:1.5px solid var(--gold);background:var(--bg-card);color:var(--text-main);text-align:center;">
-            <div class="overlay-btns">
-                <button class="overlay-btn-cancel" onclick="cancelReminderTime()">Отмена</button>
-                <button class="overlay-btn-confirm" onclick="confirmReminderTime()">Сохранить</button>
-            </div>
         </div>
     </div>
 
@@ -7840,7 +7792,7 @@ function safeParse(key, fallback) {
 
         /* ===== НАСТРОЙКИ (общие с приложением) ===== */
         var settings = {};
-        function readSettings() { try { return safeParse(LS_SETTINGS, {}) || {}; } catch (e) { return {}; } }
+        function readSettings() { try { return JSON.parse(localStorage.getItem(LS_SETTINGS) || "{}") || {}; } catch (e) { return {}; } }
         function saveSettings(patch) {
             /* настройки ведёт приложение, здесь ничего не пишем */
             return settings;
@@ -9329,7 +9281,7 @@ function safeParse(key, fallback) {
         // Множество дефолтных зикров, которые пользователь сознательно удалил.
         // Их НЕ нужно восстанавливать при merge, иначе удаление было бы бесполезным.
         function getDeletedDefaultIds() {
-            try { return new Set(safeParse('azkar_special_deleted_defaults', [])); }
+            try { return new Set(JSON.parse(localStorage.getItem('azkar_special_deleted_defaults') || '[]')); }
             catch (e) { return new Set(); }
         }
         function markDefaultDeleted(id) {
@@ -9780,14 +9732,11 @@ function safeParse(key, fallback) {
             currentLang = lang;
             document.documentElement.lang = lang;
             if (typeof window.applySeoLanguage === 'function') window.applySeoLanguage(lang);
-            // Localize the Yes/No buttons on every confirmation card (the
-            // reminder-time overlay is excluded — it uses Cancel/Save).
+            // Localize the Yes/No buttons on every confirmation card.
             document.querySelectorAll('.overlay-btn-cancel').forEach(function(b){
-                if (b.closest && b.closest('#reminderTimeOverlay')) return;
                 b.textContent = t('btnNo');
             });
             document.querySelectorAll('.overlay-btn-confirm').forEach(function(b){
-                if (b.closest && b.closest('#reminderTimeOverlay')) return;
                 b.textContent = t('btnYes');
             });
             document.querySelectorAll('.lang-chip').forEach(chip => chip.classList.toggle('active', chip.dataset.lang === lang));
@@ -9821,7 +9770,6 @@ function safeParse(key, fallback) {
                 periodWeek: 'periodWeek', periodMonth: 'periodMonth', periodYear: 'periodYear',
                 specialListTitle: 'specialListTitle', specialListSubtitle: 'specialListSubtitle',
                 labelPip: 'labelPip',
-                labelReminder: 'labelReminder',
                 deleteSpecialTitle: 'specialDeleteTitle', deleteSpecialSub: 'specialDeleteSub',
                 btnYesSpecial: 'btnYes', btnNoSpecial: 'btnNo',
                 specialFormSaveBtn: 'specialFormSave',
@@ -10126,7 +10074,7 @@ function safeParse(key, fallback) {
         // показа "сколько всего сделано" в статистике; не влияет на цели/прогресс.
         let dhikrTotals = {};
         function loadDhikrTotals() {
-            try { dhikrTotals = safeParse('azkar_dhikr_totals', {}); }
+            try { dhikrTotals = JSON.parse(localStorage.getItem('azkar_dhikr_totals') || '{}'); }
             catch (e) { dhikrTotals = {}; }
             if (!dhikrTotals || typeof dhikrTotals !== 'object') dhikrTotals = {};
         }
@@ -10361,7 +10309,7 @@ function safeParse(key, fallback) {
         let _statsCache = null;
         function getStats() {
             if (_statsCache === null) {
-                _statsCache = safeParse('azkar_stats_v2', {});
+                _statsCache = JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}');
             }
             return _statsCache;
         }
@@ -11138,9 +11086,9 @@ function safeParse(key, fallback) {
             card.innerHTML = `
                 <div class="special-drag-handle" title="Перетащить"><svg viewBox="0 0 24 24"><circle cx="9" cy="5" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="9" cy="19" r="1.2" fill="currentColor"/><circle cx="15" cy="5" r="1.2" fill="currentColor"/><circle cx="15" cy="12" r="1.2" fill="currentColor"/><circle cx="15" cy="19" r="1.2" fill="currentColor"/></svg></div>
                 <div class="special-card-body">
-                    <div class="special-card-name">${escText(name)}</div>
-                    ${text ? `<div class="special-card-text">${escText(text)}</div>` : ''}
-                    ${desc ? `<div class="special-card-desc">${escText(desc)}</div>` : ''}
+                    <div class="special-card-name">${name}</div>
+                    ${text ? `<div class="special-card-text">${text}</div>` : ''}
+                    ${desc ? `<div class="special-card-desc">${desc}</div>` : ''}
                 </div>
                 <div class="special-card-controls">
                     <button class="special-action-btn" data-id="${dhikr.id}" data-action="edit" title="${escAttr(t('titleEdit'))}">
@@ -11296,15 +11244,15 @@ function safeParse(key, fallback) {
             const detail = getSpecialDetail(dhikr);
             // Страница 1 — как обычно: название, текст, описание, кнопка «Начать»
             const page1 = `
-                <div class="detail-title">${escText(name)}</div>
-                ${text ? `<div class="detail-text">${escText(text)}</div>` : ''}
-                ${desc ? `<div class="detail-desc">${escText(desc)}</div>` : ''}
+                <div class="detail-title">${name}</div>
+                ${text ? `<div class="detail-text">${text}</div>` : ''}
+                ${desc ? `<div class="detail-desc">${desc}</div>` : ''}
                 <button class="special-start-btn" onclick="startSpecialDhikr('${dhikr.id}')">${t('specialStartBtn')}</button>`;
             // Страница 2 — «Подробнее»: расширенное описание (без кнопки «Начать»).
             // Показывается только если оно заполнено.
             const page2 = detail ? `
                 <div class="detail-more-label">${t('detailMoreLabel')}</div>
-                <div class="detail-desc">${escText(detail)}</div>` : '';
+                <div class="detail-desc">${detail}</div>` : '';
             _renderDetailPager(card, [page1, page2]);
             document.getElementById('specialDetailOverlay').classList.add('show');
         }
@@ -13202,13 +13150,13 @@ function safeParse(key, fallback) {
             const detail = d.detail || '';
             // Страница 1 — как обычно: название, текст и описание дуа
             const page1 = `
-                ${name ? `<div class="detail-title">${escText(name)}</div>` : ''}
-                <div class="detail-text">${escText(text)}</div>
-                ${trans ? `<div class="detail-desc">${escText(trans)}</div>` : ''}`;
+                ${name ? `<div class="detail-title">${name}</div>` : ''}
+                <div class="detail-text">${text}</div>
+                ${trans ? `<div class="detail-desc">${trans}</div>` : ''}`;
             // Страница 2 — «Подробнее»: расширенное описание (если заполнено)
             const page2 = detail ? `
                 <div class="detail-more-label">${t('detailMoreLabel')}</div>
-                <div class="detail-desc">${escText(detail)}</div>` : '';
+                <div class="detail-desc">${detail}</div>` : '';
             _renderDetailPager(card, [page1, page2]);
             document.getElementById('duaDetailOverlay').classList.add('show');
         }
@@ -14304,8 +14252,8 @@ function safeParse(key, fallback) {
                     goal: isUnlimited ? 999999999 : goal,
                     customGoal: customGoal,
                     duas: duas,
-                    stats: safeParse('azkar_stats_v2', {}),
-                    dhikrTotals: safeParse('azkar_dhikr_totals', {}),
+                    stats: JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}'),
+                    dhikrTotals: JSON.parse(localStorage.getItem('azkar_dhikr_totals') || '{}'),
                     completedSpecial: completedSpecial,
                     specialProgress: specialProgress,
                     specialResumeSessions: specialResumeSessions,
@@ -14350,12 +14298,12 @@ function safeParse(key, fallback) {
                             goalBaseline = parseInt(localStorage.getItem('azkar_goal_baseline') || '0');
                             if (isNaN(goalBaseline) || goalBaseline < 0 || goalBaseline > count) goalBaseline = 0;
                             customGoal = parseInt(localStorage.getItem('azkar_custom_goal') || '0');
-                            duas = safeParse('azkar_duas', []);
+                            duas = JSON.parse(localStorage.getItem('azkar_duas') || '[]');
                             loadDuaFolders();
-                            _statsCache = safeParse('azkar_stats_v2', {});
-                            completedSpecial = safeParse('azkar_special_completed', {});
-                            specialProgress = safeParse('azkar_special_progress', {});
-                            specialResumeSessions = safeParse('azkar_special_resume_sessions', {});
+                            _statsCache = JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}');
+                            completedSpecial = JSON.parse(localStorage.getItem('azkar_special_completed') || '{}');
+                            specialProgress = JSON.parse(localStorage.getItem('azkar_special_progress') || '{}');
+                            specialResumeSessions = JSON.parse(localStorage.getItem('azkar_special_resume_sessions') || '{}');
                             // Перечитываем общий прогресс зикров (azkar_dhikr_totals) в память —
                             // иначе экран «Прогресс» останется пустым после импорта, пока
                             // страница не будет перезагружена.
@@ -15557,7 +15505,7 @@ function safeParse(key, fallback) {
 
         function readOnlinePresenceLease() {
             try {
-                const value = safeParse(ONLINE_PRESENCE_LEASE_KEY, null);
+                const value = JSON.parse(localStorage.getItem(ONLINE_PRESENCE_LEASE_KEY) || 'null');
                 return value && value.id ? value : null;
             } catch(e) { return null; }
         }
@@ -15787,7 +15735,7 @@ function safeParse(key, fallback) {
 
         function loadDhikrDeltaState(uid) {
             try {
-                const parsed = safeParse(dhikrDeltaStorageKey(uid), null);
+                const parsed = JSON.parse(localStorage.getItem(dhikrDeltaStorageKey(uid)) || 'null');
                 if (!parsed || typeof parsed !== 'object') return emptyDhikrDeltaState();
                 return {
                     cumulative: normalizeDhikrDeltaPart(parsed.cumulative),
@@ -16542,11 +16490,6 @@ function safeParse(key, fallback) {
             if (pipToggleEl) pipToggleEl.classList.toggle('on', !!settings.pipCounter);
             const pipIconEl = document.getElementById('pipIcon');
             if (pipIconEl) pipIconEl.textContent = '📌';
-            // Reminder toggle
-            const remToggleEl = document.getElementById('reminderToggle');
-            if (remToggleEl) remToggleEl.classList.toggle('on', !!settings.reminder);
-            const remIconEl = document.getElementById('reminderIcon');
-            if (remIconEl) remIconEl.textContent = settings.reminder ? '🔔' : '🔕';
             // Timer toggle
             const timerToggleEl = document.getElementById('timerToggle');
             if (timerToggleEl) timerToggleEl.classList.toggle('on', settings.timerEnabled !== false);
@@ -16734,6 +16677,7 @@ function safeParse(key, fallback) {
         let _hadithTimer = null;
         let _hadithLastIdx = -1;
         let _hadithCurrent = null;     // хадис, выбранный для показа (для баннера → попап)
+        let _notifCurrent = null;      // намаз/дуа/зикр в баннере — чтобы уложить его в шторку, если не открыли
         let _hadithBannerTimer = null;
 
         // Раньше здесь была toggleHadithSetting() для переключателя в настройках —
@@ -16916,6 +16860,7 @@ function safeParse(key, fallback) {
             if (!h) return;
             const banner = document.getElementById('hadithBanner');
             if (!banner) return;
+            _notifCurrent = null;
             const titleEl = document.getElementById('hadithBannerTitle');
             const textEl = document.getElementById('hadithBannerText');
             if (titleEl) titleEl.textContent = (typeof t === 'function') ? t('hadithLabel') : 'Хадис';
@@ -16931,8 +16876,15 @@ function safeParse(key, fallback) {
             const banner = document.getElementById('hadithBanner');
             if (!banner) return;
             if (_hadithBannerTimer) { clearTimeout(_hadithBannerTimer); _hadithBannerTimer = null; }
-            // Хадис не открыли (исчез сам или смахнули) → остаётся системным уведомлением
-            if (opts && opts.pin && _hadithCurrent) _pinHadithNotification(_hadithCurrent);
+            // Баннер не открыли (исчез сам или смахнули) → оставляем системное
+            // уведомление в шторке. Так теперь работает не только хадис, но и
+            // время намаза, дуа Абу Умамы и напоминание о зикре.
+            if (opts && opts.pin) {
+                if (_hadithCurrent) _pinHadithNotification(_hadithCurrent);
+                else if (_notifCurrent) _pinNotifNotification(_notifCurrent);
+            }
+            _hadithCurrent = null;
+            _notifCurrent = null;
             banner.classList.remove('show');
             setTimeout(() => { banner.style.display = 'none'; }, 320);
         }
@@ -16950,6 +16902,20 @@ function safeParse(key, fallback) {
                 })).catch(() => {});
             } catch (e) {}
         }
+        // Намаз / дуа Абу Умамы / зикр показаны в баннере, но не открыты →
+        // кладём их в шторку уведомлений. tag берём из события: если Service
+        // Worker покажет то же событие сам, записи схлопнутся в одну.
+        function _pinNotifNotification(n) {
+            try {
+                if (!n || !n.body) return;
+                if (!('Notification' in window) || Notification.permission !== 'granted' || !('serviceWorker' in navigator)) return;
+                navigator.serviceWorker.ready.then(reg => reg.showNotification(n.title || 'Azkar', {
+                    body: n.body, icon: 'icon-192.png', badge: 'icon-192.png',
+                    tag: n.tag || ('azkar-notif-' + Date.now()), renotify: false, requireInteraction: false,
+                    data: { url: reg.scope }
+                })).catch(() => {});
+            } catch (e) {}
+        }
         // Попап по готовому тексту (из системного уведомления)
         function openHadithPopupRaw(text, source) {
             if (!text) return;
@@ -16961,9 +16927,11 @@ function safeParse(key, fallback) {
         }
         // Тап по баннеру → открыть полноценный попап
         function openHadithFromBanner() {
+            // hideHadithBanner() очищает _hadithCurrent, поэтому запоминаем заранее
+            const h = _hadithCurrent;
             hideHadithBanner();
-            if (!_hadithCurrent) return;   // баннер намаза/зикра — просто закрываем
-            openHadithPopup(_hadithCurrent);
+            if (!h) return;   // баннер намаза/зикра — просто закрываем, без системного уведомления
+            openHadithPopup(h);
         }
         // Полноценный попап по центру экрана (как было раньше)
         function openHadithPopup(h) {
@@ -17218,14 +17186,17 @@ function safeParse(key, fallback) {
                     system = true;
                 }
             } catch (e) {}
-            if (!system) showNotifBanner(ev.title, ev.body, ev.icon);
+            if (!system) showNotifBanner(ev.title, ev.body, ev.icon, ev.tag);
         }
 
         // Тот же iOS-style баннер сверху, что и у хадисов, но без попапа по тапу.
-        function showNotifBanner(title, text, icon) {
+        function showNotifBanner(title, text, icon, tag) {
             const banner = document.getElementById('hadithBanner');
             if (!banner) return;
             _hadithCurrent = null;
+            // Запоминаем событие целиком: если баннер не откроют и он исчезнет,
+            // hideHadithBanner({pin:true}) положит его в шторку уведомлений.
+            _notifCurrent = { title: title, body: text, icon: icon, tag: tag };
             const titleEl = document.getElementById('hadithBannerTitle');
             const textEl = document.getElementById('hadithBannerText');
             const icEl = banner.querySelector('.hadith-banner-icon');
@@ -17235,7 +17206,7 @@ function safeParse(key, fallback) {
             banner.style.display = 'flex';
             requestAnimationFrame(() => requestAnimationFrame(() => banner.classList.add('show')));
             if (_hadithBannerTimer) clearTimeout(_hadithBannerTimer);
-            _hadithBannerTimer = setTimeout(hideHadithBanner, 7000);
+            _hadithBannerTimer = setTimeout(() => hideHadithBanner({ pin: true }), 7000);
         }
 
         document.addEventListener('visibilitychange', () => { if (!document.hidden) scheduleNotifEvents(); });
@@ -17255,7 +17226,7 @@ function safeParse(key, fallback) {
             goalBaseline = parseInt(localStorage.getItem('azkar_goal_baseline') || '0');
             if (isNaN(goalBaseline) || goalBaseline < 0 || goalBaseline > count) goalBaseline = 0;
             customGoal = parseInt(localStorage.getItem('azkar_custom_goal') || '0');
-            duas = safeParse('azkar_duas', []);
+            duas = JSON.parse(localStorage.getItem('azkar_duas') || '[]');
             loadDuaFolders();
             loadSpecialFolders();
             currentLang = settings.language || 'en';
@@ -17267,10 +17238,10 @@ function safeParse(key, fallback) {
                 document.documentElement.classList.remove('no-transition');
             }));
             applyLanguage(currentLang);
-            _statsCache = safeParse('azkar_stats_v2', {});
-            completedSpecial = safeParse('azkar_special_completed', {});
-            specialProgress = safeParse('azkar_special_progress', {});
-            specialResumeSessions = safeParse('azkar_special_resume_sessions', {});
+            _statsCache = JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}');
+            completedSpecial = JSON.parse(localStorage.getItem('azkar_special_completed') || '{}');
+            specialProgress = JSON.parse(localStorage.getItem('azkar_special_progress') || '{}');
+            specialResumeSessions = JSON.parse(localStorage.getItem('azkar_special_resume_sessions') || '{}');
             loadDhikrTotals();
             // Сбрасываем completedSpecial и specialProgress прошлых дней сразу при загрузке.
             pruneCompletedSpecial();
@@ -17288,7 +17259,6 @@ function safeParse(key, fallback) {
             delete settings.autoExtend;
             if (settings.autoAdvance === undefined) settings.autoAdvance = false;
             if (settings.stealthMode === undefined) settings.stealthMode = false;
-            if (settings.reminder === undefined) settings.reminder = false;
             // Хадисы по умолчанию включены; дальше значение управляется ползунком в настройках.
             if (settings.hadithEnabled === undefined) settings.hadithEnabled = true;
             // Общий ползунок уведомлений и отдельные виды (намазы / зикр Абу Умамы — по умолчанию выключены).
@@ -17562,7 +17532,7 @@ function safeParse(key, fallback) {
                         cursor:pointer;transition:background 0.12s,transform 0.1s;letter-spacing:0.5px;}
                     #pb:active{background:${accent}22;transform:scale(0.94);}
                 </style>
-                <style>@font-face{font-family:'Cormorant Garamond';src:url('${new URL('fonts/cormorantgaramond.woff2', location.href).href}') format('woff2');font-weight:300 700;font-display:swap;}</style>`;
+                <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&display=swap" rel="stylesheet">`;
 
                 const label = currentLang === 'en' ? 'DHIKR' : currentLang === 'uz' ? 'ZIKR' : 'ЗИКР';
                 const tapLabel = currentLang === 'en' ? 'TAP' : currentLang === 'uz' ? 'BOSING' : 'НАЖМИ';
@@ -17601,28 +17571,7 @@ function safeParse(key, fallback) {
             } catch(e) {}
         }
 
-        // ===== REMINDER NOTIFICATIONS (SW-based) =====
-        // Работает через Service Worker — уведомление приходит даже при закрытом приложении.
-        // Логика: каждый раз при открытии приложения (и при изменении настроек) отправляем
-        // SW сообщение с временем следующего уведомления. SW хранит alarm через setTimeout
-        // в своём контексте и вызывает self.registration.showNotification() — это работает
-        // в фоне на Android/Desktop. На iOS 16.4+ PWA тоже поддерживает SW notifications.
-
-        const REMINDER_DEFAULT_TIME = '14:00';
-
-        function getReminderTime() {
-            return settings.reminderTime || REMINDER_DEFAULT_TIME;
-        }
-
-        function getMsUntilNextReminder() {
-            const [h, m] = getReminderTime().split(':').map(Number);
-            const now = new Date();
-            const target = new Date(now);
-            target.setHours(h, m, 0, 0);
-            if (target <= now) target.setDate(target.getDate() + 1);
-            return target - now;
-        }
-
+        // ===== РАЗРЕШЕНИЕ НА УВЕДОМЛЕНИЯ =====
         async function requestNotifPermission() {
             if (!('Notification' in window)) return 'denied';
             if (Notification.permission === 'granted') return 'granted';
@@ -17631,150 +17580,8 @@ function safeParse(key, fallback) {
             return result;
         }
 
-        // Отправляет SW команду запланировать/отменить уведомление
-        async function syncReminderWithSW() {
-            if (!('serviceWorker' in navigator)) return;
-            try {
-                const reg = await navigator.serviceWorker.ready;
-                if (!reg || !reg.active) return;
-                if (settings.reminder && Notification.permission === 'granted') {
-                    const delayMs = getMsUntilNextReminder();
-                    const title = t('reminderNotifTitle');
-                    const body  = t('reminderNotifBody');
-                    reg.active.postMessage({
-                        type: 'SCHEDULE_REMINDER',
-                        delayMs,
-                        title,
-                        body,
-                        icon: 'icon-192.png',
-                        badge: 'icon-192.png',
-                        reminderTime: getReminderTime(),
-                    });
-                } else {
-                    reg.active.postMessage({ type: 'CANCEL_REMINDER' });
-                }
-            } catch(e) {}
-        }
-
-        // Fallback: если SW недоступен — старый setTimeout в странице
-        function scheduleReminderFallback() {
-            cancelReminderFallback();
-            if (!settings.reminder) return;
-            const delay = getMsUntilNextReminder();
-            window._reminderTimerId = setTimeout(() => {
-                if (!settings.reminder || Notification.permission !== 'granted') return;
-                try {
-                    new Notification(t('reminderNotifTitle'), {
-                        body: t('reminderNotifBody'),
-                        icon: 'icon-192.png',
-                        badge: 'icon-192.png',
-                        tag: 'azkar-reminder',
-                        renotify: true,
-                    });
-                } catch(e) {}
-                scheduleReminderFallback();
-            }, delay);
-        }
-
-        function cancelReminderFallback() {
-            if (window._reminderTimerId) {
-                clearTimeout(window._reminderTimerId);
-                window._reminderTimerId = null;
-            }
-        }
-
-        function scheduleReminderNotification() {
-            syncReminderWithSW();
-            // Fallback на случай если SW не поддерживается
-            if (!('serviceWorker' in navigator)) {
-                scheduleReminderFallback();
-            } else {
-                cancelReminderFallback();
-            }
-        }
-
-        function cancelReminderNotification() {
-            cancelReminderFallback();
-            syncReminderWithSW(); // пошлёт CANCEL_REMINDER если reminder=false
-        }
-
-        async function toggleReminderNotification() {
-            if (!settings.reminder) {
-                const perm = await requestNotifPermission();
-                if (perm !== 'granted') {
-                    showToast(t('toastReminderDenied'));
-                    return;
-                }
-                settings.reminder = true;
-                saveDataDebounced();
-                updateSettingsUI();
-                scheduleReminderNotification();
-                showToast(getReminderTime());
-            } else {
-                settings.reminder = false;
-                saveDataDebounced();
-                updateSettingsUI();
-                cancelReminderNotification();
-            }
-        }
-
-        function openReminderTimePicker() {
-            const input = document.getElementById('reminderTimeInput');
-            if (input) input.value = getReminderTime();
-            document.getElementById('reminderTimeOverlay').classList.add('show');
-        }
-
-        function confirmReminderTime() {
-            const input = document.getElementById('reminderTimeInput');
-            if (input && input.value) {
-                settings.reminderTime = input.value;
-                saveDataDebounced();
-                if (settings.reminder) scheduleReminderNotification();
-                showToast(input.value);
-            }
-            document.getElementById('reminderTimeOverlay').classList.remove('show');
-        }
-
-        function cancelReminderTime() {
-            document.getElementById('reminderTimeOverlay').classList.remove('show');
-        }
-
-        // Long press on reminder setting item
-        (function initReminderLongPress() {
-            let pressTimer = null;
-            const el = document.getElementById('reminderSettingItem');
-            if (!el) return;
-            const start = (e) => {
-                pressTimer = setTimeout(() => {
-                    pressTimer = null;
-                    openReminderTimePicker();
-                }, 1200);
-            };
-            const cancel = () => { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } };
-            el.addEventListener('touchstart', start, { passive: true });
-            el.addEventListener('touchend', cancel);
-            el.addEventListener('touchmove', cancel);
-            el.addEventListener('mousedown', start);
-            el.addEventListener('mouseup', cancel);
-            el.addEventListener('mouseleave', cancel);
-        })();
-
-        function initReminder() {
-            if (settings.reminder && Notification.permission === 'granted') {
-                scheduleReminderNotification();
-            } else if (settings.reminder && Notification.permission !== 'granted') {
-                settings.reminder = false;
-                saveDataDebounced();
-                updateSettingsUI();
-            }
-        }
-
-        // При возврате в приложение — переподключить SW reminder
+        // При сворачивании/закрытии — сразу сохраняем, не ждём debounce
         document.addEventListener('visibilitychange', () => {
-            if (!document.hidden && settings.reminder && Notification.permission === 'granted') {
-                syncReminderWithSW();
-            }
-            // При сворачивании/закрытии — сразу сохраняем, не ждём debounce
             if (document.hidden) {
                 flushSave();
                 persistRememberedAccountSnapshot();
@@ -17936,13 +17743,13 @@ function safeParse(key, fallback) {
                 goalBaseline = parseInt(localStorage.getItem('azkar_goal_baseline') || '0');
                 if (isNaN(goalBaseline) || goalBaseline < 0 || goalBaseline > count) goalBaseline = 0;
                 customGoal = parseInt(localStorage.getItem('azkar_custom_goal') || '0');
-                duas = safeParse('azkar_duas', []);
+                duas = JSON.parse(localStorage.getItem('azkar_duas') || '[]');
                 loadDuaFolders();
                 loadSpecialFolders();
-                _statsCache = safeParse('azkar_stats_v2', {});
-                completedSpecial = safeParse('azkar_special_completed', {});
-                specialProgress = safeParse('azkar_special_progress', {});
-                specialResumeSessions = safeParse('azkar_special_resume_sessions', {});
+                _statsCache = JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}');
+                completedSpecial = JSON.parse(localStorage.getItem('azkar_special_completed') || '{}');
+                specialProgress = JSON.parse(localStorage.getItem('azkar_special_progress') || '{}');
+                specialResumeSessions = JSON.parse(localStorage.getItem('azkar_special_resume_sessions') || '{}');
                 loadDhikrTotals();
                 loadCustomSpecialDhikrs();
                 pruneCompletedSpecial();
@@ -20362,7 +20169,6 @@ function safeParse(key, fallback) {
         updateSettingsUI();
         initFirebaseAccount().catch(function(e) { console.warn('[Firebase] Init failed:', e); });
         initOnlinePresence();
-        initReminder();
 
         // ===== PRAYER TIMES MODULE =====
         // Calculates the 5 daily prayer times + sunrise from user's
@@ -20602,7 +20408,7 @@ function safeParse(key, fallback) {
             // Hydrate from localStorage on startup so prayer times work even
             // before geolocation responds (or if user later denies).
             try {
-                const saved = safeParse('azkar_geoloc', null);
+                const saved = JSON.parse(localStorage.getItem('azkar_geoloc') || 'null');
                 if (saved && typeof saved.lat === 'number' && typeof saved.lng === 'number') {
                     uLat = saved.lat; uLng = saved.lng;
                 }
@@ -21714,12 +21520,12 @@ function safeParse(key, fallback) {
                             goalBaseline = parseInt(localStorage.getItem('azkar_goal_baseline') || '0');
                             if (isNaN(goalBaseline) || goalBaseline < 0 || goalBaseline > count) goalBaseline = 0;
                             customGoal = parseInt(localStorage.getItem('azkar_custom_goal') || '0');
-                            duas = safeParse('azkar_duas', []);
+                            duas = JSON.parse(localStorage.getItem('azkar_duas') || '[]');
                             if (typeof loadDuaFolders === 'function') loadDuaFolders();
-                            _statsCache = safeParse('azkar_stats_v2', {});
-                            completedSpecial = safeParse('azkar_special_completed', {});
-                            specialProgress = safeParse('azkar_special_progress', {});
-                            specialResumeSessions = safeParse('azkar_special_resume_sessions', {});
+                            _statsCache = JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}');
+                            completedSpecial = JSON.parse(localStorage.getItem('azkar_special_completed') || '{}');
+                            specialProgress = JSON.parse(localStorage.getItem('azkar_special_progress') || '{}');
+                            specialResumeSessions = JSON.parse(localStorage.getItem('azkar_special_resume_sessions') || '{}');
                             // Перечитываем общий прогресс зикров в память (см. importData).
                             if (typeof loadDhikrTotals === 'function') loadDhikrTotals();
                             if (typeof loadCustomSpecialDhikrs === 'function') loadCustomSpecialDhikrs();
@@ -21871,8 +21677,8 @@ function safeParse(key, fallback) {
                 goal: isUnlimited ? 999999999 : goal,
                 customGoal: customGoal,
                 duas: duas,
-                stats: safeParse('azkar_stats_v2', {}),
-                dhikrTotals: safeParse('azkar_dhikr_totals', {}),
+                stats: JSON.parse(localStorage.getItem('azkar_stats_v2') || '{}'),
+                dhikrTotals: JSON.parse(localStorage.getItem('azkar_dhikr_totals') || '{}'),
                 completedSpecial: completedSpecial,
                 specialProgress: specialProgress,
                 specialResumeSessions: specialResumeSessions,

@@ -1,29 +1,27 @@
 // ===== Azkar PWA Service Worker =====
-// Версия: v96 — скрипты и json сначала из сети, шрифты и оболочка сохраняются при установке.
+// Версия: v87 — уведомление о намазе: заголовок «Время намаза», под ним намаз и время. Переводы на все языки. Кэш сброшен.
+// Версия: v71 — напоминание о зикре два раза в день (~12:00 и ~22:00) через SCHEDULE_EVENTS.
+// v70 — дуа Абу Умамы: Фаджр и Аср (через 15 минут после намаза), новые тексты и иконка.
+// v69 — добавлены уведомления времён намазов и зикра Абу Умамы
+// (SCHEDULE_EVENTS / CANCEL_EVENTS — список событий с точным временем от страницы).
+// v68 — хадисы раз в 2–4 часа (тестовая минута убрана); страница
+// присылает SW точное время первого показа (firstDelayMs), дальше SW сам берёт
+// случайный интервал 2–4 ч; после системного уведомления SW сообщает странице
+// (HADITH_NOTIFIED), чтобы та начала новое окно; в настройках снова есть
+// переключатель хадисов.
+// Бампать CACHE_NAME при каждом релизе → activate-handler выкинет старый кэш.
+// v94 — из справочника 99 имён удалены неиспользуемые арабские строки.
+// v93 — 99 имён без арабского текста: название, значение, описание; новая иконка задач.
+// v92 — 99 имён Аллаха переехали в папку раздела «Дуа»; «Избранное» — свайп
+// из «Дуа»; «Задачи» вынесены в нижнюю навигацию вместо «Избранного».
+// v97 — убрано ежедневное напоминание в 14:00; неоткрытые баннеры намазов,
+// дуа Абу Умамы и зикра теперь тоже остаются в шторке уведомлений.
+const CACHE_NAME = 'azkar-v97';
 
-// При каждом релизе увеличивайте номер в CACHE_NAME, иначе пользователи получат старый кэш.
-const CACHE_NAME = 'azkar-v96';
-
-// Файлы, которые сохраняются при установке. Отсутствующие файлы пропускаются.
-const PRECACHE_URLS = [
-    './', './index.html', './manifest.json',
-    './language-routing.js', './i18n.js', './hadiths.js', './allah-names.js',
-    './icon-192.png', './icon-512.png',
-    './fonts/amiri-regular.woff2', './fonts/amiri-bold.woff2',
-    './fonts/cormorantgaramond.woff2', './fonts/montserrat.woff2',
-    './fonts/notonaskharabic.woff2',
-    './fonts/scheherazadenew-regular.woff2', './fonts/scheherazadenew-bold.woff2'
-];
-
+// v90 — хадис, показанный в баннере и не открытый, остаётся в шторке уведомлений;
+// тап по такому уведомлению открывает попап с этим хадисом; тестовый интервал 1 мин.
 // ===== УСТАНОВКА И КЭШ =====
 self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then(cache =>
-            Promise.all(PRECACHE_URLS.map(url =>
-                cache.add(new Request(url, { cache: 'reload' })).catch(() => {})
-            ))
-        )
-    );
     self.skipWaiting();
 });
 
@@ -34,59 +32,6 @@ self.addEventListener('activate', (event) => {
         ).then(() => self.clients.claim())
     );
 });
-
-// ===== REMINDER ALARM SYSTEM =====
-// SW хранит таймер в своём контексте — живёт дольше, чем страница.
-// На Android Chrome SW может жить в фоне и реально показывать уведомление.
-
-let _reminderTimer = null;
-let _reminderConfig = null; // { delayMs, title, body, icon, badge, reminderTime }
-
-function clearReminderTimer() {
-    if (_reminderTimer !== null) {
-        clearTimeout(_reminderTimer);
-        _reminderTimer = null;
-    }
-}
-
-function scheduleReminder(config) {
-    clearReminderTimer();
-    _reminderConfig = config;
-
-    const { delayMs, title, body, icon, badge, reminderTime } = config;
-
-    // Защита: не ставим таймер более чем на 25 часов (лимит некоторых браузеров)
-    const safeDelay = Math.min(delayMs, 25 * 60 * 60 * 1000);
-
-    _reminderTimer = setTimeout(async () => {
-        _reminderTimer = null;
-
-        // Показываем уведомление через SW — работает без открытой вкладки
-        try {
-            await self.registration.showNotification(title, {
-                body,
-                icon,
-                badge,
-                tag: 'azkar-reminder',
-                renotify: true,
-                requireInteraction: false,
-                vibrate: [200, 100, 200],
-                data: { url: self.registration.scope }
-            });
-        } catch(e) {}
-
-        // Перепланируем на следующий день автоматически
-        if (_reminderConfig) {
-            const [h, m] = (reminderTime || '14:00').split(':').map(Number);
-            const now = new Date();
-            const target = new Date(now);
-            target.setHours(h, m, 0, 0);
-            target.setDate(target.getDate() + 1); // всегда завтра после срабатывания
-            const nextDelay = target - now;
-            scheduleReminder({ ..._reminderConfig, delayMs: nextDelay });
-        }
-    }, safeDelay);
-}
 
 // ===== HADITH RANDOM NOTIFICATIONS =====
 // Случайный показ хадиса раз в 2–4 часа. Если приложение открыто — шлём
@@ -147,15 +92,6 @@ self.addEventListener('message', (event) => {
 
     if (type === 'SKIP_WAITING') {
         self.skipWaiting();
-    }
-
-    if (type === 'SCHEDULE_REMINDER') {
-        scheduleReminder(event.data);
-    }
-
-    if (type === 'CANCEL_REMINDER') {
-        clearReminderTimer();
-        _reminderConfig = null;
     }
 
     if (type === 'SCHEDULE_HADITH') {
@@ -271,9 +207,8 @@ self.addEventListener('fetch', (event) => {
 
     const isHtml = event.request.mode === 'navigate'
         || (event.request.headers.get('accept') || '').includes('text/html');
-    const isData = /\.(js|json)$/.test(new URL(event.request.url).pathname);
 
-    if (isHtml || isData) {
+    if (isHtml) {
         // Network-first: пробуем сеть, при неудаче — кэш.
         event.respondWith(
             fetch(event.request).then(response => {
@@ -314,7 +249,7 @@ let _fajrTimer = null;
 self.addEventListener('message', function(e) {
     if (!e.data) return;
 
-    // Существующие обработчики (SKIP_WAITING, SCHEDULE_REMINDER и т.д.) — не трогаем
+    // Остальные обработчики сообщений — в отдельном listener выше, не трогаем
 
     if (e.data.type === 'SCHEDULE_FAJR_BACKUP') {
         _fajrMs = e.data.fajrMs;
