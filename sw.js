@@ -22,7 +22,7 @@
 // v104 — ЭТАП 2: i18n.js разделён на i18n/<язык>.js; грузится только en + выбранный
 // язык. Версия в ?v= совпадает с I18N_VERSION в index.html — менять вместе.
 // v105 — ЭТАП 3: контент вынесен из index.html. data/special-dhikrs.js грузится
-// сразу; data/checklist-defaults.js и allah-names.js — только когда нужны.
+// сразу; data/checklist-defaults.js и 99 имён (data/names99/) — только когда нужны.
 // DATA_VERSION совпадает с DATA_VERSION в index.html — менять вместе.
 // v106 — ЭТАП 4: основной код вынесен в js/app.js, страница отзывов — в js/feedback.js
 // (фоновая компиляция + кэш байткода); скрытые экраны не рендерятся при запуске.
@@ -32,10 +32,11 @@
 // v108 — ЭТАП 6: облегчённый режим (авто на слабых Android + переключатель в настройках).
 // v109 — переводы: хадисы и 99 имён на всех 15 языках, подсказки и подписи
 // для экранного диктора, единица таймера.
-const CACHE_NAME = 'azkar-v109';
-const I18N_VERSION = '109';
-const DATA_VERSION = '109';
-const APP_VERSION = '109';
+// v110 — 99 имён: все 15 языков в одной папке data/names99/, allah-names.js больше не используется.
+const CACHE_NAME = 'azkar-v110';
+const I18N_VERSION = '110';
+const DATA_VERSION = '110';
+const APP_VERSION = '110';
 
 // Оболочка приложения — кладётся в кэш сразу при установке SW,
 // чтобы второй запуск (и офлайн) был мгновенным.
@@ -49,7 +50,6 @@ const PRECACHE_URLS = [
     'data/special-dhikrs.js?v=' + DATA_VERSION,
     // Ленивые данные тоже кладём в кэш заранее (в фоне), чтобы они были доступны офлайн
     'data/checklist-defaults.js?v=' + DATA_VERSION,
-    'allah-names.js?v=' + DATA_VERSION,
     'language-routing.js',
     'manifest.json',
     'icon-192.png',

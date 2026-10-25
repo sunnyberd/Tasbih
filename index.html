@@ -56,7 +56,7 @@
         @font-face { font-family: 'Scheherazade New'; src: url('fonts/scheherazadenew-bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF; }
     </style>
 
-    <link rel="stylesheet" href="css/app.css?v=109">
+    <link rel="stylesheet" href="css/app.css?v=110">
 </head>
 <body>
 
@@ -2560,7 +2560,7 @@
 
     <!-- Данные хадисов вынесены в отдельный файл. Если его удалить — приложение
          продолжит работать как обычно, просто без показа хадисов. -->
-    <script src="hadiths.js?v=109"></script>
+    <script src="hadiths.js?v=110"></script>
     <script>
     // ===== ЗАГРУЗЧИК ЯЗЫКОВ (этап 2 оптимизации) =====
     // Раньше i18n.js (все 15 языков, ~310 КБ) грузился целиком.
@@ -2569,7 +2569,7 @@
     // I18N_VERSION менять при КАЖДОМ изменении файлов i18n/ (вместе с CACHE_NAME в sw.js),
     // иначе телефон может взять старую копию из кэша.
     (function () {
-        var I18N_VERSION = '109';
+        var I18N_VERSION = '110';
         var LANGS = ['en', 'de', 'es', 'fr', 'it', 'ja', 'ko', 'ru', 'uz', 'zh', 'tr', 'hi', 'id', 'ms', 'th'];
         var I = window.AZKAR_I18N = window.AZKAR_I18N || {};
         var U = window.AZKAR_UI_TRANSLATIONS = window.AZKAR_UI_TRANSLATIONS || {};
@@ -2629,9 +2629,9 @@
         });
     })();
     </script>
-    <script src="js/feedback.js?v=109"></script>
-    <script src="data/special-dhikrs.js?v=109"></script>
-    <script src="js/app.js?v=109"></script>
+    <script src="js/feedback.js?v=110"></script>
+    <script src="data/special-dhikrs.js?v=110"></script>
+    <script src="js/app.js?v=110"></script>
         <script>
         // Реальный свайп — баннер следует за пальцем, при отпускании улетает или возвращается
         window.addEventListener('load', function() {
