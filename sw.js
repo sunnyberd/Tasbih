@@ -30,10 +30,12 @@
 // v107 — ЭТАП 5: стили вынесены в css/app.css; страница отзывов (разметка + стили)
 // собирается только при первом открытии.
 // v108 — ЭТАП 6: облегчённый режим (авто на слабых Android + переключатель в настройках).
-const CACHE_NAME = 'azkar-v108';
-const I18N_VERSION = '108';
-const DATA_VERSION = '105';
-const APP_VERSION = '108';
+// v109 — переводы: хадисы и 99 имён на всех 15 языках, подсказки и подписи
+// для экранного диктора, единица таймера.
+const CACHE_NAME = 'azkar-v109';
+const I18N_VERSION = '109';
+const DATA_VERSION = '109';
+const APP_VERSION = '109';
 
 // Оболочка приложения — кладётся в кэш сразу при установке SW,
 // чтобы второй запуск (и офлайн) был мгновенным.
@@ -43,7 +45,7 @@ const PRECACHE_URLS = [
     'css/app.css?v=' + APP_VERSION,
     'js/feedback.js?v=' + APP_VERSION,
     'i18n/en.js?v=' + I18N_VERSION,
-    'hadiths.js',
+    'hadiths.js?v=' + DATA_VERSION,
     'data/special-dhikrs.js?v=' + DATA_VERSION,
     // Ленивые данные тоже кладём в кэш заранее (в фоне), чтобы они были доступны офлайн
     'data/checklist-defaults.js?v=' + DATA_VERSION,

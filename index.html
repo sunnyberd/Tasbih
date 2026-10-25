@@ -56,7 +56,7 @@
         @font-face { font-family: 'Scheherazade New'; src: url('fonts/scheherazadenew-bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF; }
     </style>
 
-    <link rel="stylesheet" href="css/app.css?v=108">
+    <link rel="stylesheet" href="css/app.css?v=109">
 </head>
 <body>
 
@@ -191,14 +191,14 @@
                     <div class="post-salah-option" id="postSalahOption" onclick="onPostSalahOptionClick(event)">Зикры после намаза</div>
                 </div>
             </div>
-            <div class="header-clock-corner js-prayer-clock" id="headerClockCorner" aria-live="polite" role="button" tabindex="0" onclick="openPrayerModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openPrayerModal();}" aria-label="Время намаза">
+            <div class="header-clock-corner js-prayer-clock" id="headerClockCorner" aria-live="polite" aria-label="Время намаза" data-i18n-aria="notifPrayerTitle" role="button" tabindex="0" onclick="openPrayerModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openPrayerModal();}" aria-label="Время намаза">
                 <div class="header-clock-prayer js-prayer-name" id="headerClockPrayer">—</div>
                 <div class="header-clock js-prayer-time" id="headerClock">--:--</div>
                 <div class="header-countdown js-prayer-countdown" id="headerCountdown">— --:--:--</div>
             </div>
         </div>
         <div class="counter-area">
-            <div class="counter-ring-wrap" onclick="handleRingClick(event)" role="button" tabindex="0" aria-label="Увеличить счетчик"
+            <div class="counter-ring-wrap" onclick="handleRingClick(event)" role="button" tabindex="0" aria-label="Увеличить счетчик" data-i18n-aria="ariaIncrement"
                  onmousedown="startManualAddPress(event)"
                  onmouseup="cancelManualAddPress()"
                  onmouseleave="cancelManualAddPress()"
@@ -213,7 +213,7 @@
                 <div class="inner-ring-decor" aria-hidden="true"></div>
                 <div class="indicator-ball" id="indicatorBall" aria-hidden="true"></div>
                 <div class="counter-center">
-                    <svg class="allah-svg" viewBox="0 0 64 64" aria-label="Аллах">
+                    <svg class="allah-svg" viewBox="0 0 64 64" aria-label="Аллах" data-i18n-aria="ariaAllah">
                         <text x="32" y="44" text-anchor="middle" font-size="36" fill="var(--gold)" font-family="'Amiri', 'Noto Naskh Arabic', 'Scheherazade New', serif" font-weight="700">الله</text>
                     </svg>
                     <div class="count-value" id="countDisplay">0</div>
@@ -270,7 +270,7 @@
             <div class="main-title" id="qiblaHeader">Кибла</div>
             <div class="qibla-sub" id="qiblaSub">Направление на Мекку</div>
             <div class="header-divider" aria-hidden="true"></div>
-            <div class="header-clock-corner js-prayer-clock" aria-live="polite" role="button" tabindex="0" onclick="openPrayerModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openPrayerModal();}" aria-label="Время намаза">
+            <div class="header-clock-corner js-prayer-clock" aria-live="polite" aria-label="Время намаза" data-i18n-aria="notifPrayerTitle" role="button" tabindex="0" onclick="openPrayerModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openPrayerModal();}" aria-label="Время намаза">
                 <div class="header-clock-prayer js-prayer-name">—</div>
                 <div class="header-clock js-prayer-time">--:--</div>
                 <div class="header-countdown js-prayer-countdown">— --:--:--</div>
@@ -456,7 +456,7 @@
         </div>
 
         <div class="reset-area" style="margin-top: 20px;">
-            <button class="reset-btn" onclick="promptClearStats()" aria-label="Очистить всё">
+            <button class="reset-btn" onclick="promptClearStats()" aria-label="Очистить всё" data-i18n-aria="btnClearStats">
                 <svg viewBox="0 0 24 24" width="16" stroke="currentColor" fill="none" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                 <span id="btnClearStats">Очистить всё</span>
             </button>
@@ -692,13 +692,13 @@
     </div>
 
     <!-- FAB вне .screen чтобы position:fixed работало корректно -->
-    <button class="fab" id="duaAddFab" onclick="openDuaFolderModal()" aria-label="Добавить новое дуа или папку" style="display:none;">
+    <button class="fab" id="duaAddFab" onclick="openDuaFolderModal()" aria-label="Добавить новое дуа или папку" data-i18n-aria="ariaAddDua" style="display:none;">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
     </button>
-    <button class="fab" id="specialAddFab" onclick="openSpecialAddModal()" aria-label="Добавить зикр" style="display:none;">
+    <button class="fab" id="specialAddFab" onclick="openSpecialAddModal()" aria-label="Добавить зикр" data-i18n-aria="ariaAddDhikr" style="display:none;">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
     </button>
-    <button class="fab" id="checklistAddFab" onclick="openAddFolderModal()" aria-label="Добавить папку" style="display:none;">
+    <button class="fab" id="checklistAddFab" onclick="openAddFolderModal()" aria-label="Добавить папку" data-i18n-aria="ariaAddFolder" style="display:none;">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
     </button>
 
@@ -761,7 +761,7 @@
             </div>
             <div class="main-title" id="specialCounterName"></div>
             <div class="header-divider" aria-hidden="true"></div>
-            <div class="header-clock-corner js-prayer-clock" aria-live="polite" role="button" tabindex="0" onclick="openPrayerModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openPrayerModal();}" aria-label="Время намаза">
+            <div class="header-clock-corner js-prayer-clock" aria-live="polite" aria-label="Время намаза" data-i18n-aria="notifPrayerTitle" role="button" tabindex="0" onclick="openPrayerModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openPrayerModal();}" aria-label="Время намаза">
                 <div class="header-clock-prayer js-prayer-name">—</div>
                 <div class="header-clock js-prayer-time">--:--</div>
                 <div class="header-countdown js-prayer-countdown">— --:--:--</div>
@@ -778,7 +778,7 @@
                 <div class="indicator-ball" id="specialIndicatorBall" aria-hidden="true"></div>
                 <div class="counter-center">
                     <!-- SVG меняется в зависимости от зикра: الله или ﷺ -->
-                    <svg class="allah-svg" id="specialCenterSvg" viewBox="0 0 64 64" aria-label="Центр">
+                    <svg class="allah-svg" id="specialCenterSvg" viewBox="0 0 64 64" aria-label="Аллах" data-i18n-aria="ariaAllah">
                         <text id="specialCenterText" x="32" y="44" text-anchor="middle" font-size="36" fill="var(--gold)" font-family="'Amiri', 'Noto Naskh Arabic', 'Scheherazade New', serif" font-weight="700">الله</text>
                     </svg>
                     <div class="count-value" id="specialCountDisplay">0</div>
@@ -1097,7 +1097,7 @@
                 <div class="set-row-main" style="cursor:default;">
                     <span class="set-ic">💾</span>
                     <div class="set-row-lbl"><b id="labelData">Данные</b></div>
-                    <button class="set-ic-btn" id="backupBtn" onclick="openBackupModal()" aria-label="Резервные копии">
+                    <button class="set-ic-btn" id="backupBtn" onclick="openBackupModal()" aria-label="Резервные копии" data-i18n-aria="backupTitle">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
                             <path d="M3 3v5h5"/>
@@ -1247,7 +1247,7 @@
         <div class="cl-modal" onclick="event.stopPropagation()" style="max-height:80vh;overflow:hidden;display:flex;flex-direction:column;">
             <div class="cl-modal-title-row">
                 <div class="cl-modal-title" id="backupModalTitle">Резервные копии</div>
-                <button class="set-ic-btn backup-close-btn" onclick="closeBackupModal()" aria-label="Закрыть">×</button>
+                <button class="set-ic-btn backup-close-btn" onclick="closeBackupModal()" aria-label="Закрыть" data-i18n-aria="clStatsClose">×</button>
             </div>
             <div id="backupList" style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:8px;padding:4px 0;min-height:60px;">
                 <div style="text-align:center;color:var(--text-muted);font-size:0.9rem;padding:20px 0;" id="backupEmptyMsg">Нет сохранённых копий</div>
@@ -2560,7 +2560,7 @@
 
     <!-- Данные хадисов вынесены в отдельный файл. Если его удалить — приложение
          продолжит работать как обычно, просто без показа хадисов. -->
-    <script src="hadiths.js"></script>
+    <script src="hadiths.js?v=109"></script>
     <script>
     // ===== ЗАГРУЗЧИК ЯЗЫКОВ (этап 2 оптимизации) =====
     // Раньше i18n.js (все 15 языков, ~310 КБ) грузился целиком.
@@ -2569,7 +2569,7 @@
     // I18N_VERSION менять при КАЖДОМ изменении файлов i18n/ (вместе с CACHE_NAME в sw.js),
     // иначе телефон может взять старую копию из кэша.
     (function () {
-        var I18N_VERSION = '108';
+        var I18N_VERSION = '109';
         var LANGS = ['en', 'de', 'es', 'fr', 'it', 'ja', 'ko', 'ru', 'uz', 'zh', 'tr', 'hi', 'id', 'ms', 'th'];
         var I = window.AZKAR_I18N = window.AZKAR_I18N || {};
         var U = window.AZKAR_UI_TRANSLATIONS = window.AZKAR_UI_TRANSLATIONS || {};
@@ -2629,9 +2629,9 @@
         });
     })();
     </script>
-    <script src="js/feedback.js?v=108"></script>
-    <script src="data/special-dhikrs.js?v=105"></script>
-    <script src="js/app.js?v=108"></script>
+    <script src="js/feedback.js?v=109"></script>
+    <script src="data/special-dhikrs.js?v=109"></script>
+    <script src="js/app.js?v=109"></script>
         <script>
         // Реальный свайп — баннер следует за пальцем, при отпускании улетает или возвращается
         window.addEventListener('load', function() {
