@@ -30,6 +30,7 @@ AZKAR_I18N_REGISTER("th", {
     "labelSound": "เสียงเมื่อถึงเป้าหมาย",
     "labelClickSound": "เสียงเมื่อแตะ",
     "labelOnlinePresence": "แสดงจำนวนออนไลน์",
+    "labelLiteMode": "โหมดเบา",
     "autoExtendOff": "ปิดใช้งาน",
     "autoExtendOffShort": "ปิด",
     "soundHint": "กดค้างเพื่อเลือกเสียง",

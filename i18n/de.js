@@ -30,6 +30,7 @@ AZKAR_I18N_REGISTER("de", {
     "labelSound": "Sound bei Ziel",
     "labelClickSound": "Sound beim Tippen",
     "labelOnlinePresence": "Online-Zähler anzeigen",
+    "labelLiteMode": "Leichter Modus",
     "autoExtendOff": "Ausgeschaltet",
     "autoExtendOffShort": "Aus",
     "soundHint": "Halten, um einen Ton auszuwählen",

@@ -30,6 +30,7 @@ AZKAR_I18N_REGISTER("en", {
     "labelSound": "Sound on goal",
     "labelClickSound": "Sound on tap",
     "labelOnlinePresence": "Show online count",
+    "labelLiteMode": "Lite mode",
     "autoExtendOff": "Off",
     "autoExtendOffShort": "Off",
     "soundHint": "Hold to select sound",

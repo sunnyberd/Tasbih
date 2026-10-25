@@ -30,6 +30,7 @@ AZKAR_I18N_REGISTER("it", {
     "labelSound": "Suono al raggiungimento",
     "labelClickSound": "Suono al tocco",
     "labelOnlinePresence": "Mostra contatore online",
+    "labelLiteMode": "Modalità leggera",
     "autoExtendOff": "Disattivato",
     "autoExtendOffShort": "Disatt.",
     "soundHint": "Tieni premuto per scegliere un suono",

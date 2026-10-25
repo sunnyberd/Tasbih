@@ -30,6 +30,7 @@ AZKAR_I18N_REGISTER("uz", {
     "labelSound": "Ovoz (maqsadga yetganda)",
     "labelClickSound": "Bosishda ovoz",
     "labelOnlinePresence": "Onlayn sonini ko‘rsatish",
+    "labelLiteMode": "Yengil rejim",
     "autoExtendOff": "O‘chirilgan",
     "autoExtendOffShort": "O‘chiq",
     "soundHint": "Ovozni tanlash uchun ushlab turing",

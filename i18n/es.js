@@ -30,6 +30,7 @@ AZKAR_I18N_REGISTER("es", {
     "labelSound": "Sonido al alcanzar meta",
     "labelClickSound": "Sonido al pulsar",
     "labelOnlinePresence": "Mostrar usuarios en línea",
+    "labelLiteMode": "Modo ligero",
     "autoExtendOff": "Desactivado",
     "autoExtendOffShort": "Desact.",
     "soundHint": "Mantén pulsado para elegir un sonido",

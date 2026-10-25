@@ -30,6 +30,7 @@ AZKAR_I18N_REGISTER("hi", {
     "labelSound": "लक्ष्य पर ध्वनि",
     "labelClickSound": "टैप पर ध्वनि",
     "labelOnlinePresence": "ऑनलाइन संख्या दिखाएँ",
+    "labelLiteMode": "हल्का मोड",
     "autoExtendOff": "बंद",
     "autoExtendOffShort": "बंद",
     "soundHint": "ध्वनि चुनने के लिए दबाकर रखें",

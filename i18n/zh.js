@@ -30,6 +30,7 @@ AZKAR_I18N_REGISTER("zh", {
     "labelSound": "达成目标时提示音",
     "labelClickSound": "点击提示音",
     "labelOnlinePresence": "显示在线人数",
+    "labelLiteMode": "轻量模式",
     "autoExtendOff": "已关闭",
     "autoExtendOffShort": "关闭",
     "soundHint": "长按选择声音",

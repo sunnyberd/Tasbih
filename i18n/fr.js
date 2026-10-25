@@ -30,6 +30,7 @@ AZKAR_I18N_REGISTER("fr", {
     "labelSound": "Son à l'objectif",
     "labelClickSound": "Son au toucher",
     "labelOnlinePresence": "Afficher le compteur en ligne",
+    "labelLiteMode": "Mode allégé",
     "autoExtendOff": "Désactivé",
     "autoExtendOffShort": "Désact.",
     "soundHint": "Maintenez pour choisir un son",

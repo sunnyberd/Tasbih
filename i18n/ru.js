@@ -30,6 +30,7 @@ AZKAR_I18N_REGISTER("ru", {
     "labelSound": "Звук при достижении",
     "labelClickSound": "Звук при нажатии",
     "labelOnlinePresence": "Показывать онлайн",
+    "labelLiteMode": "Облегчённый режим",
     "autoExtendOff": "Выключено",
     "autoExtendOffShort": "Выкл.",
     "soundHint": "Удержите для выбора звука",

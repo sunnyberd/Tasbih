@@ -30,6 +30,7 @@ AZKAR_I18N_REGISTER("ko", {
     "labelSound": "목표 달성 소리",
     "labelClickSound": "탭 소리",
     "labelOnlinePresence": "온라인 인원 표시",
+    "labelLiteMode": "경량 모드",
     "autoExtendOff": "꺼짐",
     "autoExtendOffShort": "꺼짐",
     "soundHint": "길게 눌러 사운드 선택",

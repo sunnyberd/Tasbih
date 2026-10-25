@@ -30,6 +30,7 @@ AZKAR_I18N_REGISTER("ja", {
     "labelSound": "目標達成時のサウンド",
     "labelClickSound": "タップ音",
     "labelOnlinePresence": "オンライン人数を表示",
+    "labelLiteMode": "軽量モード",
     "autoExtendOff": "オフ",
     "autoExtendOffShort": "オフ",
     "soundHint": "長押しでサウンドを選択",

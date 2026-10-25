@@ -30,6 +30,7 @@ AZKAR_I18N_REGISTER("ms", {
     "labelSound": "Bunyi apabila sasaran dicapai",
     "labelClickSound": "Bunyi ketika ketuk",
     "labelOnlinePresence": "Tunjukkan jumlah dalam talian",
+    "labelLiteMode": "Mod ringan",
     "autoExtendOff": "Dimatikan",
     "autoExtendOffShort": "Mati",
     "soundHint": "Tekan dan tahan untuk memilih bunyi",

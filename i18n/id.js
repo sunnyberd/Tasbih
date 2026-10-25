@@ -30,6 +30,7 @@ AZKAR_I18N_REGISTER("id", {
     "labelSound": "Suara saat target tercapai",
     "labelClickSound": "Suara saat ketuk",
     "labelOnlinePresence": "Tampilkan jumlah online",
+    "labelLiteMode": "Mode ringan",
     "autoExtendOff": "Dinonaktifkan",
     "autoExtendOffShort": "Nonaktif",
     "soundHint": "Tahan untuk memilih suara",

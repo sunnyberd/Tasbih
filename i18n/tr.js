@@ -30,6 +30,7 @@ AZKAR_I18N_REGISTER("tr", {
     "labelSound": "Hedefte ses",
     "labelClickSound": "Dokunuşta ses",
     "labelOnlinePresence": "Çevrimiçi sayısını göster",
+    "labelLiteMode": "Hafif mod",
     "autoExtendOff": "Kapalı",
     "autoExtendOffShort": "Kapalı",
     "soundHint": "Ses seçmek için basılı tutun",
