@@ -27,16 +27,19 @@
 // v106 — ЭТАП 4: основной код вынесен в js/app.js, страница отзывов — в js/feedback.js
 // (фоновая компиляция + кэш байткода); скрытые экраны не рендерятся при запуске.
 // APP_VERSION совпадает с ?v= у js/*.js в index.html — менять вместе.
-const CACHE_NAME = 'azkar-v106';
+// v107 — ЭТАП 5: стили вынесены в css/app.css; страница отзывов (разметка + стили)
+// собирается только при первом открытии.
+const CACHE_NAME = 'azkar-v107';
 const I18N_VERSION = '104';
 const DATA_VERSION = '105';
-const APP_VERSION = '106';
+const APP_VERSION = '107';
 
 // Оболочка приложения — кладётся в кэш сразу при установке SW,
 // чтобы второй запуск (и офлайн) был мгновенным.
 const PRECACHE_URLS = [
     './',
     'js/app.js?v=' + APP_VERSION,
+    'css/app.css?v=' + APP_VERSION,
     'js/feedback.js?v=' + APP_VERSION,
     'i18n/en.js?v=' + I18N_VERSION,
     'hadiths.js',
