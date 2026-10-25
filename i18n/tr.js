@@ -52,6 +52,7 @@ AZKAR_I18N_REGISTER("tr", {
     "btnCancel": "İptal",
     "completionTitle": "✨ Mâşâallah! ✨",
     "completionSub": "Hedefe ulaşıldı",
+    "tapToContinue": "Devam etmek için ekrana dokun",
     "resetCounterTitle": "Sayaç sıfırlansın mı?",
     "resetCounterSub": "Mevcut ilerleme silinecek",
     "deleteDuaTitle": "Dua silinsin mi?",
@@ -232,6 +233,7 @@ AZKAR_I18N_REGISTER("tr", {
     "toastTaskDeleted": "Görev silindi",
     "addTaskBtn": "Görev ekle",
     "labelTimer": "Zikir kronometresi",
+    "unitSeconds": "sn",
     "labelAutoAdvance": "Zikri otomatik ilerlet",
     "labelStealth": "Karanlık zikir modu",
     "stealthHint": "çıkmak için basılı tut",
@@ -314,7 +316,12 @@ AZKAR_I18N_REGISTER("tr", {
     "postSalahStep2": "Elhamdülillah",
     "postSalahStep3": "Allahu Ekber",
     "postSalahStep4": "La ilahe illallah",
-    "toastLangLoadFailed": "Dil yüklenemedi. İnternet bağlantını kontrol et"
+    "toastLangLoadFailed": "Dil yüklenemedi. İnternet bağlantını kontrol et",
+    "ariaIncrement": "Sayacı artır",
+    "ariaAddDua": "Yeni dua veya klasör ekle",
+    "ariaAddDhikr": "Zikir ekle",
+    "ariaAddFolder": "Klasör ekle",
+    "ariaAllah": "Allah"
 }, {
     "settingsSections": {
         "appearance": {

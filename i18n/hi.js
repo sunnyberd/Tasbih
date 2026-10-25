@@ -52,6 +52,7 @@ AZKAR_I18N_REGISTER("hi", {
     "btnCancel": "रद्द करें",
     "completionTitle": "✨ मा शा अल्लाह! ✨",
     "completionSub": "लक्ष्य पूरा हुआ",
+    "tapToContinue": "जारी रखने के लिए स्क्रीन पर टैप करें",
     "resetCounterTitle": "काउंटर रीसेट करें?",
     "resetCounterSub": "वर्तमान प्रगति मिट जाएगी",
     "deleteDuaTitle": "दुआ हटाएँ?",
@@ -232,6 +233,7 @@ AZKAR_I18N_REGISTER("hi", {
     "toastTaskDeleted": "कार्य हटाया",
     "addTaskBtn": "कार्य जोड़ें",
     "labelTimer": "ज़िक्र स्टॉपवॉच",
+    "unitSeconds": "से.",
     "labelAutoAdvance": "ज़िक्र स्वतः आगे बढ़ाएँ",
     "labelStealth": "डार्क ज़िक्र मोड",
     "stealthHint": "बाहर निकलने के लिए दबाए रखें",
@@ -314,7 +316,12 @@ AZKAR_I18N_REGISTER("hi", {
     "postSalahStep2": "अल्हम्दुलिल्लाह",
     "postSalahStep3": "अल्लाहु अकबर",
     "postSalahStep4": "ला इलाहा इल्लल्लाह",
-    "toastLangLoadFailed": "भाषा लोड नहीं हो सकी। इंटरनेट कनेक्शन जाँचें"
+    "toastLangLoadFailed": "भाषा लोड नहीं हो सकी। इंटरनेट कनेक्शन जाँचें",
+    "ariaIncrement": "गिनती बढ़ाएँ",
+    "ariaAddDua": "नई दुआ या फ़ोल्डर जोड़ें",
+    "ariaAddDhikr": "ज़िक्र जोड़ें",
+    "ariaAddFolder": "फ़ोल्डर जोड़ें",
+    "ariaAllah": "अल्लाह"
 }, {
     "settingsSections": {
         "appearance": {

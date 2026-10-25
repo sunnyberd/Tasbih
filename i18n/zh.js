@@ -52,6 +52,7 @@ AZKAR_I18N_REGISTER("zh", {
     "btnCancel": "取消",
     "completionTitle": "✨ 马沙安拉！✨",
     "completionSub": "目标达成",
+    "tapToContinue": "轻触屏幕继续",
     "resetCounterTitle": "重置计数器？",
     "resetCounterSub": "当前进度将被清除",
     "deleteDuaTitle": "删除杜阿？",
@@ -232,6 +233,7 @@ AZKAR_I18N_REGISTER("zh", {
     "toastTaskDeleted": "任务已删除",
     "addTaskBtn": "添加任务",
     "labelTimer": "迪克尔计时器",
+    "unitSeconds": "秒",
     "labelAutoAdvance": "迪克尔自动切换",
     "labelStealth": "暗黑迪克尔模式",
     "stealthHint": "长按退出",
@@ -314,7 +316,12 @@ AZKAR_I18N_REGISTER("zh", {
     "postSalahStep2": "一切赞颂全归真主",
     "postSalahStep3": "真主至大",
     "postSalahStep4": "万物非主唯有真主",
-    "toastLangLoadFailed": "无法加载语言，请检查网络连接"
+    "toastLangLoadFailed": "无法加载语言，请检查网络连接",
+    "ariaIncrement": "增加计数",
+    "ariaAddDua": "添加新的杜阿或文件夹",
+    "ariaAddDhikr": "添加迪克尔",
+    "ariaAddFolder": "添加文件夹",
+    "ariaAllah": "真主"
 }, {
     "settingsSections": {
         "appearance": {

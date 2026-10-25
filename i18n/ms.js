@@ -52,6 +52,7 @@ AZKAR_I18N_REGISTER("ms", {
     "btnCancel": "Batal",
     "completionTitle": "✨ Masya Allah! ✨",
     "completionSub": "Sasaran dicapai",
+    "tapToContinue": "Ketik skrin untuk meneruskan",
     "resetCounterTitle": "Set semula pembilang?",
     "resetCounterSub": "Kemajuan semasa akan dikosongkan",
     "deleteDuaTitle": "Padam doa?",
@@ -232,6 +233,7 @@ AZKAR_I18N_REGISTER("ms", {
     "toastTaskDeleted": "Tugas dipadam",
     "addTaskBtn": "Tambah tugas",
     "labelTimer": "Jam randik zikir",
+    "unitSeconds": "s",
     "labelAutoAdvance": "Maju zikir automatik",
     "labelStealth": "Mod zikir gelap",
     "stealthHint": "tahan untuk keluar",
@@ -314,7 +316,12 @@ AZKAR_I18N_REGISTER("ms", {
     "postSalahStep2": "Alhamdulillah",
     "postSalahStep3": "Allahu Akbar",
     "postSalahStep4": "La ilaha illallah",
-    "toastLangLoadFailed": "Bahasa tidak dapat dimuatkan. Semak sambungan internet"
+    "toastLangLoadFailed": "Bahasa tidak dapat dimuatkan. Semak sambungan internet",
+    "ariaIncrement": "Tambah kiraan",
+    "ariaAddDua": "Tambah doa atau folder baharu",
+    "ariaAddDhikr": "Tambah zikir",
+    "ariaAddFolder": "Tambah folder",
+    "ariaAllah": "Allah"
 }, {
     "settingsSections": {
         "appearance": {

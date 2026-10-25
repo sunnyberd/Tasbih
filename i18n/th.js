@@ -52,6 +52,7 @@ AZKAR_I18N_REGISTER("th", {
     "btnCancel": "ยกเลิก",
     "completionTitle": "✨ มาชาอัลลอฮ์! ✨",
     "completionSub": "ถึงเป้าหมายแล้ว",
+    "tapToContinue": "แตะหน้าจอเพื่อดำเนินการต่อ",
     "resetCounterTitle": "รีเซ็ตตัวนับหรือไม่?",
     "resetCounterSub": "ความคืบหน้าปัจจุบันจะถูกล้าง",
     "deleteDuaTitle": "ลบดุอาอ์หรือไม่?",
@@ -232,6 +233,7 @@ AZKAR_I18N_REGISTER("th", {
     "toastTaskDeleted": "ลบงานแล้ว",
     "addTaskBtn": "เพิ่มงาน",
     "labelTimer": "นาฬิกาจับเวลาซิกร์",
+    "unitSeconds": "วิ",
     "labelAutoAdvance": "เลื่อนซิกร์อัตโนมัติ",
     "labelStealth": "โหมดซิกร์มืด",
     "stealthHint": "กดค้างเพื่อออก",
@@ -314,7 +316,12 @@ AZKAR_I18N_REGISTER("th", {
     "postSalahStep2": "อัลฮัมดุลิลลาฮ์",
     "postSalahStep3": "อัลลอฮุอักบัร",
     "postSalahStep4": "ลาอิลาฮะอิลลัลลอฮ์",
-    "toastLangLoadFailed": "โหลดภาษาไม่สำเร็จ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต"
+    "toastLangLoadFailed": "โหลดภาษาไม่สำเร็จ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต",
+    "ariaIncrement": "เพิ่มตัวนับ",
+    "ariaAddDua": "เพิ่มดุอาอ์หรือโฟลเดอร์ใหม่",
+    "ariaAddDhikr": "เพิ่มซิกร์",
+    "ariaAddFolder": "เพิ่มโฟลเดอร์",
+    "ariaAllah": "อัลลอฮ์"
 }, {
     "settingsSections": {
         "appearance": {

@@ -52,6 +52,7 @@ AZKAR_I18N_REGISTER("ko", {
     "btnCancel": "취소",
     "completionTitle": "✨ 마샤알라! ✨",
     "completionSub": "목표 달성",
+    "tapToContinue": "계속하려면 화면을 탭하세요",
     "resetCounterTitle": "카운터를 초기화하시겠습니까?",
     "resetCounterSub": "현재 진행 상황이 삭제됩니다",
     "deleteDuaTitle": "두아를 삭제하시겠습니까?",
@@ -232,6 +233,7 @@ AZKAR_I18N_REGISTER("ko", {
     "toastTaskDeleted": "할 일이 삭제되었습니다",
     "addTaskBtn": "할 일 추가",
     "labelTimer": "지크르 스톱워치",
+    "unitSeconds": "초",
     "labelAutoAdvance": "지크르 자동 전환",
     "labelStealth": "다크 지크르 모드",
     "stealthHint": "길게 눌러 종료",
@@ -314,7 +316,12 @@ AZKAR_I18N_REGISTER("ko", {
     "postSalahStep2": "알함두릴라",
     "postSalahStep3": "알라후 아크바르",
     "postSalahStep4": "라 일라하 일랄라",
-    "toastLangLoadFailed": "언어를 불러오지 못했습니다. 인터넷 연결을 확인하세요"
+    "toastLangLoadFailed": "언어를 불러오지 못했습니다. 인터넷 연결을 확인하세요",
+    "ariaIncrement": "카운터 올리기",
+    "ariaAddDua": "새 두아 또는 폴더 추가",
+    "ariaAddDhikr": "지크르 추가",
+    "ariaAddFolder": "폴더 추가",
+    "ariaAllah": "알라"
 }, {
     "settingsSections": {
         "appearance": {

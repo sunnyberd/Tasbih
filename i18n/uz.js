@@ -52,6 +52,7 @@ AZKAR_I18N_REGISTER("uz", {
     "btnCancel": "Bekor qilish",
     "completionTitle": "✨ Ma shaa Alloh! ✨",
     "completionSub": "Maqsadga yetildi",
+    "tapToContinue": "Davom etish uchun ekranga teging",
     "resetCounterTitle": "Hisoblagichni tiklash?",
     "resetCounterSub": "Joriy natija nolga tushiriladi",
     "deleteDuaTitle": "Duoni o'chirish?",
@@ -232,6 +233,7 @@ AZKAR_I18N_REGISTER("uz", {
     "toastTaskDeleted": "Vazifa o'chirildi",
     "addTaskBtn": "Vazifa qo'shish",
     "labelTimer": "Zikr sekundomeri",
+    "unitSeconds": "s",
     "labelAutoAdvance": "Zikrni avtomatik o'tkazish",
     "labelStealth": "Zikr qorong'u rejimi",
     "stealthHint": "chiqish uchun ushlab turing",
@@ -314,7 +316,12 @@ AZKAR_I18N_REGISTER("uz", {
     "postSalahStep2": "Alhamdulillah",
     "postSalahStep3": "Allohu Akbar",
     "postSalahStep4": "La ilaha illalloh",
-    "toastLangLoadFailed": "Tilni yuklab bo'lmadi. Internetni tekshiring"
+    "toastLangLoadFailed": "Tilni yuklab bo'lmadi. Internetni tekshiring",
+    "ariaIncrement": "Hisoblagichni oshirish",
+    "ariaAddDua": "Yangi duo yoki papka qo‘shish",
+    "ariaAddDhikr": "Zikr qo‘shish",
+    "ariaAddFolder": "Papka qo‘shish",
+    "ariaAllah": "Alloh"
 }, {
     "settingsSections": {
         "appearance": {

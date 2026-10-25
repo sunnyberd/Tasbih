@@ -52,6 +52,7 @@ AZKAR_I18N_REGISTER("de", {
     "btnCancel": "Abbrechen",
     "completionTitle": "✨ Ma shaa Allah! ✨",
     "completionSub": "Ziel erreicht",
+    "tapToContinue": "Tippe auf den Bildschirm, um fortzufahren",
     "resetCounterTitle": "Zähler zurücksetzen?",
     "resetCounterSub": "Aktueller Fortschritt wird gelöscht",
     "deleteDuaTitle": "Dua löschen?",
@@ -232,6 +233,7 @@ AZKAR_I18N_REGISTER("de", {
     "toastTaskDeleted": "Aufgabe gelöscht",
     "addTaskBtn": "Aufgabe hinzufügen",
     "labelTimer": "Dhikr-Stoppuhr",
+    "unitSeconds": "s",
     "labelAutoAdvance": "Dhikr automatisch wechseln",
     "labelStealth": "Dunkler Dhikr-Modus",
     "stealthHint": "halten zum Beenden",
@@ -314,7 +316,12 @@ AZKAR_I18N_REGISTER("de", {
     "postSalahStep2": "Alhamdulillah",
     "postSalahStep3": "Allahu Akbar",
     "postSalahStep4": "La ilaha illallah",
-    "toastLangLoadFailed": "Sprache konnte nicht geladen werden. Prüfe deine Verbindung"
+    "toastLangLoadFailed": "Sprache konnte nicht geladen werden. Prüfe deine Verbindung",
+    "ariaIncrement": "Zähler erhöhen",
+    "ariaAddDua": "Neues Dua oder neuen Ordner hinzufügen",
+    "ariaAddDhikr": "Dhikr hinzufügen",
+    "ariaAddFolder": "Ordner hinzufügen",
+    "ariaAllah": "Allah"
 }, {
     "settingsSections": {
         "appearance": {

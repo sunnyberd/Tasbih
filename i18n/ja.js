@@ -52,6 +52,7 @@ AZKAR_I18N_REGISTER("ja", {
     "btnCancel": "キャンセル",
     "completionTitle": "✨ マーシャアッラー！✨",
     "completionSub": "目標達成",
+    "tapToContinue": "画面をタップして続ける",
     "resetCounterTitle": "カウンターをリセット？",
     "resetCounterSub": "現在の進捗が消去されます",
     "deleteDuaTitle": "ドゥアを削除？",
@@ -232,6 +233,7 @@ AZKAR_I18N_REGISTER("ja", {
     "toastTaskDeleted": "タスクを削除しました",
     "addTaskBtn": "タスクを追加",
     "labelTimer": "ズィクル・ストップウォッチ",
+    "unitSeconds": "秒",
     "labelAutoAdvance": "ズィクル自動進行",
     "labelStealth": "ダークズィクルモード",
     "stealthHint": "長押しで終了",
@@ -314,7 +316,12 @@ AZKAR_I18N_REGISTER("ja", {
     "postSalahStep2": "アルハムドゥリッラー",
     "postSalahStep3": "アッラーフ・アクバル",
     "postSalahStep4": "ラー・イラーハ・イッラッラー",
-    "toastLangLoadFailed": "言語を読み込めませんでした。接続を確認してください"
+    "toastLangLoadFailed": "言語を読み込めませんでした。接続を確認してください",
+    "ariaIncrement": "カウンターを増やす",
+    "ariaAddDua": "新しいドゥアまたはフォルダを追加",
+    "ariaAddDhikr": "ズィクルを追加",
+    "ariaAddFolder": "フォルダを追加",
+    "ariaAllah": "アッラー"
 }, {
     "settingsSections": {
         "appearance": {

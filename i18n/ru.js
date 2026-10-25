@@ -52,6 +52,7 @@ AZKAR_I18N_REGISTER("ru", {
     "btnCancel": "Отмена",
     "completionTitle": "✨ Ма шаа Аллах! ✨",
     "completionSub": "Цель достигнута",
+    "tapToContinue": "Коснитесь экрана, чтобы продолжить",
     "resetCounterTitle": "Сбросить счётчик?",
     "resetCounterSub": "Текущий прогресс будет обнулён",
     "deleteDuaTitle": "Удалить дуа?",
@@ -234,6 +235,7 @@ AZKAR_I18N_REGISTER("ru", {
     "toastTaskDeleted": "Задача удалена",
     "addTaskBtn": "Добавить задачу",
     "labelTimer": "Секундомер зикра",
+    "unitSeconds": "с",
     "labelAutoAdvance": "Автопереход зикра",
     "labelStealth": "Тёмный режим зикра",
     "stealthHint": "удержите для выхода",
@@ -314,7 +316,12 @@ AZKAR_I18N_REGISTER("ru", {
     "postSalahStep2": "Альхамдулиллях",
     "postSalahStep3": "Аллаху Акбар",
     "postSalahStep4": "Ля иляха илляЛлах",
-    "toastLangLoadFailed": "Не удалось загрузить язык. Проверьте интернет"
+    "toastLangLoadFailed": "Не удалось загрузить язык. Проверьте интернет",
+    "ariaIncrement": "Увеличить счётчик",
+    "ariaAddDua": "Добавить новое дуа или папку",
+    "ariaAddDhikr": "Добавить зикр",
+    "ariaAddFolder": "Добавить папку",
+    "ariaAllah": "Аллах"
 }, {
     "settingsSections": {
         "appearance": {
