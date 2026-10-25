@@ -623,7 +623,7 @@
                 titleFav: 'titleFav', subtitleFav: 'subtitleFav', titleStats: 'titleStats', labelToday: 'labelToday',
                 labelTotal: 'labelTotal', labelWeek: 'labelWeek', labelYear: 'labelYear', labelMonth: 'labelMonth',
                 chartTitle: 'chartTitle', timeChartTitle: 'timeChartTitle', titleSettings: 'titleSettings',
-                labelLang: 'labelLang', labelTheme: 'labelTheme', labelOnlinePresence: 'labelOnlinePresence',
+                labelLang: 'labelLang', labelTheme: 'labelTheme', labelOnlinePresence: 'labelOnlinePresence', labelLiteMode: 'labelLiteMode',
                 aeOpt0: 'autoExtendOff', labelSound: 'labelSound',
                 labelClickSound: 'labelClickSound',
                 setClickSoundHint: 'soundHint', setGoalSoundHint: 'soundHint',
@@ -5693,6 +5693,18 @@
             document.getElementById('goalSoundPickerOverlay').classList.remove('show');
         }
 
+        // ===== ОБЛЕГЧЁННЫЙ РЕЖИМ (этап 6) =====
+        // Выбор хранится только на этом устройстве (не в облаке и не в бэкапах):
+        // слабый телефон не должен «включать» режим на мощном.
+        const LITE_MODE_KEY = 'azkar_lite_mode';
+        function isLiteModeOn() { return document.documentElement.classList.contains('lite'); }
+        function toggleLiteMode() {
+            const on = !isLiteModeOn();
+            document.documentElement.classList.toggle('lite', on);
+            try { localStorage.setItem(LITE_MODE_KEY, on ? '1' : '0'); } catch (e) {}
+            updateSettingsUI();
+        }
+
         function toggleSetting(key) {
             settings[key] = !settings[key];
             saveDataDebounced();
@@ -7434,6 +7446,8 @@
             const autoAdvanceToggleEl = document.getElementById('autoAdvanceToggle');
             if (autoAdvanceToggleEl) autoAdvanceToggleEl.classList.toggle('on', !!settings.autoAdvance);
             // Real online presence indicator toggle + visibility
+            const liteToggleEl = document.getElementById('liteModeToggle');
+            if (liteToggleEl) liteToggleEl.classList.toggle('on', isLiteModeOn());
             const onlinePresenceToggleEl = document.getElementById('onlinePresenceToggle');
             const onlinePresenceOn = settings.onlinePresence !== false;
             if (onlinePresenceToggleEl) onlinePresenceToggleEl.classList.toggle('on', onlinePresenceOn);
