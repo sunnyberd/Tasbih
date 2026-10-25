@@ -14,6 +14,31 @@
     <link rel="apple-touch-icon" href="icon-192.png">
     <title>Azkar — Dhikr, Tasbih Counter &amp; Duas</title>
     <script src="language-routing.js"></script>
+    <script>
+    // ===== ОБЛЕГЧЁННЫЙ РЕЖИМ (этап 6) =====
+    // Включается ДО отрисовки, чтобы не было мигания. Выбор пользователя хранится
+    // только на этом устройстве (azkar_lite_mode: '1' / '0'); нет выбора — авто.
+    (function () {
+        function isWeakDevice() {
+            try {
+                var n = navigator, ua = n.userAgent || '';
+                // iPhone/iPad: мощная графика, а Safari не сообщает объём памяти
+                var iOS = /iPhone|iPad|iPod/.test(ua) || (n.platform === 'MacIntel' && n.maxTouchPoints > 1);
+                if (iOS) return false;
+                if (n.deviceMemory && n.deviceMemory <= 4) return true;          // ≤ 4 ГБ памяти
+                if (n.hardwareConcurrency && n.hardwareConcurrency <= 4) return true; // ≤ 4 ядер
+                if (n.connection && n.connection.saveData) return true;          // режим экономии
+            } catch (e) {}
+            return false;
+        }
+        var choice = null;
+        try { choice = localStorage.getItem('azkar_lite_mode'); } catch (e) {}
+        var weak = isWeakDevice();
+        var on = choice === '1' ? true : choice === '0' ? false : weak;
+        window.AzkarLite = { weak: weak };
+        if (on) document.documentElement.classList.add('lite');
+    })();
+    </script>
     <!-- ЭТАП 1 (оптимизация): локальные шрифты вместо Google Fonts.
          Раньше внешний CSS Google Fonts блокировал отрисовку до загрузки из сети.
          Теперь шрифты лежат в папке fonts/, грузятся параллельно и кэшируются SW.
@@ -31,7 +56,7 @@
         @font-face { font-family: 'Scheherazade New'; src: url('fonts/scheherazadenew-bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF; }
     </style>
 
-    <link rel="stylesheet" href="css/app.css?v=107">
+    <link rel="stylesheet" href="css/app.css?v=108">
 </head>
 <body>
 
@@ -952,6 +977,12 @@
                 <span class="set-ic" id="onlinePresenceIcon">🟢</span>
                 <div class="set-row-lbl"><b id="labelOnlinePresence">Показывать онлайн</b></div>
                 <div class="toggle-switch" id="onlinePresenceToggle"></div>
+            </div>
+            <!-- Облегчённый режим (этап 6): меньше эффектов — плавнее на слабых телефонах -->
+            <div class="set-row" onclick="toggleLiteMode()">
+                <span class="set-ic" id="liteModeIcon">🪶</span>
+                <div class="set-row-lbl"><b id="labelLiteMode">Облегчённый режим</b></div>
+                <div class="toggle-switch" id="liteModeToggle"></div>
             </div>
               </div>
             </div>
@@ -2538,7 +2569,7 @@
     // I18N_VERSION менять при КАЖДОМ изменении файлов i18n/ (вместе с CACHE_NAME в sw.js),
     // иначе телефон может взять старую копию из кэша.
     (function () {
-        var I18N_VERSION = '104';
+        var I18N_VERSION = '108';
         var LANGS = ['en', 'de', 'es', 'fr', 'it', 'ja', 'ko', 'ru', 'uz', 'zh', 'tr', 'hi', 'id', 'ms', 'th'];
         var I = window.AZKAR_I18N = window.AZKAR_I18N || {};
         var U = window.AZKAR_UI_TRANSLATIONS = window.AZKAR_UI_TRANSLATIONS || {};
@@ -2598,9 +2629,9 @@
         });
     })();
     </script>
-    <script src="js/feedback.js?v=107"></script>
+    <script src="js/feedback.js?v=108"></script>
     <script src="data/special-dhikrs.js?v=105"></script>
-    <script src="js/app.js?v=107"></script>
+    <script src="js/app.js?v=108"></script>
         <script>
         // Реальный свайп — баннер следует за пальцем, при отпускании улетает или возвращается
         window.addEventListener('load', function() {
