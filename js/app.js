@@ -8,9 +8,9 @@
         const UI_I18N = (typeof window !== 'undefined' && window.AZKAR_UI_TRANSLATIONS) ? window.AZKAR_UI_TRANSLATIONS : {};
 
         // ==================== ЛЕНИВАЯ ЗАГРУЗКА ДАННЫХ (этап 3) ====================
-        // DATA_VERSION повышать при любой правке файлов data/ и allah-names.js
+        // DATA_VERSION повышать при любой правке файлов в папке data/
         // (вместе с CACHE_NAME в sw.js) — иначе телефон возьмёт старую копию из кэша.
-        const DATA_VERSION = '109';
+        const DATA_VERSION = '110';
         const _dataScripts = {};
         function loadDataScript(src) {
             if (_dataScripts[src]) return _dataScripts[src];
@@ -40,46 +40,46 @@
         }
 
         // 99 имён Аллаха
-        // Данные в allah-names.js скачиваются только когда нужны (этап 3):
-        // первое создание папки «99 имён» или смена языка.
+        // Все языки лежат в одной папке: data/names99/<язык>.js — по файлу на язык,
+        // каждая строка [значение, описание, транслитерация]. Скачивается только файл
+        // выбранного языка и только когда нужен (первое создание папки «99 имён» или
+        // смена языка). Переводы вливаются в names99 — массив из 99 объектов вида
+        // { ru: 'Милостивый', desc_ru: '…', translit_ru: 'Ар-Рахман', de: …, … }.
         let names99 = null;
         const NAMES99_SYNC_FLAG = 'azkar_names99_synced';
-        // ru / en / uz лежат прямо в allah-names.js. Для остальных языков —
-        // отдельный файл data/names99/<язык>.js (значение, описание, чтение),
-        // который скачивается только для выбранного языка и вливается в names99.
-        const NAMES99_BASE_LANGS = ['ru', 'en', 'uz'];
         const _names99LangState = {};   // язык → 'ok' | 'failed'
-        function _names99NeedsLangFile(lang) { return NAMES99_BASE_LANGS.indexOf(lang) < 0; }
         function _mergeNames99Lang(lang) {
-            const extra = window.AZKAR_NAMES_99_I18N && window.AZKAR_NAMES_99_I18N[lang];
-            if (!Array.isArray(extra) || !Array.isArray(names99)) return false;
-            names99.forEach((n, i) => {
-                const e = extra[i];
-                if (!e) return;
+            const list = window.AZKAR_NAMES_99_I18N && window.AZKAR_NAMES_99_I18N[lang];
+            if (!Array.isArray(list) || !list.length) return false;
+            if (!names99) names99 = list.map(() => ({}));
+            list.forEach((e, i) => {
+                const n = names99[i];
+                if (!n || !e) return;
                 n[lang] = e[0];
                 n['desc_' + lang] = e[1];
-                if (e[2]) n['translit_' + lang] = e[2];
+                n['translit_' + lang] = e[2];
+                if (!n.translit && lang === 'en') n.translit = e[2];
             });
             return true;
         }
         function names99Ready(lang) {
-            return Array.isArray(names99) && (!_names99NeedsLangFile(lang) || !!_names99LangState[lang]);
+            return Array.isArray(names99) && !!_names99LangState[lang];
+        }
+        function _loadNames99File(lang) {
+            if (_names99LangState[lang] === 'ok') return Promise.resolve(true);
+            return loadDataScript('data/names99/' + lang + '.js').then(() => {
+                const ok = _mergeNames99Lang(lang);
+                _names99LangState[lang] = ok ? 'ok' : 'failed';
+                return ok;
+            });
         }
         function loadNames99(lang) {
             lang = lang || currentLang;
-            const base = names99 ? Promise.resolve(names99) : loadDataScript('allah-names.js').then(() => {
-                if (Array.isArray(window.AZKAR_NAMES_99)) names99 = window.AZKAR_NAMES_99;
-                return names99;
-            });
-            return base.then(list => {
-                if (!list || !_names99NeedsLangFile(lang) || _names99LangState[lang]) return list;
-                return loadDataScript('data/names99/' + lang + '.js').then(() => {
-                    // Не скачался (нет сети) — помечаем, чтобы не повторять по кругу;
-                    // покажется английский текст, как раньше.
-                    _names99LangState[lang] = _mergeNames99Lang(lang) ? 'ok' : 'failed';
-                    return list;
-                });
-            });
+            return _loadNames99File(lang).then(ok => {
+                // Файл языка не скачался (нет сети) — берём английский, как запасной.
+                if (!ok && lang !== 'en') return _loadNames99File('en');
+                return ok;
+            }).then(() => names99);
         }
 
         // Специальные зикры
@@ -4171,7 +4171,7 @@
         // name is only updated while it still carries the builtin marker (a
         // user rename clears it), but the 99 entries themselves stay localized.
         // Первый вызов при запуске может доверять отметке «уже синхронизировано
-        // на этом языке» и не скачивать allah-names.js. Все последующие (смена
+        // на этом языке» и не скачивать файл 99 имён. Все последующие (смена
         // языка, импорт, облако) проверяют по-настоящему.
         let _names99TrustSyncFlag = true;
         function _syncNames99FolderLanguage() {
