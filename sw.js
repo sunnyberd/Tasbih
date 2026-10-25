@@ -15,20 +15,69 @@
 // v92 — 99 имён Аллаха переехали в папку раздела «Дуа»; «Избранное» — свайп
 // из «Дуа»; «Задачи» вынесены в нижнюю навигацию вместо «Избранного».
 // v102 — иконка «Дуа» в навбаре: три равные полоски на обеих страницах книги.
-const CACHE_NAME = 'azkar-v102';
+// v103 — ЭТАП 1 оптимизации: локальные шрифты вместо Google Fonts; предзагрузка
+// оболочки приложения при установке SW; HTML — network-first с таймаутом 3 с
+// (на медленной сети сразу открывается кэш, новая версия докачивается в фоне);
+// navigation preload; шрифты — чистый cache-first.
+// v104 — ЭТАП 2: i18n.js разделён на i18n/<язык>.js; грузится только en + выбранный
+// язык. Версия в ?v= совпадает с I18N_VERSION в index.html — менять вместе.
+// v105 — ЭТАП 3: контент вынесен из index.html. data/special-dhikrs.js грузится
+// сразу; data/checklist-defaults.js и allah-names.js — только когда нужны.
+// DATA_VERSION совпадает с DATA_VERSION в index.html — менять вместе.
+const CACHE_NAME = 'azkar-v105';
+const I18N_VERSION = '104';
+const DATA_VERSION = '105';
+
+// Оболочка приложения — кладётся в кэш сразу при установке SW,
+// чтобы второй запуск (и офлайн) был мгновенным.
+const PRECACHE_URLS = [
+    './',
+    'i18n/en.js?v=' + I18N_VERSION,
+    'hadiths.js',
+    'data/special-dhikrs.js?v=' + DATA_VERSION,
+    // Ленивые данные тоже кладём в кэш заранее (в фоне), чтобы они были доступны офлайн
+    'data/checklist-defaults.js?v=' + DATA_VERSION,
+    'allah-names.js?v=' + DATA_VERSION,
+    'language-routing.js',
+    'manifest.json',
+    'icon-192.png',
+    'fonts/cormorantgaramond.woff2',
+    'fonts/montserrat.woff2',
+    'fonts/amiri-bold.woff2'
+];
+
+// Сколько ждать сеть для HTML, прежде чем отдать кэш (мс).
+const NAV_TIMEOUT_MS = 3000;
 
 // v90 — хадис, показанный в баннере и не открытый, остаётся в шторке уведомлений;
 // тап по такому уведомлению открывает попап с этим хадисом; тестовый интервал 1 мин.
 // ===== УСТАНОВКА И КЭШ =====
 self.addEventListener('install', (event) => {
-    self.skipWaiting();
+    event.waitUntil(
+        caches.open(CACHE_NAME).then(cache =>
+            // Каждый файл отдельно: если один не скачался — установка всё равно проходит.
+            // cache: 'no-cache' — сверяемся с сервером (304, если не менялся), чтобы
+            // не положить в новый кэш устаревшую копию из HTTP-кэша браузера.
+            Promise.all(PRECACHE_URLS.map(url =>
+                fetch(new Request(url, { cache: 'no-cache' }))
+                    .then(res => { if (res && res.ok) return cache.put(url, res); })
+                    .catch(() => {})
+            ))
+        ).then(() => self.skipWaiting())
+    );
 });
 
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then(keys =>
             Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-        ).then(() => self.clients.claim())
+        ).then(() => {
+            // Navigation preload: браузер начинает качать HTML параллельно
+            // с запуском SW (на слабых телефонах SW стартует заметно долго).
+            if (self.registration.navigationPreload) {
+                return self.registration.navigationPreload.enable().catch(() => {});
+            }
+        }).then(() => self.clients.claim())
     );
 });
 
@@ -109,6 +158,18 @@ self.addEventListener('message', (event) => {
     if (type === 'CANCEL_EVENTS') {
         clearEventTimer();
         _evList = [];
+    }
+
+    // Страница просит положить в кэш файлы, скачанные до того, как SW начал
+    // её контролировать (первый запуск) — например i18n/<язык>.js. Иначе
+    // при следующем запуске без интернета не нашлось бы выбранного языка.
+    if (type === 'CACHE_URLS' && Array.isArray(event.data.urls)) {
+        const urls = event.data.urls.filter(u => typeof u === 'string' && u.startsWith(self.registration.scope));
+        event.waitUntil(caches.open(CACHE_NAME).then(cache =>
+            Promise.all(urls.map(u => cache.match(u).then(hit => hit || fetch(u).then(res => {
+                if (res && res.ok) return cache.put(u, res);
+            }).catch(() => {}))))
+        ));
     }
 });
 
@@ -203,10 +264,66 @@ self.addEventListener('notificationclick', (event) => {
 });
 
 // ===== FETCH — гибридная стратегия =====
-// HTML / навигационные запросы: network-first (свежий контент всегда выигрывает,
-//   кэш остаётся как fallback на случай оффлайна). Так пользователь сразу
-//   видит новые версии после деплоя без необходимости вручную чистить кэш.
-// Остальная статика (картинки, манифест, иконки): cache-first для скорости.
+// HTML / навигационные запросы: network-first С ТАЙМАУТОМ. Если сеть ответила
+//   за NAV_TIMEOUT_MS — показываем свежую версию. Если сеть медленная — сразу
+//   открываем кэш, а свежая версия докачивается в фоне и будет при следующем
+//   запуске. Без сети — кэш.
+// Шрифты: чистый cache-first (они не меняются).
+// Остальная статика: stale-while-revalidate (мгновенно из кэша + фоновое обновление).
+
+// Ключ кэша для HTML без ?query (?lang=, ?hadith= …) — одна копия страницы.
+function htmlCacheKey(request) {
+    const url = new URL(request.url);
+    url.search = '';
+    url.hash = '';
+    return url.href;
+}
+
+function matchCachedHtml(cache, request) {
+    return cache.match(htmlCacheKey(request))
+        .then(r => r || cache.match(request, { ignoreSearch: true }))
+        .then(r => r || cache.match('./'))
+        .then(r => r || cache.match('index.html'));
+}
+
+function handleNavigation(event) {
+    const request = event.request;
+    return caches.open(CACHE_NAME).then(cache => {
+        // Сеть: сначала navigation preload (уже летит), иначе обычный fetch.
+        const network = Promise.resolve(event.preloadResponse)
+            .then(pre => pre || fetch(request))
+            .then(response => {
+                if (response && response.status === 200 && response.type !== 'opaque') {
+                    const copy = response.clone();
+                    event.waitUntil(cache.put(htmlCacheKey(request), copy).catch(() => {}));
+                }
+                return response;
+            });
+        // Даже если ответ отдали из кэша по таймауту — дождаться докачки и сохранить её.
+        event.waitUntil(network.catch(() => {}));
+
+        return matchCachedHtml(cache, request).then(cached => {
+            // Кэша нет (первый запуск) — ждём сеть сколько нужно.
+            if (!cached) return network;
+            return new Promise(resolve => {
+                let done = false;
+                const timer = setTimeout(() => {
+                    if (!done) { done = true; resolve(cached); }
+                }, NAV_TIMEOUT_MS);
+                network.then(response => {
+                    if (done) return;
+                    done = true; clearTimeout(timer);
+                    resolve(response && response.ok ? response : cached);
+                }).catch(() => {
+                    if (done) return;
+                    done = true; clearTimeout(timer);
+                    resolve(cached);
+                });
+            });
+        });
+    });
+}
+
 self.addEventListener('fetch', (event) => {
     if (event.request.method !== 'GET') return;
     if (!event.request.url.startsWith(self.registration.scope)) return;
@@ -215,22 +332,24 @@ self.addEventListener('fetch', (event) => {
         || (event.request.headers.get('accept') || '').includes('text/html');
 
     if (isHtml) {
-        // Network-first: пробуем сеть, при неудаче — кэш.
+        event.respondWith(handleNavigation(event));
+        return;
+    }
+
+    // Шрифты — cache-first без фоновой перепроверки.
+    if (event.request.url.endsWith('.woff2')) {
         event.respondWith(
-            fetch(event.request).then(response => {
-                if (response && response.status === 200) {
-                    const copy = response.clone();
-                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
-                }
-                return response;
-            }).catch(() =>
-                caches.open(CACHE_NAME).then(cache => cache.match(event.request))
+            caches.open(CACHE_NAME).then(cache =>
+                cache.match(event.request).then(cached => cached || fetch(event.request).then(response => {
+                    if (response && response.status === 200) cache.put(event.request, response.clone());
+                    return response;
+                }))
             )
         );
         return;
     }
 
-    // Cache-first для статики: мгновенный ответ, фоновое обновление.
+    // Stale-while-revalidate для остальной статики.
     event.respondWith(
         caches.open(CACHE_NAME).then(cache =>
             cache.match(event.request).then(cached => {

@@ -14,8 +14,22 @@
     <link rel="apple-touch-icon" href="icon-192.png">
     <title>Azkar — Dhikr, Tasbih Counter &amp; Duas</title>
     <script src="language-routing.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
-    
+    <!-- ЭТАП 1 (оптимизация): локальные шрифты вместо Google Fonts.
+         Раньше внешний CSS Google Fonts блокировал отрисовку до загрузки из сети.
+         Теперь шрифты лежат в папке fonts/, грузятся параллельно и кэшируются SW.
+         Арабские шрифты имеют unicode-range — скачиваются только когда на экране
+         реально есть арабский текст. -->
+    <link rel="preload" href="fonts/cormorantgaramond.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="fonts/montserrat.woff2" as="font" type="font/woff2" crossorigin>
+    <style>
+        @font-face { font-family: 'Cormorant Garamond'; src: url('fonts/cormorantgaramond.woff2') format('woff2'); font-weight: 300 700; font-style: normal; font-display: swap; }
+        @font-face { font-family: 'Montserrat'; src: url('fonts/montserrat.woff2') format('woff2'); font-weight: 100 900; font-style: normal; font-display: swap; }
+        @font-face { font-family: 'Amiri'; src: url('fonts/amiri-regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF; }
+        @font-face { font-family: 'Amiri'; src: url('fonts/amiri-bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF; }
+        @font-face { font-family: 'Noto Naskh Arabic'; src: url('fonts/notonaskharabic.woff2') format('woff2'); font-weight: 400 700; font-style: normal; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF; }
+        @font-face { font-family: 'Scheherazade New'; src: url('fonts/scheherazadenew-regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF; }
+        @font-face { font-family: 'Scheherazade New'; src: url('fonts/scheherazadenew-bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF; }
+    </style>
 
     <style>
         /* ===== THEME: @property — позволяет браузеру интерполировать CSS-переменные как цвета ===== */
@@ -7719,7 +7733,74 @@
     <!-- Данные хадисов вынесены в отдельный файл. Если его удалить — приложение
          продолжит работать как обычно, просто без показа хадисов. -->
     <script src="hadiths.js"></script>
-    <script src="i18n.js"></script>
+    <script>
+    // ===== ЗАГРУЗЧИК ЯЗЫКОВ (этап 2 оптимизации) =====
+    // Раньше i18n.js (все 15 языков, ~310 КБ) грузился целиком.
+    // Теперь грузятся только en (запасной) + выбранный язык из папки i18n/.
+    // Остальные языки подгружаются по требованию: AzkarI18n.load('de').
+    // I18N_VERSION менять при КАЖДОМ изменении файлов i18n/ (вместе с CACHE_NAME в sw.js),
+    // иначе телефон может взять старую копию из кэша.
+    (function () {
+        var I18N_VERSION = '104';
+        var LANGS = ['en', 'de', 'es', 'fr', 'it', 'ja', 'ko', 'ru', 'uz', 'zh', 'tr', 'hi', 'id', 'ms', 'th'];
+        var I = window.AZKAR_I18N = window.AZKAR_I18N || {};
+        var U = window.AZKAR_UI_TRANSLATIONS = window.AZKAR_UI_TRANSLATIONS || {};
+        var loaded = {}, pending = {};
+        function isObj(v) { return v && typeof v === 'object' && !Array.isArray(v); }
+        // Слияние В СУЩЕСТВУЮЩИЕ объекты — ссылки, сохранённые кодом раньше
+        // (например SOUND_LABELS = UI_I18N.soundLabels), видят новый язык.
+        function merge(t, src) {
+            for (var k in src) {
+                if (isObj(src[k]) && isObj(t[k])) merge(t[k], src[k]);
+                else t[k] = src[k];
+            }
+            return t;
+        }
+        function url(lang) { return 'i18n/' + lang + '.js?v=' + I18N_VERSION; }
+        window.AZKAR_I18N_REGISTER = function (lang, dict, ui) {
+            I[lang] = merge(I[lang] || {}, dict);
+            merge(U, ui || {});
+            loaded[lang] = true;
+        };
+        window.AzkarI18n = {
+            version: I18N_VERSION,
+            languages: LANGS.slice(),
+            isLoaded: function (lang) { return !!loaded[lang]; },
+            load: function (lang) {
+                if (LANGS.indexOf(lang) < 0) return Promise.resolve(false);
+                if (loaded[lang]) return Promise.resolve(true);
+                if (pending[lang]) return pending[lang];
+                pending[lang] = new Promise(function (resolve) {
+                    var el = document.createElement('script');
+                    el.src = url(lang);
+                    el.async = true;
+                    el.onload = function () { delete pending[lang]; resolve(!!loaded[lang]); };
+                    el.onerror = function () { delete pending[lang]; el.remove(); resolve(false); };
+                    document.head.appendChild(el);
+                });
+                return pending[lang];
+            }
+        };
+        // Язык из сохранённых настроек (language-routing.js уже учёл ?lang=)
+        var lang = 'en';
+        try {
+            var st = JSON.parse(localStorage.getItem('azkar_settings') || '{}');
+            if (st && LANGS.indexOf(st.language) >= 0) lang = st.language;
+        } catch (e) {}
+        // Синхронная загрузка до основного скрипта (ему переводы нужны сразу)
+        document.write('<script src="' + url('en') + '"><\/script>');
+        if (lang !== 'en') document.write('<script src="' + url(lang) + '"><\/script>');
+        // Первый запуск: файлы языков скачаны ещё до установки Service Worker —
+        // просим SW положить их в кэш, чтобы язык был доступен офлайн.
+        window.addEventListener('load', function () {
+            if (!('serviceWorker' in navigator)) return;
+            navigator.serviceWorker.ready.then(function (reg) {
+                var urls = Object.keys(loaded).map(function (l) { return new URL(url(l), location.href).href; });
+                if (reg.active && urls.length) reg.active.postMessage({ type: 'CACHE_URLS', urls: urls });
+            }).catch(function () {});
+        });
+    })();
+    </script>
     <script>
 (function () {
     var R = document.getElementById("fbHost").attachShadow({ mode: "open" });
@@ -8553,11 +8634,34 @@
     
 })();
     </script>
-    <script src="allah-names.js"></script>
+    <script src="data/special-dhikrs.js?v=105"></script>
     <script>
         // ==================== I18N ====================
         const i18n = (typeof window !== 'undefined' && window.AZKAR_I18N) ? window.AZKAR_I18N : {};
         const UI_I18N = (typeof window !== 'undefined' && window.AZKAR_UI_TRANSLATIONS) ? window.AZKAR_UI_TRANSLATIONS : {};
+
+        // ==================== ЛЕНИВАЯ ЗАГРУЗКА ДАННЫХ (этап 3) ====================
+        // DATA_VERSION повышать при любой правке файлов data/ и allah-names.js
+        // (вместе с CACHE_NAME в sw.js) — иначе телефон возьмёт старую копию из кэша.
+        const DATA_VERSION = '105';
+        const _dataScripts = {};
+        function loadDataScript(src) {
+            if (_dataScripts[src]) return _dataScripts[src];
+            _dataScripts[src] = new Promise(resolve => {
+                const el = document.createElement('script');
+                el.src = src + '?v=' + DATA_VERSION;
+                el.async = true;
+                el.onload = () => resolve(true);
+                el.onerror = () => { delete _dataScripts[src]; el.remove(); resolve(false); };
+                document.head.appendChild(el);
+            });
+            return _dataScripts[src];
+        }
+        // Сбрасывает отметки «уже синхронизировано» — после импорта/восстановления
+        // данных стандартные задачи и 99 имён нужно заново проверить.
+        function _invalidateDefaultsSync() {
+            try { localStorage.removeItem(CL_DEFAULTS_FLAG); localStorage.removeItem(NAMES99_SYNC_FLAG); } catch (e) {}
+        }
 
         // ==================== TRANSLITERATION ====================
         // Returns the localized transliteration of a divine name based on current language
@@ -8569,627 +8673,21 @@
         }
 
         // 99 имён Аллаха
-        const names99 = (typeof window !== 'undefined' && Array.isArray(window.AZKAR_NAMES_99)) ? window.AZKAR_NAMES_99 : [];
+        // Данные в allah-names.js скачиваются только когда нужны (этап 3):
+        // первое создание папки «99 имён» или смена языка.
+        let names99 = null;
+        const NAMES99_SYNC_FLAG = 'azkar_names99_synced';
+        function loadNames99() {
+            if (names99) return Promise.resolve(names99);
+            return loadDataScript('allah-names.js').then(() => {
+                if (Array.isArray(window.AZKAR_NAMES_99)) names99 = window.AZKAR_NAMES_99;
+                return names99;
+            });
+        }
 
         // Специальные зикры
-        let specialDhikrs = [
-            {
-                id: 'simple_istighfar',
-                nameTr: "İstiğfar (Tövbe)", descTr: "Allah Resûlü (s.a.v.) şöyle buyurdu: \"Günde 100 kez Allah'tan bağışlanma diler ve O'na tövbe ederim.\" (Müslim, 2702)",
-                nameHi: "इस्तिग़फ़ार (तौबा)", descHi: "अल्लाह के रसूल (सल्लल्लाहु अलैहि वसल्लम) ने फ़रमाया: \"मैं दिन में 100 बार अल्लाह से क्षमा माँगता हूँ और उसकी ओर तौबा करता हूँ\" (मुस्लिम, 2702)।",
-                nameMs: "Istighfar (Taubat)", descMs: "Rasulullah (s.a.w.) bersabda: \"Aku memohon ampun kepada Allah dan bertaubat kepada-Nya 100 kali sehari.\" (Muslim, 2702)",
-                nameId: "Istigfar (Tobat)", descId: "Rasulullah (saw) bersabda: \"Aku memohon ampun kepada Allah dan bertobat kepada-Nya 100 kali sehari.\" (Muslim, 2702)",
-                nameTh: "อิสติฆฟาร (การขออภัยโทษ)", descTh: "ท่านเราะซูลุลลอฮ์ (ศ็อลฯ) กล่าวว่า: \"ฉันขออภัยโทษต่ออัลลอฮ์และกลับเนื้อกลับตัวต่อพระองค์วันละ 100 ครั้ง\" (มุสลิม, 2702)",
-                arabic: 'أَسْتَغْفِرُ اللَّهَ وَأَتُوبُ إِلَيْهِ',
-                translit: 'Astaghfiru-llaha wa atubu ilayhi',
-                nameEn: 'Istighfar (Repentance)',
-                nameDe: 'Istighfar (Reue)',          
-                nameEs: 'Istighfar (Arrepentimiento)',
-                nameFr: 'Istighfar (Repentir)',
-                nameIt: 'Istighfar (Pentimento)',
-                nameJa: 'イスティグファール（悔い改め）',
-                nameKo: '이스티그파르 (회개)',
-                nameRu: 'Истигфар (Покаяние)',
-                nameUz: 'Istig\'for (Tavba)',
-                nameZh: '求首（悔过）',
-                descEn: 'The Messenger of Allah (peace be upon him) said: "I seek forgiveness from Allah and repent to Him 100 times a day" (Muslim, 2702).',
-                descDe: 'Der Gesandte Allahs (Friede sei mit ihm) sagte: "Ich bitte Allah um Vergebung und bereue vor Ihm 100 Mal am Tag" (Muslim, 2702).',
-                descEs: 'El Mensajero de Allah (la paz sea con él) dijo: "Pido perdón a Allah y me arrepiento ante Él 100 veces al día" (Muslim, 2702).',
-                descFr: 'Le Messager d\'Allah (paix et bénédiction soient sur lui) a dit : "Je demande pardon à Allah et je me repens à Lui 100 fois par jour" (Muslim, 2702).',
-                descIt: 'Il Messaggero di Allah (la pace sia su di lui) disse: "Chiedo perdono ad Allah e mi pento davanti a Lui 100 volte al giorno" (Muslim, 2702).',
-                descJa: 'アッラーの使徒（彼に平安あれ）は言いました。「私は一日に100回、アッラーに許しを乞い、悔い改めます」（ムスリム、2702）。',
-                descKo: '알라의 사도(그분에게 평화가 깃들기를)께서 말씀하셨습니다: "나는 하루에 100번씩 알라께 용서를 구하고 그분께 회개한다" (무슬림, 2702).',
-                descRu: 'Посланник Аллаха (мир ему) сказал: «Я прошу прощения у Аллаха и каюсь перед Ним по 100 раз в день» (Муслим, 2702).',
-                descUz: 'Rasululloh (s.a.v.) aytdilar: «Allohga istig’for aytaman va bir kunda 100 marta tavba qilaman» (Muslim, 2702).',
-                descZh: '真主的使者（愿主福安之）说：“我每天向真主求饶并向他悔过100次。”（穆斯林书，2702）。',
-                goal: 100
-            },
-            {
-                id: 'salavat',
-                nameTr: "Salavat (Peygamber'e salât)", descTr: "Kim 100 salavat getirirse, Allah onun 100 ihtiyacını giderir: 70'ini ahirette, 30'unu bu dünyada. (Beyhakî, \"Şuabü'l-İman\", 2772)",
-                nameHi: "सलावत (नबी पर दुरूद)", descHi: "जो 100 बार सलावत भेजता है, अल्लाह उसकी 100 ज़रूरतें पूरी करता है: 70 आख़िरत में और 30 इस दुनिया में (अल-बैहक़ी, \"शुअबुल-ईमान\", 2772)।",
-                nameMs: "Selawat (Selawat ke atas Nabi)", descMs: "Sesiapa berselawat 100 kali, Allah akan memenuhi 100 hajatnya: 70 di akhirat dan 30 di dunia. (al-Bayhaqi, \"Syuab al-Iman\", 2772)",
-                nameId: "Selawat (Selawat untuk Nabi)", descId: "Siapa berselawat 100 kali, Allah akan memenuhi 100 hajatnya: 70 di akhirat dan 30 di dunia. (al-Baihaqi, \"Syuab al-Iman\", 2772)",
-                nameTh: "เศาะละวาต (การขอพรแด่ท่านนบี)", descTh: "ผู้ใดกล่าวเศาะละวาต 100 ครั้ง อัลลอฮ์จะทรงตอบสนอง 100 ความต้องการของเขา: 70 ในปรโลกและ 30 ในโลกนี้ (อัลบัยฮะกี, \"ชุอับ อัลอีมาน\", 2772)",
-                arabic: 'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ',
-                translit: 'Allahumma salli ala Muhammad wa ala ali Muhammad',
-                nameEn: 'Salawat (Blessings upon the Prophet)',
-                nameDe: 'Salawat (Segnungen auf den Propheten)',
-                nameEs: 'Salawat (Bendiciones sobre el Profeta)',
-                nameFr: 'Salawat (Bénédictions sur le Prophète)',
-                nameIt: 'Salawat (Benedizioni sul Profeta)',
-                nameJa: 'サラワート（預言者への祝福）',
-                nameKo: '살라와트 (예언자에 대한 축복)',
-                nameRu: 'Салават (Благословение Пророка)',
-                nameUz: 'Salavot (Payg\'ambarga salom)',
-                nameZh: '祝祷（求主赐福先知）',
-                descEn: 'Whoever sends 100 salawat, Allah will fulfill 100 of his needs: 70 in the Hereafter and 30 in this life (al-Bayhaqi, "Shuab al-Iman", 2772).',
-                descDe: 'Wer 100 Salawat spricht, dem wird Allah 100 Bedürfnisse erfüllen: 70 im Jenseits und 30 in diesem Leben (al-Bayhaqi, "Shuab al-Iman", 2772).',
-                descEs: 'Quien envíe 100 salawat, Allah le concederá 100 de sus necesidades: 70 en el Más Allá y 30 en esta vida (al-Bayhaqi, "Shuab al-Iman", 2772).',
-                descFr: 'Quiconque envoie 100 salawat, Allah comblera 100 de ses besoins : 70 dans l\'Au-delà et 30 dans cette vie (al-Bayhaqi, "Shuab al-Iman", 2772).',
-                descIt: 'Chiunque invochi 100 salawat, Allah soddisferà 100 dei suoi bisogni: 70 nell\'Aldilà e 30 in questa vita (al-Bayhaqi, "Shuab al-Iman", 2772).',
-                descJa: '100回のサラワートを唱える者に対し、アッラーはその者の100の願いを叶えてくださいます。70は来世において、30は現世においてです（アル＝バイハキー、「シュアブ・アル＝イーマーン」、2772）。',
-                descKo: '누구든지 살라와트를 100번 바치면 알라께서 그의 100가지 필요를 채워주실 것입니다: 70가지는 내세에서, 30가지는 현세에서 이루어집니다 (알 바이하키, "슈아브 알 이만", 2772).',
-                descRu: 'Кто произнесет 100 салаватов, Аллах исполнит 100 его нужд: 70 в вечной жизни и 30 в этой (аль-Байхаки, "Шуаб аль-Иман", 2772).',
-                descUz: 'Kim 100 marta salavot aytsa, Alloh uning 100 hojatini bajo keltiradi: 70 tasi oxiratda, 30 tasi dunyoda (al-Bayhaqiy, "Shuab al-Imon", 2772).',
-                descZh: '凡诵读100次祝祷者，真主必满足他100个祈求：其中70个在后世，30个在今生（白哈基，《信仰的支派》，2772）。',
-                goal: 100
-            },
-            {
-                id: 'subhanallah',
-                nameTr: "Sübhanallah (Allah'ı tesbih)", descTr: "\"Sübhanallah\" demek 100 kez, İsmail peygamberin (a.s.) soyundan 100 köle azat etmeye denktir. (Ahmed, 26911)",
-                nameHi: "सुब्हानल्लाह (अल्लाह की पवित्रता)", descHi: "\"सुब्हानल्लाह\" 100 बार कहना, नबी इस्माईल (अलैहिस्सलाम) की संतान में से 100 ग़ुलाम आज़ाद करने के बराबर है (अहमद, 26911)।",
-                nameMs: "Subhanallah (Maha Suci Allah)", descMs: "Mengucap \"Subhanallah\" 100 kali setara dengan membebaskan 100 hamba daripada keturunan Nabi Ismail (a.s.). (Ahmad, 26911)",
-                nameId: "Subhanallah (Maha Suci Allah)", descId: "Mengucap \"Subhanallah\" 100 kali setara dengan membebaskan 100 budak dari keturunan Nabi Ismail (as). (Ahmad, 26911)",
-                nameTh: "สุบหานัลลอฮ์ (มหาบริสุทธิ์แด่อัลลอฮ์)", descTh: "การกล่าว \"สุบหานัลลอฮ์\" 100 ครั้ง เทียบเท่าการปลดปล่อยทาส 100 คนจากลูกหลานของนบีอิสมาอีล (อ.) (อะห์มัด, 26911)",
-                arabic: 'سُبْحَانَ اللَّهِ',
-                translit: 'Subhanallah',
-                nameEn: 'Subhanallah (Glory be to Allah)',
-                nameDe: 'Subhanallah (Glorie sei Allah)',
-                nameEs: 'Subhanallah (Gloria a Allah)',
-                nameFr: 'Subhanallah (Gloire à Allah)',
-                nameIt: 'Subhanallah (Gloria a Allah)',
-                nameJa: 'スブハーナッラー（アッラーに栄光あれ）',
-                nameKo: '수브하날라 (알라께 영광이 있기를)',
-                nameRu: 'Субханаллах (Пречист Аллах)',
-                nameUz: 'Subhanalloh (Alloh pokdir)',
-                nameZh: '赞主清净（赞美真主）',
-                descEn: 'Saying "Subhanallah" 100 times is equivalent to freeing 100 slaves from the descendants of Prophet Ishmael (peace be upon him) (Ahmad, 26911).',
-                descDe: 'Das 100-malige Sprechen von "Subhanallah" entspricht der Befreiung von 100 Sklaven aus den Nachkommen des Propheten Ismael (Friede sei mit ihm) (Ahmad, 26911).',
-                descEs: 'Decir "Subhanallah" 100 veces equivale a liberar a 100 esclavos de los descendientes del profeta Ismael (la paz sea con él) (Ahmad, 26911).',
-                descFr: 'Dire "Subhanallah" 100 fois équivaut à libérer 100 esclaves parmi les descendants du prophète Ismaël (paix sur lui) (Ahmad, 26911).',
-                descIt: 'Dire "Subhanallah" 100 volte equivale a liberare 100 schiavi tra i discendenti del profeta Ismaele (la pace sia su di lui) (Ahmad, 26911).',
-                descJa: '「スブハーナッラー」と100回唱えることは、預言者イスマイル（彼に平安あれ）の子孫から100人の奴隷を解放することに相当します（アフマド、26911）。',
-                descKo: '"수브하날라"를 100번 외치는 것은 예언자 이스마엘(그분에게 평화가 깃들기를)의 후손 중 100명의 노예를 해방시키는 것과 같습니다 (아흐마드, 26911).',
-                descRu: 'Произнесение «Субханаллах» 100 раз приравнивается к освобождению 100 рабов из числа потомков пророка Исмаила (мир ему) (Ахмад, 26911).',
-                descUz: '100 marta «Subhanalloh» deyish payg’ambar Ismoil (a.s.) avlodidan bo’lgan 100 ta qulni ozod qilishga teng (Ahmad, 26911).',
-                descZh: '诵读“赞主清净”100次，相当于释放先知易斯马仪（愿主福安之）后裔中的100个奴隶（艾哈迈德圣训集，26911）。',
-                goal: 100
-            },
-            {
-                id: 'alhamdulillah',
-                nameTr: "Elhamdülillah (Allah'a hamd)", descTr: "100 kez Elhamdülillah, Allah yolunda gönderilen teçhizatlı 100 ata denktir. (Ahmed, 26911; Tirmizî, 3471)",
-                nameHi: "अल्हम्दुलिल्लाह (अल्लाह की प्रशंसा)", descHi: "100 बार अल्हम्दुलिल्लाह, अल्लाह की राह में भेजे गए 100 सुसज्जित घोड़ों के बराबर है (अहमद, 26911; तिर्मिज़ी, 3471)।",
-                nameMs: "Alhamdulillah (Segala puji bagi Allah)", descMs: "100 kali Alhamdulillah setara dengan 100 ekor kuda lengkap yang dihantar di jalan Allah. (Ahmad, 26911; Tirmizi, 3471)",
-                nameId: "Alhamdulillah (Segala puji bagi Allah)", descId: "100 kali Alhamdulillah setara dengan 100 ekor kuda lengkap yang dikirim di jalan Allah. (Ahmad, 26911; Tirmidzi, 3471)",
-                nameTh: "อัลฮัมดุลิลลาฮ์ (มวลการสรรเสริญแด่อัลลอฮ์)", descTh: "การกล่าวอัลฮัมดุลิลลาฮ์ 100 ครั้ง เทียบเท่าม้าพร้อมอุปกรณ์ 100 ตัวที่ถูกส่งในหนทางของอัลลอฮ์ (อะห์มัด, 26911; ติรมิซี, 3471)",
-                arabic: 'الْحَمْدُ لِلَّهِ',
-                translit: 'Alhamdulillah',
-                nameEn: 'Alhamdulillah (Praise be to Allah)',
-                nameDe: 'Alhamdulillah (Lob sei Allah)',
-                nameEs: 'Alhamdulillah (Alabado sea Allah)',
-                nameFr: 'Alhamdulillah (Louange à Allah)',
-                nameIt: 'Alhamdulillah (Lode ad Allah)',
-                nameJa: 'アルハムドゥリッラー（アッラーに讃えあれ）',
-                nameKo: '알함두릴라 (알라께 찬미를)',
-                nameRu: 'Альхамдулиллях (Хвала Аллаху)',
-                nameUz: 'Alhamdulillah (Allohga hamd bo\'lsin)',
-                nameZh: '一切赞颂全归真主（赞美真主）',
-                descEn: '100 times Alhamdulillah equals 100 equipped horses sent in the path of Allah (Ahmad, 26911; at-Tirmidhi, 3471).',
-                descDe: '100-mal "Alhamdulillah" entspricht 100 ausgerüsteten Pferden, die auf dem Weg Allahs ausgesandt werden (Ahmad, 26911; at-Tirmidhi, 3471).',
-                descEs: 'Decir 100 veces "Alhamdulillah" equivale a 100 caballos equipados enviados en el camino de Allah (Ahmad, 26911; at-Tirmidhi, 3471).',
-                descFr: 'Dire 100 fois "Alhamdulillah" équivaut à 100 chevaux équipés envoyés dans le sentier d\'Allah (Ahmad, 26911 ; at-Tirmidhi, 3471).',
-                descIt: 'Dire 100 volte "Alhamdulillah" equivale a 100 cavalli equipaggiati inviati sulla via di Allah (Ahmad, 26911; at-Tirmidhi, 3471).',
-                descJa: '100回の「アルハムドゥリッラー」は、アッラーの道に送り出された100頭の装備された馬に匹敵します（アフマド、26911、アッ＝ティルミズィー、3471）。',
-                descKo: '"알함두릴라"를 100번 외치는 것은 알라의 길에 준비된 말 100마리를 보내는 것과 같습니다 (아흐마드, 26911; 아티르미디, 3471).',
-                descRu: '100 раз «Альхамдулиллях» приравнивается к 100 снаряженным коням, отправленным на пути Аллаха (Ахмад, 26911; ат-Тирмизи, 3471).',
-                descUz: '100 marta «Alhamdulillah» deyish Alloh yo\'lida 100 ta egarli ot jo\'natishga teng (Ahmad, 26911; at-Termiziy, 3471).',
-                descZh: '诵读“一切赞颂全归真主”100次，相当于为主道提供100批装备齐全的战马（艾哈迈德圣训集，26911；提尔密济圣训集，3471）。',
-                goal: 100
-            },
-            {
-                id: 'allahuakbar',
-                nameTr: "Allahu Ekber (Allah en büyüktür)", descTr: "100 kez Allahu Ekber, kurban edilen süslü 100 deveye denktir. (Ahmed, 26911; Tirmizî, 3471)",
-                nameHi: "अल्लाहु अकबर (अल्लाह सबसे महान है)", descHi: "100 बार अल्लाहु अकबर, क़ुर्बान किए गए 100 सुसज्जित ऊँटों के बराबर है (अहमद, 26911; तिर्मिज़ी, 3471)।",
-                nameMs: "Allahu Akbar (Allah Maha Besar)", descMs: "100 kali Allahu Akbar setara dengan 100 ekor unta berhias yang dikorbankan. (Ahmad, 26911; Tirmizi, 3471)",
-                nameId: "Allahu Akbar (Allah Maha Besar)", descId: "100 kali Allahu Akbar setara dengan 100 ekor unta berhias yang dikurbankan. (Ahmad, 26911; Tirmidzi, 3471)",
-                nameTh: "อัลลอฮุอักบัร (อัลลอฮ์ทรงยิ่งใหญ่ที่สุด)", descTh: "การกล่าวอัลลอฮุอักบัร 100 ครั้ง เทียบเท่าอูฐประดับ 100 ตัวที่ถูกเชือดพลี (อะห์มัด, 26911; ติรมิซี, 3471)",
-                arabic: 'اللَّهُ أَكْبَرُ',
-                translit: 'Allahu Akbar',
-                nameEn: 'Allahu Akbar (Allah is the Greatest)',
-                nameDe: 'Allahu Akbar (Allah ist der Größte)',
-                nameEs: 'Allahu Akbar (Allah es el más Grande)',
-                nameFr: 'Allahu Akbar (Allah est le Plus Grand)',
-                nameIt: 'Allahu Akbar (Allah è il più Grande)',
-                nameJa: 'アッラーフ・アクバル（アッラーは最も偉大なり）',
-                nameKo: '알라후 아크바르 (알라는 가장 위대하시다)',
-                nameRu: 'Аллаху Акбар (Аллах Велик)',
-                nameUz: 'Allohu Akbar (Alloh buyuk)',
-                nameZh: '真主至大',
-                descEn: '100 times Allahu Akbar equals 100 adorned camels sacrificed (Ahmad, 26911; at-Tirmidhi, 3471).',
-                descDe: '100-mal "Allahu Akbar" entspricht 100 geschmückten Kamelen, die als Opfer dargebracht werden (Ahmad, 26911; at-Tirmidhi, 3471).',
-                descEs: 'Decir 100 veces "Allahu Akbar" equivale a 100 camellos adornados sacrificados (Ahmad, 26911; at-Tirmidhi, 3471).',
-                descFr: 'Dire 100 fois "Allahu Akbar" équivaut à 100 chameaux parés offerts en sacrifice (Ahmad, 26911 ; at-Tirmidhi, 3471).',
-                descIt: 'Dire 100 volte "Allahu Akbar" equivale a 100 cammelli adornati sacrificati (Ahmad, 26911; at-Tirmidhi, 3471).',
-                descJa: '100回の「アッラーフ・アクバル」は、生け贄として捧げられた100頭の装飾されたラクダに匹敵します（アフマド、26911、アッ＝ティルミズィー、3471）。',
-                descKo: '"알라후 아크바르"를 100번 외치는 것은 장식된 낙타 100마리를 제물로 바치는 것과 같습니다 (아흐마드, 26911; 아티르미디, 3471).',
-                descRu: '100 раз «Аллаху Акбар» приравнивается к 100 украшенным верблюдам, принесенным в жертву (Ахмад, 26911; ат-Тирмизи, 3471).',
-                descUz: '100 marta «Allohu Akbar» deyish 100 ta bezatilgan tuya qurbonligiga teng (Ahmad, 26911; at-Termiziy, 3471).',
-                descZh: '诵读“真主至大”100次，相当于献祭100头装饰华丽的骆驼（艾哈迈德圣训集，26911；提尔密济圣训集，3471）。',
-                goal: 100
-            },
-            {
-                id: 'tahlil',
-                nameTr: "Tehlil (La ilahe illallah)", descTr: "\"La ilahe illallah\" Allah'ın en faziletli zikri ve cennetin anahtarıdır. Peygamber ﷺ \"İmanınızı yenileyin!\" buyurdu. \"Ey Allah'ın Resûlü, imanımızı nasıl yenileriz?\" diye soruldu. \"Sık sık La ilahe illallah deyin\" buyurdu. (Ahmed, 2/359)",
-                nameHi: "तहलील (ला इलाहा इल्लल्लाह)", descHi: "\"ला इलाहा इल्लल्लाह\" अल्लाह का सर्वश्रेष्ठ ज़िक्र और जन्नत की कुंजी है। नबी ﷺ ने फ़रमाया: \"अपना ईमान नवीनीकृत करो!\" पूछा गया: \"ऐ अल्लाह के रसूल, हम अपना ईमान कैसे नवीनीकृत करें?\" आपने फ़रमाया: \"अकसर कहो: ला इलाहा इल्लल्लाह\" (अहमद, 2/359)।",
-                nameMs: "Tahlil (La ilaha illallah)", descMs: "\"La ilaha illallah\" ialah zikir terbaik kepada Allah dan kunci syurga. Nabi ﷺ bersabda: \"Perbaharuilah iman kamu!\" Baginda ditanya: \"Wahai Rasulullah, bagaimana kami memperbaharui iman?\" Baginda menjawab: \"Perbanyakkanlah ucapan La ilaha illallah.\" (Ahmad, 2/359)",
-                nameId: "Tahlil (La ilaha illallah)", descId: "\"La ilaha illallah\" adalah zikir terbaik kepada Allah dan kunci surga. Nabi ﷺ bersabda: \"Perbaruilah imanmu!\" Beliau ditanya: \"Wahai Rasulullah, bagaimana kami memperbarui iman?\" Beliau menjawab: \"Perbanyaklah ucapan La ilaha illallah.\" (Ahmad, 2/359)",
-                nameTh: "ตะฮ์ลีล (ลาอิลาฮะอิลลัลลอฮ์)", descTh: "\"ลาอิลาฮะอิลลัลลอฮ์\" คือการรำลึกถึงอัลลอฮ์ที่ประเสริฐที่สุดและเป็นกุญแจสู่สวรรค์ ท่านนบี ﷺ กล่าวว่า: \"จงรื้อฟื้นศรัทธาของพวกท่าน!\" มีผู้ถามว่า: \"โอ้ท่านเราะซูล เราจะรื้อฟื้นศรัทธาอย่างไร?\" ท่านตอบว่า: \"จงกล่าวบ่อยๆ ว่า ลาอิลาฮะอิลลัลลอฮ์\" (อะห์มัด, 2/359)",
-                arabic: 'لَا إِلَهَ إِلَّا اللَّهُ',
-                translit: 'La ilaha illallah',
-                nameEn: 'Tahlil (La ilaha illallah)',
-                nameDe: 'Tahlil (La ilaha illallah)',
-                nameEs: 'Tahlil (La ilaha illallah)',
-                nameFr: 'Tahlil (La ilaha illallah)',
-                nameIt: 'Tahlil (La ilaha illallah)',
-                nameJa: 'タハリール (ラー・イラーハ・イッラッラー)',
-                nameKo: '타흘릴 (라 일라하 일랐라)',
-                nameRu: 'Тахлиль (Ля иляха илляЛлах)',
-                nameUz: 'Tahlil (La ilaha illalloh)',
-                nameZh: '泰赫里勒 (万物非主唯有真主)',
-                descEn: '"La ilaha illallah" is the best remembrance of Allah and the key to Paradise. The Prophet ﷺ said: "Renew your faith!" He was asked: "O Messenger of Allah, how do we renew our faith?" He replied: "Say often: La ilaha illallah" (Ahmad, 2/359).',
-                descDe: '"La ilaha illallah" ist das beste Gedenken Allahs und der Schlüssel zum Paradies. Der Prophet ﷺ sagte: „Erneuert euren Glauben!" Man fragte ihn: „O Gesandter Allahs, wie erneuern wir unseren Glauben?" Er antwortete: „Sagt häufig: La ilaha illallah" (Ahmad, 2/359).',
-                descEs: '"La ilaha illallah" es el mejor recuerdo de Allah y la llave del Paraíso. El Profeta ﷺ dijo: «¡Renovad vuestra fe!». Le preguntaron: «Oh Mensajero de Allah, ¿cómo renovamos nuestra fe?». Respondió: «Decid con frecuencia: La ilaha illallah» (Ahmad, 2/359).',
-                descFr: '"La ilaha illallah" est le meilleur rappel d\'Allah et la clé du Paradis. Le Prophète ﷺ a dit : « Renouvelez votre foi ! » On lui demanda : « Ô Messager d\'Allah, comment renouvelons-nous notre foi ? » Il répondit : « Dites souvent : La ilaha illallah » (Ahmad, 2/359).',
-                descIt: '«"La ilaha illallah" è il miglior ricordo di Allah e la chiave del Paradiso. Il Profeta ﷺ disse: «Rinnovate la vostra fede!». Gli fu chiesto: «O Messaggero di Allah, come rinnoviamo la nostra fede?». Rispose: «Dite spesso: La ilaha illallah» (Ahmad, 2/359).',
-                descJa: '「ラー・イラーハ・イッラッラー」はアッラーへの最良の唱念であり、楽園への鍵です。預言者ﷺは「あなたがたの信仰を新たにしなさい」と言われました。「アッラーの使徒よ、どのように信仰を新たにするのですか」と尋ねられると、彼は「『ラー・イラーハ・イッラッラー』を多く唱えなさい」と答えられました（アフマド、2/359）。',
-                descKo: '"라 일라하 일랄라"는 알라에 대한 가장 훌륭한 디크르이며 낙원의 열쇠입니다. 예언자 ﷺ께서 "너희의 신앙을 새롭게 하라"고 말씀하셨습니다. "알라의 사도여, 어떻게 신앙을 새롭게 합니까?"라고 여쭈자, 그분께서는 "라 일라하 일랄라를 자주 외우라"고 답하셨습니다 (아흐마드, 2/359).',
-                descRu: '"Ля иляха илляЛлах" — лучшее поминание Аллаха и ключ от Рая. Пророк ﷺ сказал: «Обновляйте вашу веру!» Его спросили: «О Посланник Аллаха, как нам обновлять веру?» Он ответил: «Чаще произносите: Ля иляха илляЛлах» (Ахмад, 2/359).',
-                descUz: '"La ilaha illalloh" — Allohni eng yaxshi zikr qilish va Jannat kalitidir. Payg\'ambar ﷺ: «Iymoningizni yangilang!» dedilar. «Ey Allohning Rasuli, iymonimizni qanday yangilaymiz?» deb so\'rashganda, u: «„La ilaha illalloh“ni ko\'p ayting», deb javob berdilar (Ahmad, 2/359).',
-                descZh: '「万物非主，唯有真主」是记念真主的最佳方式，也是通往乐园的钥匙。先知ﷺ说：「你们要更新你们的信仰！」有人问：「真主的使者啊，我们如何更新信仰呢？」他回答：「多多诵念『万物非主，唯有真主』」（艾哈迈德圣训集，2/359）。',
-                goal: 100
-            },
-            {
-                id: 'tahlil_100_daily',
-                nameTr: "Tehlil (Vahdehu la şerike leh)", descTr: "Kim günde 100 kez \"La ilahe illallahu vahdehu la şerike leh, lehü'l-mülkü ve lehü'l-hamd, ve hüve alâ külli şey'in kadîr\" derse, ona 10 köle azat etme sevabı yazılır, 100 günahı bağışlanır ve 100 sevap yazılır. Ayrıca o gün akşama kadar şeytandan korunur. (Buhârî, 3293; Müslim, 2691)",
-                nameHi: "तहलील (वहदहू ला शरीका लहू)", descHi: "जो दिन में 100 बार यह ज़िक्र पढ़ता है: \"ला इलाहा इल्लल्लाहु वहदहू ला शरीका लहू, लहुल-मुल्कु व लहुल-हम्द, व हुवा अला कुल्लि शयइन क़दीर\", उसके लिए अल्लाह की राह में 10 ग़ुलाम आज़ाद करने का सवाब लिखा जाता है, 100 गुनाह माफ़ होते हैं और 100 नेकियाँ लिखी जाती हैं। साथ ही वह शाम तक शैतान से सुरक्षित रहता है (बुख़ारी, 3293; मुस्लिम, 2691)।",
-                nameMs: "Tahlil (Wahdahu la sharika lahu)", descMs: "Sesiapa membaca zikir ini: \"La ilaha illallahu wahdahu la sharika lahu, lahul mulku wa lahul hamd, wa huwa ala kulli syai'in qadir\" 100 kali sehari, dicatat baginya pahala membebaskan 10 hamba di jalan Allah, 100 dosanya diampunkan dan 100 kebaikan ditulis untuknya. Dia juga dilindungi daripada syaitan sepanjang hari hingga petang. (al-Bukhari, 3293; Muslim, 2691)",
-                nameId: "Tahlil (Wahdahu la sharika lahu)", descId: "Siapa membaca zikir ini: \"La ilaha illallahu wahdahu la sharika lahu, lahul mulku wa lahul hamd, wa huwa ala kulli syai'in qadir\" 100 kali sehari, dicatat baginya pahala membebaskan 10 budak di jalan Allah, 100 dosanya diampuni dan 100 kebaikan ditulis untuknya. Dia juga dilindungi dari setan sepanjang hari hingga petang. (al-Bukhari, 3293; Muslim, 2691)",
-                nameTh: "ตะฮ์ลีล (วะฮ์ดะฮู ลาชะรีกะละฮู)", descTh: "ผู้ใดกล่าวซิกร์นี้: \"ลาอิลาฮะอิลลัลลอฮุ วะฮ์ดะฮู ลาชะรีกะละฮู ละฮุลมุลกุ วะละฮุลฮัมด์ วะฮุวะ อะลา กุลลิ ชัยอิน เกาะดีร\" วันละ 100 ครั้ง เขาจะได้รับผลบุญเสมือนปลดปล่อยทาส 10 คนในหนทางของอัลลอฮ์ บาป 100 ประการถูกอภัย และความดี 100 ประการถูกบันทึก อีกทั้งได้รับการคุ้มครองจากชัยฏอนตลอดวันจนถึงค่ำ (อัลบุคอรี, 3293; มุสลิม, 2691)",
-                arabic: 'لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ',
-                translit: 'La ilaha illallahu wahdahu la sharika lah, lahul mulku wa lahul hamd, wa huwa ala kulli shayin qadir',
-                nameEn: 'Tahlil (Wahdahu la sharika lahu)',
-                nameDe: 'Tahlil (Wahdahu la sharika lahu)',
-                nameEs: 'Tahlil (Wahdahu la sharika lahu)',
-                nameFr: 'Tahlil (Wahdahu la sharika lahu)',
-                nameIt: 'Tahlil (Wahdahu la sharika lahu)',
-                nameJa: 'タハリール (ワフダフ・ラー・シャリーカ・ラフ)',
-                nameKo: '타흘릴 (와흐다후 라 샤리카 라후)',
-                nameRu: 'Тахлиль (Вахдаху ля шарика ляху)',
-                nameUz: 'Tahlil (Vahdahu la sharika lah)',
-                nameZh: '泰赫里勒 (独一无偶)',
-                descEn: 'Whoever recites this dhikr: "La ilaha illallahu wahdahu la sharika lahu, lahul mulku wa lahul hamd, wa huwa ala kulli shayin qadir" 100 times in a day, the reward of freeing 10 slaves on the path of Allah is recorded for him, 100 sins are forgiven and 100 good deeds are written for him. He will also be protected from Satan throughout the day until the evening (al-Bukhari, 3293; Muslim, 2691).',
-                descDe: 'Wer dieses Dhikr spricht: „La ilaha illallahu wahdahu la sharika lahu, lahul mulku wa lahul hamd, wa huwa ala kulli shayin qadir" 100-mal an einem Tag, dem wird die Belohnung der Befreiung von 10 Sklaven auf dem Weg Allahs angerechnet, 100 Sünden werden ihm vergeben und 100 gute Taten werden ihm aufgeschrieben. Außerdem wird er den ganzen Tag bis zum Abend vor dem Schaitan geschützt (al-Bukhari, 3293; Muslim, 2691).',
-                descEs: 'Quien recite este dhikr: «La ilaha illallahu wahdahu la sharika lahu, lahul mulku wa lahul hamd, wa huwa ala kulli shayin qadir» 100 veces al día, se le inscribirá la recompensa de liberar 10 esclavos en el camino de Allah, se le perdonarán 100 pecados y se le anotarán 100 buenas acciones. También estará protegido del Shaytán durante el día hasta la tarde (al-Bujari, 3293; Muslim, 2691).',
-                descFr: 'Quiconque récite ce dhikr : « La ilaha illallahu wahdahu la sharika lahu, lahul mulku wa lahul hamd, wa huwa ala kulli shayin qadir » 100 fois dans la journée, la récompense d\'avoir libéré 10 esclaves dans la voie d\'Allah lui sera inscrite, 100 péchés lui seront pardonnés et 100 bonnes actions lui seront comptées. Il sera également protégé de Satan toute la journée jusqu\'au soir (al-Bukhari, 3293 ; Muslim, 2691).',
-                descIt: 'Chi recita questo dhikr: «La ilaha illallahu wahdahu la sharika lahu, lahul mulku wa lahul hamd, wa huwa ala kulli shayin qadir» 100 volte al giorno, gli sarà attribuita la ricompensa di liberare 10 schiavi sulla via di Allah, gli saranno perdonati 100 peccati e gli saranno scritte 100 buone azioni. Sarà inoltre protetto da Satana per tutto il giorno fino alla sera (al-Bukhari, 3293; Muslim, 2691).',
-                descJa: 'このズィクル「ラー・イラーハ・イッラッラーフ・ワフダフ・ラー・シャリーカ・ラフ、ラフル・ムルク・ワ・ラフル・ハムド、ワ・フワ・アラー・クッリ・シャイイン・カディール」を1日に100回唱える者には、アッラーの道において10人の奴隷を解放した報酬が記録され、100の罪が赦され、100の善行が書き記されます。さらに、その者はその日、夕方まで悪魔（シャイターン）から守られます（アル＝ブハーリー、3293、ムスリム、2691）。',
-                descKo: '하루에 이 지크르를 100번 외우는 자 - "라 일라하 일랄라후 와흐다후 라 샤리카 라후, 라훌 물쿠 와 라훌 함드, 와 후와 알라 쿨리 샤이인 카디르" - 에게는 알라의 길에서 노예 10명을 해방시킨 보상이 기록되며, 100가지 죄가 사해지고 100가지 선행이 기록됩니다. 또한 그날 저녁까지 사탄(샤이탄)으로부터 보호받게 됩니다 (알 부하리, 3293; 무슬림, 2691).',
-                descRu: 'Тот, кто прочитает данный зикр: «Ля иляха илляллаху вахдаху ля шарика ляху, ляхуль мульку ва ляхуль хамду ва хува аля кулли шайъин кадир» 100 раз в день, тому будет предписана награда как за освобождение 10-ти рабов на пути Аллаха, тому будут прощены 100 грехов и запишется 100 благодеяний. Такой человек будет защищён от шайтана в течение дня до самого вечера (аль-Бухари, 3293; Муслим, 2691).',
-                descUz: 'Kim shu zikrni: «La ilaha illallahu vahdahu la sharika lah, lahul mulku va lahul hamd, va huva ala kulli shay\'in qadir» kuniga 100 marta o\'qisa, unga Alloh yo\'lida 10 ta qul ozod qilgan savob yoziladi, 100 ta gunohi kechiriladi va 100 ta yaxshilik yoziladi. Shuningdek, u kishi o\'sha kuni kechgacha shaytondan himoyalanadi (al-Buxoriy, 3293; Muslim, 2691).',
-                descZh: '凡每日诵读此迪克尔：「万物非主，唯有真主，独一无偶，主权与赞颂归于他，他对万事万物都是全能的」100次者，将被记录释放10个奴隶在真主道路上的报酬，100个罪过被赦免，100件善功被记录。此人当日直至临晚都将受到保护，免遭恶魔（沙伊坦）侵扰（布哈里圣训集，3293；穆斯林圣训集，2691）。',
-                goal: 100
-            },
-            {
-                id: 'tasbih_heavy',
-                nameTr: "Dilde hafif, mizanda ağır", descTr: "Rahman'a sevimli, dilde hafif fakat mizanda ağır iki kelime. (Buhârî, 6682; Müslim, 2694)",
-                nameHi: "ज़ुबान पर हल्के, तराज़ू में भारी", descHi: "रहमान को प्रिय दो कलिमे, ज़ुबान पर हल्के परन्तु तराज़ू में भारी (बुख़ारी, 6682; मुस्लिम, 2694)।",
-                nameMs: "Ringan di lidah, berat di Neraca", descMs: "Dua kalimah yang dicintai ar-Rahman, ringan di lidah tetapi berat di Neraca. (al-Bukhari, 6682; Muslim, 2694)",
-                nameId: "Ringan di lidah, berat di Timbangan", descId: "Dua kalimat yang dicintai ar-Rahman, ringan di lidah tetapi berat di Timbangan. (al-Bukhari, 6682; Muslim, 2694)",
-                nameTh: "เบาบนลิ้น หนักบนตราชู", descTh: "สองถ้อยคำที่เป็นที่รักยิ่งของพระผู้ทรงเมตตา เบาบนลิ้นแต่หนักบนตราชู (อัลบุคอรี, 6682; มุสลิม, 2694)",
-                arabic: 'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ سُبْحَانَ اللَّهِ الْعَظِيمِ',
-                translit: 'Subhana-llahi wa bi-hamdihi, subhana-llahil-\'Azim',
-                nameEn: 'Light on the tongue, heavy on the Scales',
-                nameDe: 'Leicht auf der Zunge, schwer auf der Waagschale',
-                nameEs: 'Ligeras en la lengua, pesadas en la Balanza',
-                nameFr: 'Légères sur la langue, lourdes sur la Balance',
-                nameIt: 'Leggere sulla lingua, pesanti sulla Bilancia',
-                nameJa: '舌には軽く、天秤には重い',
-                nameKo: '말하기는 쉽고 저울에는 무거운 것',
-                nameRu: 'Лёгкие для языка, тяжёлые на Весах',
-                nameUz: 'Tilga yengil, tarozuda og\'ir',
-                nameZh: '朗朗上口，在天平上沉甸甸',
-                descEn: 'Two words beloved to the Most Merciful, light on the tongue but heavy on the Scales (al-Bukhari, 6682; Muslim, 2694).',
-                descDe: 'Zwei Worte, die dem Allbarmer lieb sind, leicht auf der Zunge, aber schwer auf der Waagschale (al-Bukhari, 6682; Muslim, 2694).',
-                descEs: 'Dos palabras amadas por el Compasivo, ligeras en la lengua pero pesadas en la Balanza (al-Bujari, 6682; Muslim, 2694).',
-                descFr: 'Deux paroles aimées du Tout-Miséricordieux, légères sur la langue mais lourdes sur la Balance (al-Bukhari, 6682 ; Muslim, 2694).',
-                descIt: 'Due parole amate dal Compassionevole, leggere sulla lingua ma pesanti sulla Bilancia (al-Bukhari, 6682; Muslim, 2694).',
-                descJa: '慈悲深き御方に愛され、舌には軽く、しかし天秤には重い二つの言葉があります（アル＝ブハーリー、6682、ムスリム、2694）。',
-                descKo: '가장 자비로우신 분께서 사랑하시는, 말하기는 쉬우나 저울에는 무거운 두 마디의 말이 있습니다 (알 부하리, 6682; 무슬림, 2694).',
-                descRu: 'Два слова, любимые Милостивому, лёгкие для языка и тяжёлые на Весах (аль-Бухари, 6682; Муслим, 2694).',
-                descUz: 'Ikki so\'z, Rahmli Zotga sevimli, tilga yengil, tarozuda og\'ir (al-Buxoriy, 6682; Muslim, 2694).',
-                descZh: '两句话为至仁主所喜悦，朗朗上口，但在功过天平上却沉甸甸（布哈里圣训集，6682；穆斯林圣训集，2694）。',
-                goal: 100
-            },
-            {
-                id: 'lahawla',
-                nameTr: "La havle (Cennet hazinesi)", descTr: "Arş'ın altından bir hazine; büyük bir iç güç verir. (Buhârî, 6384; Müslim, 2704)",
-                nameHi: "ला हौला (जन्नत का ख़ज़ाना)", descHi: "अर्श के नीचे से एक ख़ज़ाना, जो अपार आंतरिक शक्ति प्रदान करता है (बुख़ारी, 6384; मुस्लिम, 2704)।",
-                nameMs: "La hawla (Harta dari Syurga)", descMs: "Sebuah harta dari bawah Arasy, memberikan kekuatan dalaman yang besar. (al-Bukhari, 6384; Muslim, 2704)",
-                nameId: "La hawla (Harta dari Surga)", descId: "Sebuah harta dari bawah Arasy, memberikan kekuatan batin yang besar. (al-Bukhari, 6384; Muslim, 2704)",
-                nameTh: "ลาเฮาละ (ขุมทรัพย์จากสวรรค์)", descTh: "ขุมทรัพย์จากใต้บัลลังก์ ที่มอบพลังภายในอันมหาศาล (อัลบุคอรี, 6384; มุสลิม, 2704)",
-                arabic: 'لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ',
-                translit: 'La hawla wa la quwwata illa billah',
-                nameEn: 'La hawla (A treasure from Jannah)',
-                nameDe: 'La hawla (Ein Schatz aus dem Paradies)',
-                nameEs: 'La hawla (Un tesoro del Paraíso)',
-                nameFr: 'La hawla (Un trésor du Paradis)',
-                nameIt: 'La hawla (Un tesoro del Paradiso)',
-                nameJa: 'ラ・ハウラ（楽園の宝物）',
-                nameKo: '라 하울라 (낙원의 보물)',
-                nameRu: 'Ля хауля (Сокровищница Рая)',
-                nameUz: 'La havla (Jannat xazinasi)',
-                nameZh: '拉豪拉（乐园的宝藏）',
-                descEn: 'A treasure from beneath the Throne, granting immense inner strength (al-Bukhari, 6384; Muslim, 2704).',
-                descDe: 'Ein Schatz von unterhalb des Throns, der unglaubliche innere Kraft verleiht (al-Bukhari, 6384; Muslim, 2704).',
-                descEs: 'Un tesoro de debajo del Trono, que otorga una increíble fuerza interior (al-Bujari, 6384; Muslim, 2704).',
-                descFr: 'Un trésor de sous le Trône, accordant une force intérieure incroyable (al-Bukhari, 6384 ; Muslim, 2704).',
-                descIt: 'Un tesoro da sotto il Trono, che dona un\'incredibile forza interiore (al-Bukhari, 6384; Muslim, 2704).',
-                descJa: '玉座の下から授けられた、信じられないほどの内なる力を与えてくれる宝物です（アル＝ブハーリー、6384、ムスリム、2704）。',
-                descKo: '보좌 아래에서 온 보물로, 가늠할 수 없는 내면의 힘을 길러줍니다 (알 부하리, 6384; 무슬림, 2704).',
-                descRu: 'Сокровищница из-под Трона, дающая невероятную внутреннюю силу (аль-Бухари, 6384; Муслим, 2704).',
-                descUz: 'Arsh ostidagi xazina, aql bovar qilmas ichki kuch bag\'ishlaydi (al-Buxoriy, 6384; Muslim, 2704).',
-                descZh: '来自宝座之下的宝藏，能赐予人无比强大的内心力量（布哈里圣训集，6384；穆斯林圣训集，2704）。',
-                goal: 100
-            },
-            {
-                id: 'ikhlas',
-                nameTr: "İhlas Sûresi (Cennette bir köşk)", descTr: "Kur'an'ın üçte birine denktir. Kim bu sûreyi 10 kez okursa, Allah ona cennette bir köşk bina eder. (Ahmed, 15610)",
-                nameHi: "सूरह अल-इख़लास (जन्नत में महल)", descHi: "क़ुरआन के एक तिहाई के बराबर है। जो इस सूरह को 10 बार पढ़ता है, अल्लाह उसके लिए जन्नत में एक महल बनाता है (अहमद, 15610)।",
-                nameMs: "Surah Al-Ikhlas (Istana di Syurga)", descMs: "Setara dengan satu pertiga al-Quran. Sesiapa membaca surah ini 10 kali, Allah akan membina untuknya sebuah istana di syurga. (Ahmad, 15610)",
-                nameId: "Surah Al-Ikhlas (Istana di Surga)", descId: "Setara dengan sepertiga al-Quran. Siapa membaca surah ini 10 kali, Allah akan membangun untuknya sebuah istana di surga. (Ahmad, 15610)",
-                nameTh: "ซูเราะฮ์อัลอิคลาศ (วังในสวรรค์)", descTh: "เทียบเท่าหนึ่งในสามของอัลกุรอาน ผู้ใดอ่านซูเราะฮ์นี้ 10 ครั้ง อัลลอฮ์จะทรงสร้างวังในสวรรค์ให้เขา (อะห์มัด, 15610)",
-                arabic: 'قُلْ هُوَ اللَّهُ أَحَدٌ ...',
-                translit: 'Surah Al-Ikhlas',
-                nameEn: 'Surah Al-Ikhlas (A palace in Jannah)',
-                nameDe: 'Sure Al-Ichlas (Ein Palast im Paradies)',
-                nameEs: 'Sura Al-Ikhlas (Un palacio en el Paraíso)',
-                nameFr: 'Sourate Al-Ikhlas (Un palais au Paradis)',
-                nameIt: 'Sura Al-Ikhlas (Un palazzo nel Paradiso)',
-                nameJa: 'スーラ・アル＝イフラース（楽園の宮殿）',
-                nameKo: '수라 알 이클라스 (낙원의 궁전)',
-                nameRu: 'Сура Аль-Ихлас (Дом в Раю)',
-                nameUz: 'Ixlos surasi (Jannatda qasr)',
-                nameZh: '忠诚章（乐园 get的宫殿）',
-                descEn: 'Equals one third of the Quran. Whoever recites this Surah 10 times, Allah will build a palace for them in Jannah (Ahmad, 15610).',
-                descDe: 'Entspricht einem Drittel des Korans. Wer diese Sure 10 Mal rezitiert, dem baut Allah einen Palast im Paradies (Ahmad, 15610).',
-                descEs: 'Equivale a una tercera parte del Corán. A quien recite esta Sura 10 veces, Allah le construirá un palacio en el Paraíso (Ahmad, 15610).',
-                descFr: 'Équivaut au tiers du Coran. Quiconque récite cette sourate 10 fois, Allah lui construira un palais au Paradis (Ahmad, 15610).',
-                descIt: 'Equivale a un terzo del Corano. A chiunque reciti questa Sura 10 volte, Allah costruirà un palazzo nel Paradiso (Ahmad, 15610).',
-                descJa: 'クルアーンの3分の1に相当します。このスーラを10回唱える者には、アッラーが楽園に宮殿を建ててくださいます（アフマド、15610）。',
-                descKo: '꾸란의 3분의 1에 해당합니다. 이 수라를 10번 암송하는 사람에게 알라께서는 낙원에 궁전을 지어주실 것입니다 (아흐마드, 15610).',
-                descRu: 'Равна одной трети Корана. Тому, кто прочитает эту суру 10 раз, Аллах построит дворец в Раю (Ахмад, 15610).',
-                descUz: 'Qur\'onning uchdan biriga teng. Kim ushbu surani 10 marta o\'qisa, Alloh u uchun Jannatda bir qasr barpo qiladi (Ahmad, 15610).',
-                descZh: '相当于三分之一部《古兰经》。凡诵读本章10次者，真主必在乐园中为其建造一座宫殿（艾哈迈德圣训集，15610）。',
-                goal: 100
-            },
-            {
-                id: 'sleep_purification',
-                nameHi: "रात्रि शुद्धिकरण (3 सूरह × 3)", descHi: "बिस्तर को पाक करने की मुख्य सुन्नत। दोनों हथेलियाँ मिलाएँ, अल-इख़लास, अल-फ़लक़ और अन-नास पढ़ें, हथेलियों पर फूँक मारें और सिर व चेहरे से शुरू करके पूरे शरीर पर फेरें। 3 बार दोहराएँ। (बुख़ारी, 5017)",
-                nameMs: "Penyucian Malam (3 Surah × 3)", descMs: "Sunnah utama menyucikan tempat tidur. Himpunkan kedua tapak tangan, baca Al-Ikhlas, Al-Falaq dan An-Nas, tiup pada tapak tangan dan sapu seluruh tubuh bermula dari kepala dan wajah. Ulang 3 kali. (al-Bukhari, 5017)",
-                nameId: "Penyucian Malam (3 Surah × 3)", descId: "Sunnah utama menyucikan tempat tidur. Satukan kedua telapak tangan, baca Al-Ikhlas, Al-Falaq dan An-Nas, tiup pada telapak tangan dan usap seluruh tubuh mulai dari kepala dan wajah. Ulangi 3 kali. (al-Bukhari, 5017)",
-                nameTh: "การชำระยามค่ำคืน (3 ซูเราะฮ์ × 3)", descTh: "ซุนนะฮ์หลักในการชำระที่นอน ประกบฝ่ามือทั้งสอง อ่านอัลอิคลาศ อัลฟะลัก และอันนาส เป่าลงบนฝ่ามือแล้วลูบทั่วร่างกายเริ่มจากศีรษะและใบหน้า ทำซ้ำ 3 ครั้ง (อัลบุคอรี, 5017)",
-                arabic: 'قُلْ هُوَ اللَّهُ أَحَدٌ ... قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ ... قُلْ أَعُوذُ بِرَبِّ النَّاسِ',
-                translit: 'Surah Al-Ikhlas + Al-Falaq + An-Nas (×3)',
-                nameEn: 'Night Purification (3 Suras × 3)',
-                nameDe: 'Nächtliche Reinigung (3 Suren × 3)',
-                nameEs: 'Purificación nocturna (3 suras × 3)',
-                nameFr: 'Purification nocturne (3 sourates × 3)',
-                nameIt: 'Purificazione notturna (3 sure × 3)',
-                nameJa: '夜の清め（3スーラ × 3回）',
-                nameKo: '밤의 정화 (3수라 × 3회)',
-                nameRu: 'Очищение перед сном (3 суры × 3)',
-                nameUz: 'Uxlashdan oldin tozalanish (3 sura × 3)',
-                nameAr: 'تطهير الليل (3 سور × 3)',
-                nameTr: 'Gece Arınması (3 Sure × 3)',
-                nameZh: '夜间净化（3章 × 3遍）',
-                descEn: 'The main Sunnah of purifying the bed. Bring palms together, recite Al-Ikhlas, Al-Falaq and An-Nas, blow on the palms and wipe the entire body starting from the head and face. Repeat 3 times. (al-Bukhari, 5017)',
-                descDe: 'Die wichtigste Sunnah zur Reinigung des Bettes. Handflächen zusammenführen, Al-Ichlas, Al-Falaq und An-Nas rezitieren, auf die Handflächen blasen und den ganzen Körper von Kopf und Gesicht an abwischen. 3 Mal wiederholen. (al-Bukhari, 5017)',
-                descEs: 'La principal Sunnah de purificación de la cama. Juntar las palmas, recitar Al-Ikhlas, Al-Falaq y An-Nas, soplar sobre las palmas y frotar todo el cuerpo comenzando por la cabeza y el rostro. Repetir 3 veces. (al-Bujari, 5017)',
-                descFr: 'La principale Sunna de purification du lit. Joindre les paumes, réciter Al-Ikhlas, Al-Falaq et An-Nas, souffler sur les paumes et essuyer tout le corps en commençant par la tête et le visage. Répéter 3 fois. (al-Bukhari, 5017)',
-                descIt: 'La principale Sunnah di purificazione del letto. Unire i palmi, recitare Al-Ikhlas, Al-Falaq e An-Nas, soffiare sui palmi e strofinare tutto il corpo iniziando dalla testa e dal viso. Ripetere 3 volte. (al-Bukhari, 5017)',
-                descJa: '就寝前の床を清める主要なスンナ。両手の平を合わせてアル＝イフラース、アル＝ファラク、アン＝ナースを唱え、手の平に息を吹きかけて頭と顔から始めて全身を拭います。3回繰り返します。（アル＝ブハーリー、5017）',
-                descKo: '침구를 정화하는 주요 순나. 손바닥을 모아 알 이클라스, 알 팔라크, 안 나스를 암송하고 손바닥에 입김을 불어 넣어 머리와 얼굴부터 시작하여 온몸을 닦습니다. 3번 반복합니다. (알 부하리, 5017)',
-                descRu: 'Главная сунна очищения постели. Соединить ладони, трижды прочитать суры «Аль-Ихлас», «Аль-Фалак», «Ан-Нас», подуть на ладони и обтереть всё тело, начиная с головы и лица. Повторить 3 раза. (аль-Бухари, 5017)',
-                descUz: 'To\'shakni tozalashning asosiy sunnati. Kaftlarni qo\'shib, «Al-Ixlos», «Al-Falaq» va «An-Nos» suralarini uch marta o\'qing, kaftlarga puflab, boshdan va yuzdan boshlab butun tanani arting. 3 marta takrorlang. (al-Buxoriy, 5017)',
-                descAr: 'السنة الرئيسية لتطهير الفراش. اجمع راحتيك واقرأ سورة الإخلاص والفلق والناس ثلاث مرات، ثم انفث فيهما وامسح بهما جسدك بدءاً من الرأس والوجه. كرر ذلك ثلاث مرات. (البخاري، 5017)',
-                descTr: 'Yatağı temizlemenin temel sünneti. Avuçları birleştir, Felak, İhlas ve Nas surelerini üç kez oku, avuçlara üfle ve baştan yüzden başlayarak tüm vücudu sil. Bunu 3 kez tekrarla. (Buhârî, 5017)',
-                descZh: '净化床铺的主要圣行。合拢双掌，诵读忠诚章、曙光章、众人章各三遍，然后向掌心吹气，从头部和面部开始擦拭全身。重复三遍。（布哈里圣训集，5017）',
-                goal: 3
-            },
-            {
-                id: 'sleep_ayatul_kursi',
-                nameHi: "आयतुल-कुर्सी (रातभर रक्षक फ़रिश्ता)", descHi: "जो सोने से पहले आयतुल-कुर्सी पढ़ता है, एक रक्षक फ़रिश्ता उसकी हिफ़ाज़त करता है और सुबह तक शैतान उसके पास नहीं आता। (बुख़ारी, 2311)",
-                nameMs: "Ayat al-Kursi (Malaikat penjaga sepanjang malam)", descMs: "Sesiapa membaca Ayat al-Kursi sebelum tidur, seorang malaikat penjaga akan melindunginya dan syaitan tidak akan menghampirinya sehingga pagi. (al-Bukhari, 2311)",
-                nameId: "Ayat al-Kursi (Malaikat penjaga sepanjang malam)", descId: "Siapa membaca Ayat al-Kursi sebelum tidur, seorang malaikat penjaga akan melindunginya dan setan tidak akan mendekat hingga pagi. (al-Bukhari, 2311)",
-                nameTh: "อายะตุลกุรซีย์ (มลาอิกะฮ์คุ้มครองทั้งคืน)", descTh: "ผู้ใดอ่านอายะตุลกุรซีย์ก่อนนอน มลาอิกะฮ์ผู้พิทักษ์จะคุ้มครองเขา และชัยฏอนจะไม่เข้าใกล้จนถึงรุ่งเช้า (อัลบุคอรี, 2311)",
-                arabic: 'اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ...',
-                translit: 'Allahu la ilaha illa huwal-Hayyul-Qayyum...',
-                nameEn: 'Ayat al-Kursi (Guardian Angel all night)',
-                nameDe: 'Ayat al-Kursi (Schutzengel die ganze Nacht)',
-                nameEs: 'Ayat al-Kursi (Ángel guardián toda la noche)',
-                nameFr: 'Ayat al-Kursi (Ange gardien toute la nuit)',
-                nameIt: 'Ayat al-Kursi (Angelo custode per tutta la notte)',
-                nameJa: 'アーヤトゥル・クルスィー（夜通し守護天使）',
-                nameKo: '아야툴 쿠르시 (밤새도록 수호천사)',
-                nameRu: 'Аят аль-Курси (Ангел-хранитель на всю ночь)',
-                nameUz: 'Oyat ul-Kursiy (Butun kecha himoyachi farishta)',
-                nameAr: 'آية الكرسي (حارس ملائكي طوال الليل)',
-                nameTr: 'Ayetü\'l-Kürsi (Gece boyunca koruyucu melek)',
-                nameZh: '宝座节（整夜守护天使）',
-                descEn: 'Whoever recites Ayat al-Kursi before sleeping, a guardian angel will protect them and Shaytan will not come near until morning. (al-Bukhari, 2311)',
-                descDe: 'Wer Ayat al-Kursi vor dem Schlafen rezitiert, wird von einem Schutzengel behütet und der Shaytan nähert sich ihm bis zum Morgen nicht. (al-Bukhari, 2311)',
-                descEs: 'Quien recite Ayat al-Kursi antes de dormir, un ángel guardián lo protegerá y Shaytan no se acercará hasta la mañana. (al-Bujari, 2311)',
-                descFr: 'Quiconque récite Ayat al-Kursi avant de dormir, un ange gardien le protégera et le Chaytan ne s\'approchera pas de lui jusqu\'au matin. (al-Bukhari, 2311)',
-                descIt: 'Chiunque reciti Ayat al-Kursi prima di dormire sarà protetto da un angelo custode e Shaytan non si avvicinerà fino al mattino. (al-Bukhari, 2311)',
-                descJa: '眠る前にアーヤトゥル・クルスィーを唱えた者には守護天使がつき、シャイターンは朝まで近づくことができません。（アル＝ブハーリー、2311）',
-                descKo: '잠들기 전에 아야툴 쿠르시를 암송하면 수호천사가 그를 보호하며 샤이탄은 아침이 될 때까지 가까이 오지 못합니다. (알 부하리, 2311)',
-                descRu: 'Тот, кто прочитает Аят аль-Курси перед сном, к нему будет приставлен ангел-хранитель, и шайтан не приблизится до утра. (аль-Бухари, 2311)',
-                descUz: 'Kim uxlashdan oldin Oyat ul-Kursiyni o\'qisa, unga himoyachi farishta biriktiriladi va shayton ertagacha yaqinlasha olmaydi. (al-Buxoriy, 2311)',
-                descAr: 'من قرأ آية الكرسي قبل النوم وُكِّل به حافظٌ من الله ولم يقربه شيطان حتى يصبح. (البخاري، 2311)',
-                descTr: 'Uyumadan önce Ayetü\'l-Kürsi okuyan kişiye bir koruyucu melek tayin edilir ve sabaha kadar şeytan ona yaklaşamaz. (Buhârî, 2311)',
-                descZh: '睡前诵读宝座节者，真主将为其派遣一位守护天使，恶魔（沙伊坦）直至清晨都无法靠近。（布哈里圣训集，2311）',
-                goal: 1
-            },
-            {
-                id: 'sleep_tasbih_fatima',
-                nameHi: "फ़ातिमा की तस्बीह (तन और मन के लिए शक्ति)", descHi: "नबी ﷺ ने यह ज़िक्र अपनी बेटी फ़ातिमा और उनके पति अली (र.अ.) को दिया जब वे घर के भारी काम के कारण सेवक माँगने आए। आपने फ़रमाया: \"क्या मैं तुम्हें सेवक से बेहतर चीज़ न बताऊँ? जब बिस्तर पर जाओ तो कहो: सुब्हानल्लाह — 33 बार, अल्हम्दुलिल्लाह — 33 बार, अल्लाहु अकबर — 34 बार। यह तुम्हारे लिए सेवक से बेहतर है।\" (बुख़ारी, 5362; मुस्लिम, 2727)",
-                nameMs: "Tasbih Fatimah (Kekuatan tubuh dan jiwa)", descMs: "Nabi ﷺ memberikan zikir ini kepada puterinya Fatimah dan suaminya Ali (r.a.) ketika mereka meminta seorang pembantu kerana kerja rumah yang berat. Baginda bersabda: \"Mahukah aku tunjukkan sesuatu yang lebih baik daripada seorang pembantu? Apabila kamu hendak tidur, ucapkanlah: Subhanallah — 33 kali, Alhamdulillah — 33 kali, Allahu Akbar — 34 kali. Itu lebih baik bagi kamu daripada seorang pembantu.\" (al-Bukhari, 5362; Muslim, 2727)",
-                nameId: "Tasbih Fatimah (Kekuatan tubuh dan jiwa)", descId: "Nabi ﷺ memberikan zikir ini kepada putrinya Fatimah dan suaminya Ali (ra) ketika mereka meminta seorang pembantu karena pekerjaan rumah yang berat. Beliau bersabda: \"Maukah aku tunjukkan sesuatu yang lebih baik daripada seorang pembantu? Bila hendak tidur, ucapkanlah: Subhanallah — 33 kali, Alhamdulillah — 33 kali, Allahu Akbar — 34 kali. Itu lebih baik bagi kalian daripada seorang pembantu.\" (al-Bukhari, 5362; Muslim, 2727)",
-                nameTh: "ตัสบีห์ของฟาฏิมะฮ์ (พลังกายและใจ)", descTh: "ท่านนบี ﷺ มอบซิกร์นี้แก่ฟาฏิมะฮ์บุตรสาวและอาลีสามีของนาง (ร.ฎ.) เมื่อทั้งสองมาขอคนรับใช้เนื่องจากงานบ้านที่หนัก ท่านกล่าวว่า: \"ฉันจะบอกสิ่งที่ดีกว่าคนรับใช้แก่เจ้าไหม? เมื่อจะเข้านอนให้กล่าว: สุบหานัลลอฮ์ 33 ครั้ง อัลฮัมดุลิลลาฮ์ 33 ครั้ง อัลลอฮุอักบัร 34 ครั้ง นั่นดีกว่าคนรับใช้สำหรับเจ้า\" (อัลบุคอรี, 5362; มุสลิม, 2727)",
-                arabic: 'سُبْحَانَ اللَّهِ (٣٣) الْحَمْدُ لِلَّهِ (٣٣) اللَّهُ أَكْبَرُ (٣٤)',
-                translit: 'Subhanallah ×33 · Alhamdulillah ×33 · Allahu Akbar ×34',
-                nameEn: 'Tasbih of Fatima (Strength for body and soul)',
-                nameDe: 'Tasbih von Fatima (Kraft für Körper und Seele)',
-                nameEs: 'Tasbih de Fátima (Fuerza para el cuerpo y el alma)',
-                nameFr: 'Tasbih de Fatima (Force pour le corps et l\'âme)',
-                nameIt: 'Tasbih di Fatima (Forza per il corpo e l\'anima)',
-                nameJa: 'ファーティマのタスビーフ（体と魂への力）',
-                nameKo: '파티마의 타스비흐 (몸과 영혼의 힘)',
-                nameRu: 'Тасбих Фатимы (Сила для тела и души)',
-                nameUz: 'Fotima tasbehи (Tan va ruh uchun kuch)',
-                nameAr: 'تسبيح فاطمة (قوة للجسد والروح)',
-                nameTr: 'Fatıma\'nın Tesbihi (Beden ve ruh için güç)',
-                nameZh: '法蒂玛的念珠（身体与灵魂的力量）',
-                descRu: 'Пророк ﷺ подарил это поминание своей дочери Фатиме и её мужу Али (р.а.), когда они пришли просить слугу из-за тяжёлого домашнего труда. Он сказал: «Не указать ли мне вам на то, что лучше для вас, чем слуга? Когда будете ложиться спать, произносите: "Субханаллах" — 33 раза, "Альхамдулиллях" — 33 раза, "Аллаху Акбар" — 34 раза. Это будет лучше для вас, чем слуга». (аль-Бухари, 5362; Муслим, 2727)',
-                descEn: 'The Prophet ﷺ gave this remembrance to his daughter Fatima and her husband Ali (r.a.) when they came to ask for a servant due to heavy household work. He said: "Shall I not tell you of something better than a servant? When you go to bed, say: Subhanallah — 33 times, Alhamdulillah — 33 times, Allahu Akbar — 34 times. That will be better for you than a servant." (al-Bukhari, 5362; Muslim, 2727)',
-                descDe: 'Der Prophet ﷺ schenkte diese Erinnerung seiner Tochter Fatima und ihrem Mann Ali (r.a.), als sie kamen, um einen Diener wegen schwerer Hausarbeit zu bitten. Er sagte: „Soll ich euch nicht auf etwas hinweisen, das besser für euch ist als ein Diener? Wenn ihr schlafen geht, sagt: Subhanallah — 33 Mal, Alhamdulillah — 33 Mal, Allahu Akbar — 34 Mal. Das ist besser für euch als ein Diener." (al-Bukhari, 5362; Muslim, 2727)',
-                descEs: 'El Profeta ﷺ entregó este recuerdo a su hija Fátima y su esposo Alí (r.a.) cuando vinieron a pedir un sirviente por el agotamiento del trabajo doméstico. Dijo: «¿No os indico algo mejor que un sirviente? Cuando os acostéis, decid: Subhanallah — 33 veces, Alhamdulillah — 33 veces, Allahu Akbar — 34 veces. Eso será mejor para vosotros que un sirviente.» (al-Bujari, 5362; Muslim, 2727)',
-                descFr: 'Le Prophète ﷺ offrit ce dhikr à sa fille Fatima et à son mari Ali (r.a.) lorsqu\'ils vinrent demander un serviteur à cause des lourdes tâches ménagères. Il dit : « Ne vous indiquerai-je pas quelque chose de mieux qu\'un serviteur ? Quand vous vous couchez, dites : Subhanallah — 33 fois, Alhamdulillah — 33 fois, Allahu Akbar — 34 fois. Ce sera mieux pour vous qu\'un serviteur. » (al-Bukhari, 5362 ; Muslim, 2727)',
-                descIt: 'Il Profeta ﷺ donò questo dhikr a sua figlia Fatima e a suo marito Ali (r.a.) quando vennero a chiedere un servo per la fatica del lavoro domestico. Disse: «Non vi indico qualcosa di meglio di un servo? Quando andate a dormire, dite: Subhanallah — 33 volte, Alhamdulillah — 33 volte, Allahu Akbar — 34 volte. Sarà meglio per voi di un servo.» (al-Bukhari, 5362; Muslim, 2727)',
-                descJa: '預言者ﷺは、重い家事の疲れから使用人を求めてきた娘ファーティマとその夫アリー（彼ら二人に慈悲あれ）にこの念誦を贈りました。「使用人より良いものを教えましょうか？就寝時に言いなさい：スブハーナッラー33回、アルハムドゥリッラー33回、アッラーフ・アクバル34回。それはあなた方にとって使用人より良いことです。」（アル＝ブハーリー、5362；ムスリム、2727）',
-                descKo: '예언자ﷺ께서는 힘든 가사 노동으로 종을 요청하러 온 딸 파티마와 사위 알리(라)에게 이 염원을 선물했습니다. 그분은 말씀하셨습니다: "종보다 더 좋은 것을 알려드릴까요? 잠자리에 들 때 이렇게 말하세요: 수브하날라 33번, 알함두릴라 33번, 알라후 아크바르 34번. 그것이 종보다 더 좋을 것입니다." (알 부하리, 5362; 무슬림, 2727)',
-                descUz: 'Payg\'ambar ﷺ bu zikrini qizi Fotima va eri Ali (r.a.)ga, og\'ir uy ishlari sababli xizmatchi so\'rab kelganlarida hadya qildi. U dedi: «Sizlarga xizmatkordan yaxshiroq narsani ko\'rsataymi? Uxlashga yotganingizda ayting: Subhonalloh — 33 marta, Alhamdulilloh — 33 marta, Allohu Akbar — 34 marta. Bu sizlar uchun xizmatkordan yaxshiroqdir». (al-Buxoriy, 5362; Muslim, 2727)',
-                descAr: 'أهدى النبي ﷺ هذا الذكر لابنته فاطمة وزوجها علي (رضي الله عنهما) حين جاءا يسألانه خادماً من شدة التعب والعمل المنزلي. فقال: «أَلَا أَدُلُّكُمَا عَلَى مَا هُوَ خَيْرٌ لَكُمَا مِنَ الخَادِمِ؟ إِذَا أَوَيْتُمَا إِلَى فِرَاشِكُمَا فَسَبِّحَا ثَلَاثًا وَثَلَاثِينَ، وَاحْمَدَا ثَلَاثًا وَثَلَاثِينَ، وَكَبِّرَا أَرْبَعًا وَثَلَاثِينَ، فَهُوَ خَيْرٌ لَكُمَا مِنَ الخَادِمِ». (البخاري، 5362؛ مسلم، 2727)',
-                descTr: 'Peygamber ﷺ bu zikri, ağır ev işleri nedeniyle hizmetçi istemek için gelen kızı Fatıma ve damadı Ali\'ye (r.a.) hediye etti. Şöyle buyurdu: "Size hizmetçiden daha hayırlı olanı göstereyim mi? Yataklarınıza girdiğinizde 33 kez Sübhanallah, 33 kez Elhamdülillah, 34 kez Allahu Ekber deyin. Bu sizin için hizmetçiden daha hayırlıdır." (Buhârî, 5362; Müslim, 2727)',
-                descZh: '先知ﷺ将这段念诵赠予他的女儿法蒂玛和女婿阿里（愿主喜悦他们），当时他们因繁重的家务劳累而前来请求仆人。他说："我告诉你们一件比仆人更好的事好吗？当你们上床睡觉时，说：「苏布哈纳拉」33次，「赞美真主」33次，「真主至大」34次，这比仆人对你们更好。"（布哈里圣训集，5362；穆斯林圣训集，2727）',
-                goal: 100
-            },
-            {
-                id: 'sleep_salavat_seal',
-                nameHi: "सलावत (ज़िक्र की मुहर)", descHi: "उमर बिन ख़त्ताब (र.अ.) ने कहा: \"दुआ आसमान और ज़मीन के बीच रुकी रहती है और उसमें से कुछ भी ऊपर नहीं उठता जब तक तुम अपने नबी पर सलावत न भेजो।\" (तिर्मिज़ी, 486 — हसन)",
-                nameMs: "Selawat (Penutup zikir)", descMs: "Umar ibn al-Khattab (r.a.) berkata: \"Doa tergantung antara langit dan bumi, dan tiada satu pun daripadanya naik sehingga kamu berselawat ke atas Nabi kamu.\" (Tirmizi, 486 — hasan)",
-                nameId: "Selawat (Penutup zikir)", descId: "Umar bin al-Khattab (ra) berkata: \"Doa tergantung antara langit dan bumi, dan tidak ada satu pun darinya naik sampai kamu berselawat untuk Nabimu.\" (Tirmidzi, 486 — hasan)",
-                nameTh: "เศาะละวาต (ตราประทับแห่งซิกร์)", descTh: "อุมัร อิบนุลค็อฏฏอบ (ร.ฎ.) กล่าวว่า: \"ดุอาอ์ถูกแขวนอยู่ระหว่างฟ้าและแผ่นดิน และไม่มีสิ่งใดถูกยกขึ้นจนกว่าท่านจะกล่าวเศาะละวาตแด่นบีของท่าน\" (ติรมิซี, 486 — หะซัน)",
-                arabic: 'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ',
-                translit: 'Allahumma salli ala Muhammad wa ala ali Muhammad',
-                nameEn: 'Salawat (Seal of Dhikrs)',
-                nameDe: 'Salawat (Siegel der Dhikrs)',
-                nameEs: 'Salawat (Sello de los Dhikrs)',
-                nameFr: 'Salawat (Sceau des Dhikrs)',
-                nameIt: 'Salawat (Sigillo dei Dhikr)',
-                nameJa: 'サラワート（ズィクルの封印）',
-                nameKo: '살라와트 (지크르의 봉인)',
-                nameRu: 'Салават (Печать зикров)',
-                nameUz: 'Salavot (Zikrining muhri)',
-                nameAr: 'الصلاة على النبي (خاتم الأذكار)',
-                nameTr: 'Salavat (Zikirlerin Mühürü)',
-                nameZh: '祝祷（念珠的封印）',
-                descEn: 'Umar ibn al-Khattab (r.a.) said: "Supplication is suspended between heaven and earth and none of it is raised up until you send salawat upon your Prophet." (at-Tirmidhi, 486 — hasan)',
-                descDe: 'Umar ibn al-Khattab (r.a.) sagte: „Das Bittgebet verweilt zwischen Himmel und Erde, und nichts davon wird emporgehoben, bis du Salawat auf deinen Propheten sprichst." (at-Tirmidhi, 486 — hasan)',
-                descEs: 'Umar ibn al-Jattab (r.a.) dijo: "La súplica queda suspendida entre el cielo y la tierra, y nada de ella asciende hasta que envíes salawat sobre tu Profeta." (at-Tirmidhi, 486 — hasan)',
-                descFr: 'Umar ibn al-Khattab (r.a.) dit : « La supplication est suspendue entre le ciel et la terre, et rien n\'en est élevé jusqu\'à ce que tu envoies des salawat sur ton Prophète. » (at-Tirmidhi, 486 — hasan)',
-                descIt: 'Umar ibn al-Khattab (r.a.) disse: "La supplica rimane sospesa tra il cielo e la terra, e nulla di essa viene elevato finché non invochi le benedizioni sul tuo Profeta." (at-Tirmidhi, 486 — hasan)',
-                descJa: 'ウマル・イブン・アル＝ハッターブ（彼に慈悲あれ）は言いました：「ドゥアーは天と地の間に留まり、あなたが預言者への祝福（サラワート）を唱えるまでは何も上に届かない。」（アト＝ティルミジー、486 — ハサン）',
-                descKo: '우마르 이븐 알-카탑(라)이 말했습니다: "두아는 하늘과 땅 사이에 멈춰 있으며, 당신이 예언자에게 살라와트를 보내기 전까지는 아무것도 올라가지 않습니다." (앗-티르미디, 486 — 하산)',
-                descRu: 'Умар ибн аль-Хаттаб (р.а.) сказал: «Дуа останавливается между небом и землёй и ничего из него не возносится, пока ты не прочитаешь салават на своего Пророка». (ат-Тирмизи, 486 — хасан)',
-                descUz: 'Umar ibn al-Xattob (r.a.) dedi: «Duo osmon va yer orasida to\'xtab turadi va siz Payg\'ambaringizga salavot aytmaguncha undan hech narsa ko\'tarilmaydi». (at-Termiziy, 486 — hasan)',
-                descAr: 'قال عمر بن الخطاب (رضي الله عنه): «الدعاء موقوف بين السماء والأرض لا يصعد منه شيء حتى تصلّي على نبيّك». (الترمذي، 486 — حسن)',
-                descTr: 'Ömer ibn el-Hattab (r.a.) şöyle dedi: "Dua, semayla yer arasında askıda kalır ve Peygamberine salavat getirmedikçe ondan hiçbir şey yükselemez." (et-Tirmizî, 486 — hasen)',
-                descZh: '欧麦尔·本·赫塔布（愿主喜悦他）说："祈祷悬停在天地之间，在你未向先知诵读祝祷（萨拉瓦特）之前，没有任何祈祷得以升上去。"（提尔米济，486 — 哈珊）',
-                goal: 10
-            },
-            {
-                id: 'daily_leaving_home',
-                nameHi: "घर से निकलते समय (फ़रिश्तों का मार्गदर्शन)", descHi: "\"बिस्मिल्लाहि, तवक्कल्तु अलल्लाह, व ला हौला व ला क़ुव्वता इल्ला बिल्लाह।\" फ़रिश्ते उससे कहते हैं: \"तुझे मार्ग दिखाया गया, तेरे लिए काफ़ी हुआ और तेरी हिफ़ाज़त की गई,\" और शैतान डर कर उससे दूर हट जाता है। (अबू दाऊद, 5095; तिर्मिज़ी, 3426)",
-                nameMs: "Keluar rumah (Bimbingan malaikat)", descMs: "\"Bismillahi, tawakkaltu ʼalallah, wa la hawla wa la quwwata illa billah.\" Para malaikat berkata kepadanya: \"Engkau diberi petunjuk, dicukupkan dan dilindungi,\" dan syaitan menjauh darinya kerana takut. (Abu Dawud, 5095; Tirmizi, 3426)",
-                nameId: "Keluar rumah (Bimbingan malaikat)", descId: "\"Bismillahi, tawakkaltu ʼalallah, wa la hawla wa la quwwata illa billah.\" Para malaikat berkata kepadanya: \"Engkau diberi petunjuk, dicukupkan dan dilindungi,\" dan setan menjauh darinya karena takut. (Abu Dawud, 5095; Tirmidzi, 3426)",
-                nameTh: "เมื่อออกจากบ้าน (การชี้นำของมลาอิกะฮ์)", descTh: "\"บิสมิลลาฮิ ตะวักกัลตุ อะลัลลอฮ์ วะลาเฮาละ วะลากุววะตะ อิลลาบิลลาฮ์\" มลาอิกะฮ์กล่าวแก่เขาว่า: \"ท่านได้รับการชี้นำ ได้รับความเพียงพอ และได้รับการคุ้มครอง\" และชัยฏอนถอยห่างจากเขาด้วยความกลัว (อบูดาวูด, 5095; ติรมิซี, 3426)",
-                arabic: 'بِسْمِ اللَّهِ، تَوَكَّلْتُ عَلَى اللَّهِ، وَلَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ',
-                translit: 'Bismillahi, tawakkaltu ʼala-llah, wa la hawla wa la quwwata illa billah',
-                nameEn: 'Leaving the home (Angelic guidance)',
-                nameDe: 'Beim Verlassen des Hauses (Führung der Engel)',
-                nameEs: 'Al salir de casa (Guía de los ángeles)',
-                nameFr: 'En quittant la maison (Guidance des anges)',
-                nameIt: 'Uscendo di casa (Guida degli angeli)',
-                nameJa: '家を出るとき（天使の導き）',
-                nameKo: '집을 나설 때 (천사의 인도)',
-                nameRu: 'При выходе из дома (Ангельское руководство)',
-                nameUz: 'Uydan chiqishda (Farishtalar hidoyati)',
-                nameAr: 'عند الخروج من المنزل (هداية الملائكة)',
-                nameTr: 'Evden çıkarken (Meleklerin rehberliği)',
-                nameZh: '出门时（天使的引导）',
-                descEn: '"Bismillahi, tawakkaltu ʼala-llah, wa la hawla wa la quwwata illa billah." The angels say to him: "You are guided, sufficed and protected," and Shaytan turns away from him in fear. (Abu Dawud, 5095; at-Tirmidhi, 3426)',
-                descDe: '„Bismillahi, tawakkaltu ʼala-llah, wa la hawla wa la quwwata illa billah." Die Engel sagen zu ihm: „Du bist rechtgeleitet, versorgt und beschützt", und der Satan weicht voller Furcht von ihm. (Abu Dawud, 5095; at-Tirmidhi, 3426)',
-                descEs: '"Bismillahi, tawakkaltu ʼala-llah, wa la hawla wa la quwwata illa billah." Los ángeles le dicen: "Estás guiado, te basta y estás protegido", y el Shaytán se aparta de él con temor. (Abu Dawud, 5095; at-Tirmidhi, 3426)',
-                descFr: '« Bismillahi, tawakkaltu ʼala-llah, wa la hawla wa la quwwata illa billah. » Les anges lui disent : « Tu es guidé, comblé et protégé », et le Shaytan s’écarte de lui par crainte. (Abou Dawoud, 5095 ; at-Tirmidhi, 3426)',
-                descIt: '"Bismillahi, tawakkaltu ʼala-llah, wa la hawla wa la quwwata illa billah." Gli angeli gli dicono: "Sei guidato, ti basta e sei protetto", e Shaytan si allontana da lui per timore. (Abu Dawud, 5095; at-Tirmidhi, 3426)',
-                descJa: '「ビスミッラーヒ、タワッカルトゥ・アラッラー、ワ・ラー・ハウラ・ワ・ラー・クウワタ・イッラー・ビッラー」。天使たちは彼に言う：「あなたは導かれ、満たされ、守られている」。そしてシャイターンは恐れて彼から離れる。（アブー・ダーウード、5095；ティルミジー、3426）',
-                descKo: '"비스밀라히, 타왁칼투 알랄라, 와 라 하울라 와 라 꾸와타 일라 빌라." 천사들이 그에게 말한다: "너는 인도받고, 충족되며, 보호받는다." 그리고 샤이탄은 두려워하며 그에게서 물러난다. (아부 다우드, 5095; 티르미디, 3426)',
-                descRu: '«Бисмилляхи, таваккальту ʼаляллах, ва ля хауля ва ля куввата илля биллях». Ангелы говорят человеку: «Ты ведом, избавлен и защищён», а шайтан в страхе отступает от него. (Абу Дауд, 5095; ат-Тирмизи, 3426)',
-                descUz: '«Bismillahi, tavakkaltu ʼalalloh, va la havla va la quvvata illa billah». Farishtalar unga: «Sen hidoyatlangansan, kifoya qilingansan va himoyalangansan», deyishadi, shayton esa qoʼrqib undan uzoqlashadi. (Abu Dovud, 5095; Termiziy, 3426)',
-                descAr: '«بِسْمِ اللَّهِ، تَوَكَّلْتُ عَلَى اللَّهِ، وَلَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ». تقول له الملائكة: «هُديتَ وكُفيتَ ووُقيتَ»، ويتنحى عنه الشيطان خائفًا. (أبو داود، 5095؛ الترمذي، 3426)',
-                descTr: '"Bismillahi, tevekkeltü ʼalellah, ve la havle ve la kuvvete illa billah." Melekler ona: "Hidayete erdin, ihtiyacın giderildi ve korundun" derler; şeytan da korkarak ondan uzaklaşır. (Ebû Dâvûd, 5095; Tirmizî, 3426)',
-                descZh: '"比斯米拉希，泰瓦凯勒图·阿拉拉，瓦·拉·豪莱·瓦·拉·古瓦泰·伊拉·比拉。"天使们对他说："你已被引导、被满足、被保护。"恶魔便畏惧地离开他。（艾布·达伍德，5095；提尔米济，3426）',
-                goal: 1
-            },
-            {
-                id: 'daily_entering_home',
-                nameHi: "घर में प्रवेश करते समय (घर की सुरक्षा)", descHi: "दाएँ पैर से प्रवेश करें, \"बिस्मिल्लाह\" कहें और परिवार को सलाम करें। यदि घर में कोई न हो तब भी: \"अस्सलामु अलैना व अला इबादिल्लाहिस-सालिहीन।\" तब शैतान अपने साथियों से कहता है: \"यहाँ तुम्हारे लिए न ठहरने की जगह है, न रात का खाना।\" (मुस्लिम, 2018)",
-                nameMs: "Masuk rumah (Melindungi rumah)", descMs: "Masuk dengan kaki kanan, ucapkan \"Bismillah\" dan beri salam kepada keluarga. Walaupun tiada sesiapa di rumah: \"As-salamu ʼalaina wa ʼala ʼibadillahi-s-salihin.\" Lalu syaitan berkata kepada rakan-rakannya: \"Tiada tempat menginap dan tiada makan malam untuk kamu di sini.\" (Muslim, 2018)",
-                nameId: "Masuk rumah (Melindungi rumah)", descId: "Masuk dengan kaki kanan, ucapkan \"Bismillah\" dan beri salam kepada keluarga. Meski tidak ada seorang pun di rumah: \"As-salamu ʼalaina wa ʼala ʼibadillahi-s-salihin.\" Lalu setan berkata kepada teman-temannya: \"Tidak ada tempat menginap dan tidak ada makan malam untuk kalian di sini.\" (Muslim, 2018)",
-                nameTh: "เมื่อเข้าบ้าน (ปกป้องบ้าน)", descTh: "ก้าวเข้าด้วยเท้าขวา กล่าว \"บิสมิลลาฮ์\" และให้สลามแก่ครอบครัว แม้ไม่มีใครอยู่บ้านก็กล่าว: \"อัสสลามุอะลัยนา วะอะลา อิบาดิลลาฮิศศอลิหีน\" แล้วชัยฏอนกล่าวแก่พวกพ้องว่า: \"ที่นี่ไม่มีที่พักและไม่มีอาหารค่ำสำหรับพวกเจ้า\" (มุสลิม, 2018)",
-                arabic: 'بِسْمِ اللَّهِ وَلَجْنَا ... السَّلَامُ عَلَيْنَا وَعَلَى عِبَادِ اللَّهِ الصَّالِحِينَ',
-                translit: 'Bismillah ... As-salamu ʼalayna wa ʼala ʼibadi-llahi-s-salihin',
-                nameEn: 'Entering the home (Protecting the house)',
-                nameDe: 'Beim Betreten des Hauses (Schutz des Zuhauses)',
-                nameEs: 'Al entrar a casa (Protección del hogar)',
-                nameFr: 'En entrant dans la maison (Protection du foyer)',
-                nameIt: 'Entrando in casa (Protezione della casa)',
-                nameJa: '家に入るとき（家の守り）',
-                nameKo: '집에 들어갈 때 (집의 보호)',
-                nameRu: 'При входе в дом (Защита жилья)',
-                nameUz: 'Uyga kirishda (Uy himoyasi)',
-                nameAr: 'عند دخول المنزل (حماية البيت)',
-                nameTr: 'Eve girerken (Evin korunması)',
-                nameZh: '进门时（家宅的守护）',
-                descEn: 'Step in with the right foot, say "Bismillah" and greet your family. Even if no one is home: "As-salamu ʼalayna wa ʼala ʼibadi-llahi-s-salihin." Then Shaytan tells his fellows: "You have no lodging and no supper here." (Muslim, 2018)',
-                descDe: 'Mit dem rechten Fuß eintreten, „Bismillah" sagen und die Familie grüßen. Auch wenn niemand zu Hause ist: „As-salamu ʼalayna wa ʼala ʼibadi-llahi-s-salihin." Dann sagt der Satan zu seinesgleichen: „Hier habt ihr weder Nachtlager noch Abendessen." (Muslim, 2018)',
-                descEs: 'Entra con el pie derecho, di "Bismillah" y saluda a tu familia. Aunque no haya nadie en casa: "As-salamu ʼalayna wa ʼala ʼibadi-llahi-s-salihin." Entonces el Shaytán dice a los suyos: "Aquí no tenéis ni alojamiento ni cena." (Muslim, 2018)',
-                descFr: 'Entre du pied droit, dis « Bismillah » et salue ta famille. Même si personne n’est à la maison : « As-salamu ʼalayna wa ʼala ʼibadi-llahi-s-salihin. » Alors le Shaytan dit aux siens : « Ici, vous n’avez ni gîte ni dîner. » (Mouslim, 2018)',
-                descIt: 'Entra con il piede destro, di "Bismillah" e saluta la tua famiglia. Anche se non c’è nessuno in casa: "As-salamu ʼalayna wa ʼala ʼibadi-llahi-s-salihin." Allora Shaytan dice ai suoi simili: "Qui non avete né alloggio né cena." (Muslim, 2018)',
-                descJa: '右足から入り、「ビスミッラー」と言って家族に挨拶する。家に誰もいなくても：「アッサラーム・アライナー・ワ・アラー・イバーディッラーヒ・ッサーリヒーン」。するとシャイターンは仲間に言う：「ここにはお前たちの宿も夕食もない」。（ムスリム、2018）',
-                descKo: '오른발로 들어서며 "비스밀라"라고 말하고 가족에게 인사한다. 집에 아무도 없어도: "앗살라무 알라이나 와 알라 이바딜라힛 살리힌." 그러면 샤이탄이 동료들에게 말한다: "여기엔 너희의 잠자리도 저녁도 없다." (무슬림, 2018)',
-                descRu: 'Шагнуть с правой ноги, сказать «Бисмиллях» и поприветствовать семью. Даже если дома никого нет: «Ассаляму ʼалейна ва ʼаля ʼибадилляхи-ссалихин». Шайтан говорит своим сородичам: «Здесь у вас нет ни ночлега, ни ужина». (Муслим, 2018)',
-                descUz: 'Oʼng oyoq bilan kiring, «Bismillah» deb oilangizga salom bering. Uyda hech kim boʼlmasa ham: «Assalamu ʼalayna va ʼala ʼibadillahi-s-solihin». Shunda shayton oʼz hamrohlariga: «Bu yerda sizga na yotoq, na kechki ovqat bor», deydi. (Muslim, 2018)',
-                descAr: 'ادخل بقدمك اليمنى، وقل «بسم الله» وسلّم على أهلك. وإن لم يكن في البيت أحد: «السلام علينا وعلى عباد الله الصالحين». فيقول الشيطان لأصحابه: «لا مَبيتَ لكم ولا عَشاء». (مسلم، 2018)',
-                descTr: 'Sağ ayağınla gir, "Bismillah" de ve aileni selamla. Evde kimse olmasa bile: "Esselâmü aleynâ ve alâ ibâdillâhi’s-sâlihîn." O zaman şeytan arkadaşlarına: "Burada size ne barınak ne de akşam yemeği var" der. (Müslim, 2018)',
-                descZh: '以右脚迈入，说"比斯米拉"并向家人问安。即使家中无人："艾斯萨拉姆·阿莱纳·瓦·阿拉·伊巴迪拉希·萨利欣。"于是恶魔对同类说："这里没有你们的住处，也没有你们的晚餐。"（穆斯林，2018）',
-                goal: 1
-            },
-            {
-                id: 'daily_entering_market',
-                nameHi: "बाज़ार में प्रवेश करते समय (दस लाख नेकियाँ)", descHi: "\"ला इलाहा इल्लल्लाहु वहदहू ला शरीका लह, लहुल-मुल्कु व लहुल-हम्द, युह्यी व युमीतु व हुवा हय्युन ला यमूत, बियदिहिल-ख़ैरु व हुवा अला कुल्लि शयइन क़दीर।\" अल्लाह उसके लिए दस लाख नेकियाँ लिखता है, दस लाख गुनाह मिटाता है और जन्नत में उसके लिए एक घर बनाता है। (तिर्मिज़ी, 3428; इब्न माजा, 2235)",
-                nameMs: "Masuk pasar (Sejuta kebaikan)", descMs: "\"La ilaha illallahu wahdahu la sharika lah, lahul-mulku wa lahul-hamd, yuhyi wa yumitu wa huwa Hayyun la yamut, biyadihil-khairu wa huwa ʼala kulli syai'in qadir.\" Allah menulis untuknya sejuta kebaikan, menghapus sejuta dosa dan membina untuknya sebuah rumah di syurga. (Tirmizi, 3428; Ibn Majah, 2235)",
-                nameId: "Masuk pasar (Sejuta kebaikan)", descId: "\"La ilaha illallahu wahdahu la sharika lah, lahul-mulku wa lahul-hamd, yuhyi wa yumitu wa huwa Hayyun la yamut, biyadihil-khairu wa huwa ʼala kulli syai'in qadir.\" Allah menulis untuknya sejuta kebaikan, menghapus sejuta dosa dan membangun untuknya sebuah rumah di surga. (Tirmidzi, 3428; Ibnu Majah, 2235)",
-                nameTh: "เมื่อเข้าตลาด (ความดีนับล้าน)", descTh: "\"ลาอิลาฮะอิลลัลลอฮุ วะฮ์ดะฮู ลาชะรีกะลัฮ์ ละฮุลมุลกุ วะละฮุลฮัมด์ ยุห์ยี วะยุมีตุ วะฮุวะ ฮัยยุน ลายะมูต บิยะดิฮิลค็อยรุ วะฮุวะ อะลา กุลลิ ชัยอิน เกาะดีร\" อัลลอฮ์ทรงบันทึกความดีหนึ่งล้านให้เขา ลบล้างบาปหนึ่งล้าน และทรงสร้างบ้านในสวรรค์ให้เขา (ติรมิซี, 3428; อิบนุมาญะฮ์, 2235)",
-                arabic: 'لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، يُحْيِي وَيُمِيتُ وَهُوَ حَيٌّ لَا يَمُوتُ، بِيَدِهِ الْخَيْرُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ',
-                translit: 'La ilaha illa-llahu wahdahu la sharika lah, lahu-l-mulku wa lahu-l-hamd, yuhyi wa yumitu wa huwa Hayyun la yamut, biyadihi-l-khayru wa huwa ʼala kulli shayʼin qadir',
-                nameEn: 'Entering the market (A million good deeds)',
-                nameDe: 'Beim Betreten des Marktes (Eine Million gute Taten)',
-                nameEs: 'Al entrar al mercado (Un millón de buenas obras)',
-                nameFr: 'En entrant au marché (Un million de bonnes actions)',
-                nameIt: 'Entrando al mercato (Un milione di buone azioni)',
-                nameJa: '市場に入るとき（百万の善行）',
-                nameKo: '시장에 들어갈 때 (백만 가지 선행)',
-                nameRu: 'При входе на рынок (Миллион благих дел)',
-                nameUz: 'Bozorga kirishda (Million yaxshi amal)',
-                nameAr: 'عند دخول السوق (مليون حسنة)',
-                nameTr: 'Çarşıya girerken (Bir milyon sevap)',
-                nameZh: '进入市场时（百万善功）',
-                descEn: '"La ilaha illa-llahu wahdahu la sharika lah, lahu-l-mulku wa lahu-l-hamd, yuhyi wa yumitu wa huwa Hayyun la yamut, biyadihi-l-khayru wa huwa ʼala kulli shayʼin qadir." Allah writes for him a million good deeds, erases a million sins and raises a house for him in Paradise. (at-Tirmidhi, 3428; Ibn Majah, 2235)',
-                descDe: '„La ilaha illa-llahu wahdahu la sharika lah, lahu-l-mulku wa lahu-l-hamd, yuhyi wa yumitu wa huwa Hayyun la yamut, biyadihi-l-khayru wa huwa ʼala kulli shayʼin qadir." Allah schreibt ihm eine Million gute Taten gut, tilgt eine Million Sünden und errichtet ihm ein Haus im Paradies. (at-Tirmidhi, 3428; Ibn Madscha, 2235)',
-                descEs: '"La ilaha illa-llahu wahdahu la sharika lah, lahu-l-mulku wa lahu-l-hamd, yuhyi wa yumitu wa huwa Hayyun la yamut, biyadihi-l-khayru wa huwa ʼala kulli shayʼin qadir." Allah le inscribe un millón de buenas obras, le borra un millón de faltas y le eleva una casa en el Paraíso. (at-Tirmidhi, 3428; Ibn Mayah, 2235)',
-                descFr: '« La ilaha illa-llahu wahdahu la sharika lah, lahu-l-mulku wa lahu-l-hamd, yuhyi wa yumitu wa huwa Hayyun la yamut, biyadihi-l-khayru wa huwa ʼala kulli shayʼin qadir. » Allah lui inscrit un million de bonnes actions, efface un million de péchés et lui élève une maison au Paradis. (at-Tirmidhi, 3428 ; Ibn Maja, 2235)',
-                descIt: '"La ilaha illa-llahu wahdahu la sharika lah, lahu-l-mulku wa lahu-l-hamd, yuhyi wa yumitu wa huwa Hayyun la yamut, biyadihi-l-khayru wa huwa ʼala kulli shayʼin qadir." Allah gli registra un milione di buone azioni, cancella un milione di peccati e gli innalza una casa in Paradiso. (at-Tirmidhi, 3428; Ibn Majah, 2235)',
-                descJa: '「ラー・イラーハ・イッラッラーフ・ワフダフー・ラー・シャリーカ・ラフ、ラフル・ムルク・ワ・ラフル・ハムド、ユフイー・ワ・ユミートゥ・ワ・フワ・ハイユン・ラー・ヤムートゥ、ビヤディヒル・ハイル・ワ・フワ・アラー・クッリ・シャイイン・カディール」。アッラーは彼に百万の善行を記し、百万の罪を消し、楽園に家を建ててくださる。（ティルミジー、3428；イブン・マージャ、2235）',
-                descKo: '"라 일라하 일랄라후 와흐다후 라 샤리카 라흐, 라훌 물쿠 와 라훌 함드, 유흐이 와 유미투 와 후와 하이윤 라 야무트, 비야디힐 카이루 와 후와 알라 쿨리 샤이인 카디르." 알라께서 그에게 백만 가지 선행을 기록하시고, 백만 가지 죄를 지우시며, 천국에 집을 지어 주신다. (티르미디, 3428; 이븐 마자, 2235)',
-                descRu: '«Ля иляха илляллаху вахдаху ля шарика лях, ляхуль-мульку ва ляхуль-хамду, юхйи ва юмиту ва хува Хайюн ля ямуту, биядихиль-хайру ва хува ʼаля кулли шайʼин кадир». Аллах запишет миллион благих дел, сотрёт миллион грехов и возведёт дом в Раю. (ат-Тирмизи, 3428; Ибн Маджа, 2235)',
-                descUz: '«La ilaha illalohu vahdahu la sharika lah, lahul-mulku va lahul-hamd, yuhyi va yumitu va huva Hayyun la yamut, biyadihil-xayru va huva ʼala kulli shayʼin qadir». Alloh unga million yaxshi amal yozadi, million gunohini oʼchiradi va Jannatda uy bunyod etadi. (Termiziy, 3428; Ibn Moja, 2235)',
-                descAr: '«لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، يُحْيِي وَيُمِيتُ وَهُوَ حَيٌّ لَا يَمُوتُ، بِيَدِهِ الْخَيْرُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ». كتب الله له ألف ألف حسنة، ومحا عنه ألف ألف سيئة، وبنى له بيتًا في الجنة. (الترمذي، 3428؛ ابن ماجه، 2235)',
-                descTr: '"La ilahe illallahü vahdehu la şerike leh, lehü’l-mülkü ve lehü’l-hamd, yuhyî ve yumîtü ve hüve Hayyün la yemût, biyedihi’l-hayru ve hüve alâ külli şey’in kadîr." Allah ona bir milyon sevap yazar, bir milyon günahını siler ve cennette ona bir ev bina eder. (Tirmizî, 3428; İbn Mâce, 2235)',
-                descZh: '"拉·伊拉哈·伊兰拉胡·瓦赫达胡·拉·舍里卡·拉，拉胡尔·穆勒库·瓦·拉胡尔·哈姆德，优赫伊·瓦·优米图·瓦·胡瓦·哈尤恩·拉·亚穆图，比亚迪希尔·哈伊鲁·瓦·胡瓦·阿拉·库利·沙伊因·卡迪尔。"真主为他记下百万善功，抹去百万罪过，并在乐园为他建造一座房屋。（提尔米济，3428；伊本·马哲，2235）',
-                goal: 1
-            },
-            {
-                id: 'daily_yunus',
-                nameHi: "भय, संकट या दुःख में (नबी यूनुस की दुआ)", descHi: "\"ला इलाहा इल्ला अन्ता, सुब्हानका, इन्नी कुन्तु मिनज़्-ज़ालिमीन।\" नबी ﷺ ने फ़रमाया: कोई मुसलमान किसी मामले में इन शब्दों से अल्लाह को नहीं पुकारता मगर अल्लाह उसकी दुआ क़बूल करता है। (तिर्मिज़ी, 3505)",
-                nameMs: "Ketika takut, kesempitan atau duka (Doa Nabi Yunus)", descMs: "\"La ilaha illa Anta, subhanaka, inni kuntu mina-z-zalimin.\" Nabi ﷺ bersabda: tiada seorang Muslim berdoa kepada Allah dengan kalimah ini dalam apa jua perkara melainkan Allah memperkenankannya. (Tirmizi, 3505)",
-                nameId: "Saat takut, kesulitan atau duka (Doa Nabi Yunus)", descId: "\"La ilaha illa Anta, subhanaka, inni kuntu mina-z-zalimin.\" Nabi ﷺ bersabda: tidaklah seorang Muslim berdoa kepada Allah dengan kalimat ini dalam suatu perkara melainkan Allah mengabulkannya. (Tirmidzi, 3505)",
-                nameTh: "ยามหวาดกลัว ทุกข์ยากหรือโศกเศร้า (ดุอาอ์ของนบียูนุส)", descTh: "\"ลาอิลาฮะอิลลาอันตะ สุบหานะกะ อินนี กุนตุ มินัซซอลิมีน\" ท่านนบี ﷺ กล่าวว่า: ไม่มีมุสลิมคนใดวิงวอนต่ออัลลอฮ์ด้วยถ้อยคำนี้ในเรื่องใดเว้นแต่พระองค์จะทรงตอบรับเขา (ติรมิซี, 3505)",
-                arabic: 'لَا إِلَهَ إِلَّا أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ',
-                translit: 'La ilaha illa Anta, subhanaka, inni kuntu mina-z-zalimin',
-                nameEn: 'In fear, hardship or grief (Du’a of Prophet Yunus)',
-                nameDe: 'Bei Furcht, Not oder Kummer (Bittgebet des Propheten Yunus)',
-                nameEs: 'En el miedo, el apuro o la pena (Du’a del profeta Yunus)',
-                nameFr: 'Dans la peur, l’impasse ou le chagrin (Invocation du prophète Yunus)',
-                nameIt: 'Nella paura, difficoltà o dolore (Du’a del profeta Yunus)',
-                nameJa: '恐れ・行き詰まり・悲しみのとき（預言者ユーヌスのドゥアー）',
-                nameKo: '두려움, 막막함, 슬픔에 처할 때 (예언자 유누스의 두아)',
-                nameRu: 'При страхе, тупике или горе (Зикр пророка Юнуса)',
-                nameUz: 'Qoʼrquv, tang yoki gʼam paytida (Yunus paygʼambar duosi)',
-                nameAr: 'عند الخوف أو الضيق أو الحزن (دعاء النبي يونس)',
-                nameTr: 'Korku, sıkıntı veya kederde (Yûnus peygamberin duası)',
-                nameZh: '恐惧、困境或忧伤时（优努斯先知的祈祷）',
-                descEn: '"La ilaha illa Anta, subhanaka, inni kuntu mina-z-zalimin." The Prophet ﷺ said: no Muslim ever calls upon Allah with these words in any matter but that He answers him. (at-Tirmidhi, 3505)',
-                descDe: '„La ilaha illa Anta, subhanaka, inni kuntu mina-z-zalimin." Der Prophet ﷺ sagte: Kein Muslim ruft Allah mit diesen Worten in einer Angelegenheit an, ohne dass Er ihn erhört. (at-Tirmidhi, 3505)',
-                descEs: '"La ilaha illa Anta, subhanaka, inni kuntu mina-z-zalimin." El Profeta ﷺ dijo: ningún musulmán invoca a Allah con estas palabras en ningún asunto sin que Él le responda. (at-Tirmidhi, 3505)',
-                descFr: '« La ilaha illa Anta, subhanaka, inni kuntu mina-z-zalimin. » Le Prophète ﷺ a dit : aucun musulman n’invoque Allah par ces mots en quoi que ce soit sans qu’Il l’exauce. (at-Tirmidhi, 3505)',
-                descIt: '"La ilaha illa Anta, subhanaka, inni kuntu mina-z-zalimin." Il Profeta ﷺ disse: nessun musulmano invoca Allah con queste parole in qualsiasi questione senza che Egli lo esaudisca. (at-Tirmidhi, 3505)',
-                descJa: '「ラー・イラーハ・イッラー・アンタ、スブハーナカ、インニー・クントゥ・ミナ・ッザーリミーン」。預言者ﷺは言われた：ムスリムがこの言葉で何事においてもアッラーに祈れば、必ず応えられる。（ティルミジー、3505）',
-                descKo: '"라 일라하 일라 안타, 수브하나카, 인니 쿤투 미나 자리민." 예언자ﷺ께서 말씀하셨다: 무슬림이 어떤 일에서든 이 말로 알라께 간구하면 반드시 응답받는다. (티르미디, 3505)',
-                descRu: '«Ля иляха илля Анта, субханака, инни кунту мина-ззалимин». Пророк ﷺ сказал: если мусульманин попадёт в беду и призовёт Аллаха этими словами — ему обязательно будет отвечено. (ат-Тирмизи, 3505)',
-                descUz: '«La ilaha illa Anta, subhanaka, inni kuntu mina-z-zolimin». Paygʼambar ﷺ dedilar: qaysi bir musulmon biror ishda shu soʼzlar bilan Allohga duo qilsa, albatta unga javob beriladi. (Termiziy, 3505)',
-                descAr: '«لَا إِلَهَ إِلَّا أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ». قال النبي ﷺ: ما دعا بها مسلمٌ ربَّه في شيءٍ قطُّ إلا استجاب له. (الترمذي، 3505)',
-                descTr: '"La ilahe illa ente sübhâneke innî küntü mine’z-zâlimîn." Peygamber ﷺ şöyle buyurdu: Hangi Müslüman bir konuda bu sözlerle Allah’a dua ederse, mutlaka duası kabul edilir. (Tirmizî, 3505)',
-                descZh: '"拉·伊拉哈·伊拉·安塔，苏卜哈纳卡，因尼·昆图·米纳·扎利明。"先知ﷺ说：任何穆斯林在任何事上以这些话祈求真主，真主必应答他。（提尔米济，3505）',
-                goal: 1
-            },
-            {
-                id: 'daily_tawakkul',
-                nameHi: "चिंता और बेचैनी में (अल्लाह पर भरोसा)", descHi: "\"हस्बुनल्लाहु व निअमल-वकील\" — हमारे लिए अल्लाह काफ़ी है, और वह सबसे अच्छा कार्यसाधक है। (बुख़ारी, 4563)",
-                nameMs: "Ketika bimbang dan gelisah (Tawakal kepada Allah)", descMs: "\"Hasbunallahu wa niʼmal-wakil\" — Cukuplah Allah bagi kami, dan Dia sebaik-baik Pelindung. (al-Bukhari, 4563)",
-                nameId: "Saat cemas dan gelisah (Tawakal kepada Allah)", descId: "\"Hasbunallahu wa niʼmal-wakil\" — Cukuplah Allah bagi kami, dan Dia sebaik-baik Pelindung. (al-Bukhari, 4563)",
-                nameTh: "ยามกังวลและไม่สบายใจ (การมอบหมายต่ออัลลอฮ์)", descTh: "\"หัสบุนัลลอฮุ วะนิอ์มัลวะกีล\" — อัลลอฮ์ทรงเพียงพอแล้วสำหรับเรา และพระองค์ทรงเป็นผู้คุ้มครองที่ดีเยี่ยม (อัลบุคอรี, 4563)",
-                arabic: 'حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ',
-                translit: 'Hasbuna-llahu wa niʼma-l-wakil',
-                nameEn: 'In worry and anxiety (Reliance upon Allah)',
-                nameDe: 'Bei Sorge und Angst (Vertrauen auf Allah)',
-                nameEs: 'En la inquietud y la angustia (Confianza en Allah)',
-                nameFr: 'Dans l’inquiétude et l’angoisse (Confiance en Allah)',
-                nameIt: 'Nell’ansia e nella preoccupazione (Fiducia in Allah)',
-                nameJa: '不安と心配のとき（アッラーへの信頼）',
-                nameKo: '걱정과 불안할 때 (알라께 대한 의탁)',
-                nameRu: 'При тревоге и беспокойстве (Упование на Аллаха)',
-                nameUz: 'Tashvish va xavotir paytida (Allohga tavakkul)',
-                nameAr: 'عند القلق والهم (التوكل على الله)',
-                nameTr: 'Endişe ve kaygıda (Allah’a tevekkül)',
-                nameZh: '焦虑与忧愁时（托靠真主）',
-                descEn: '"Hasbuna-llahu wa niʼma-l-wakil" — Allah is sufficient for us, and He is the best Disposer of affairs. (al-Bukhari, 4563)',
-                descDe: '„Hasbuna-llahu wa niʼma-l-wakil" — Allah genügt uns, und Er ist der beste Sachwalter. (al-Bukhari, 4563)',
-                descEs: '"Hasbuna-llahu wa niʼma-l-wakil" — Allah nos basta, y Él es el mejor Protector. (al-Bujari, 4563)',
-                descFr: '« Hasbuna-llahu wa niʼma-l-wakil » — Allah nous suffit, et Il est le meilleur Garant. (al-Bukhari, 4563)',
-                descIt: '"Hasbuna-llahu wa niʼma-l-wakil" — Allah ci basta, ed Egli è il migliore dei Garanti. (al-Bukhari, 4563)',
-                descJa: '「ハスブナッラーフ・ワ・ニアマル・ワキール」——アッラーは私たちにとって十分であり、最も優れた管理者であられる。（ブハーリー、4563）',
-                descKo: '"하스부날라후 와 니으말 와킬" — 알라께서 우리에게 충분하시며, 그분은 가장 훌륭한 의탁처이시다. (부하리, 4563)',
-                descRu: '«Хасбуналлаху ва ниʼмаль-вакиль» — Нам достаточно Аллаха, Он — прекрасный Покровитель. (аль-Бухари, 4563)',
-                descUz: '«Hasbunallohu va niʼmal-vakil» — Alloh bizga kifoya, U eng yaxshi Vakildir. (Buxoriy, 4563)',
-                descAr: '«حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ» — حسبنا الله ونعم الوكيل. (البخاري، 4563)',
-                descTr: '"Hasbünallahü ve niʼmel-vekîl" — Allah bize yeter, O ne güzel vekildir. (Buhârî, 4563)',
-                descZh: '"哈斯布纳拉胡·瓦·尼阿迈勒·瓦基勒"——真主是我们足够的依靠，他是最好的监护者。（布哈里，4563）',
-                goal: 1
-            }
-        ];
+        // Данные лежат в data/special-dhikrs.js (этап 3 оптимизации).
+        let specialDhikrs = Array.isArray(window.AZKAR_SPECIAL_DHIKRS) ? window.AZKAR_SPECIAL_DHIKRS : [];
 
         // Канонический список дефолтных зикров из кода (неизменяемая ссылка).
         // Нужен, чтобы merge с localStorage мог:
@@ -9730,6 +9228,16 @@
         }
 
         function applyLanguage(lang) {
+            // Язык ещё не скачан (импорт данных / облачная синхронизация) —
+            // сейчас покажем английский, после загрузки перерисуем.
+            if (window.AzkarI18n && !AzkarI18n.isLoaded(lang)) {
+                AzkarI18n.load(lang).then(function (ok) {
+                    if (ok && currentLang === lang) {
+                        applyLanguage(lang);
+                        if (typeof markDirty === 'function') markDirty('dua','favorites','stats','special');
+                    }
+                });
+            }
             currentLang = lang;
             document.documentElement.lang = lang;
             if (typeof window.applySeoLanguage === 'function') window.applySeoLanguage(lang);
@@ -9978,7 +9486,18 @@
             if (event.key === 'Escape') closeAboutApp();
         });
 
-        function changeLanguage(lang) { currentLang = lang; applyLanguage(lang); saveDataDebounced(); markDirty('dua','favorites','stats','special'); }
+        function changeLanguage(lang) {
+            // Сначала скачиваем файл языка (обычно доли секунды), потом переключаем —
+            // без мигания английским текстом.
+            if (window.AzkarI18n && !AzkarI18n.isLoaded(lang)) {
+                AzkarI18n.load(lang).then(function (ok) {
+                    if (ok) changeLanguage(lang);
+                    else { applyLanguage(currentLang); showToast(t('toastLangLoadFailed'), 2600); }
+                });
+                return;
+            }
+            currentLang = lang; applyLanguage(lang); saveDataDebounced(); markDirty('dua','favorites','stats','special');
+        }
 
         // ===== LANGUAGE DROPDOWN =====
         const _langMeta = UI_I18N.languageMeta || {};
@@ -10105,10 +9624,10 @@
         // вкладку через navbar и возврате обратно просто продолжается с
         // того же места, без каких-либо вопросов "продолжить/заново".
         const POST_SALAH_STEPS = [
-            { stepGoal: 33, title: { ru:'Субханаллах', en:'Subhanallah', uz:'Subhanalloh', de:'Subhanallah', es:'Subhanallah', fr:'Subhanallah', it:'Subhanallah', ja:'スブハーナッラー', ko:'수브하날라', zh:'赞主清净', tr:'Sübhanallah', hi:'सुब्हानल्लाह', ms:'Subhanallah', id:'Subhanallah', th:'สุบหานัลลอฮ์' } },
-            { stepGoal: 33, title: { ru:'Альхамдулиллях', en:'Alhamdulillah', uz:'Alhamdulillah', de:'Alhamdulillah', es:'Alhamdulillah', fr:'Alhamdulillah', it:'Alhamdulillah', ja:'アルハムドゥリッラー', ko:'알함두릴라', zh:'一切赞颂全归真主', tr:'Elhamdülillah', hi:'अल्हम्दुलिल्लाह', ms:'Alhamdulillah', id:'Alhamdulillah', th:'อัลฮัมดุลิลลาฮ์' } },
-            { stepGoal: 33, title: { ru:'Аллаху Акбар', en:'Allahu Akbar', uz:'Allohu Akbar', de:'Allahu Akbar', es:'Allahu Akbar', fr:'Allahu Akbar', it:'Allahu Akbar', ja:'アッラーフ・アクバル', ko:'알라후 아크바르', zh:'真主至大', tr:'Allahu Ekber', hi:'अल्लाहु अकबर', ms:'Allahu Akbar', id:'Allahu Akbar', th:'อัลลอฮุอักบัร' } },
-            { stepGoal: 1,  title: { ru:'Ля иляха илляЛлах', en:'La ilaha illallah', uz:'La ilaha illalloh', de:'La ilaha illallah', es:'La ilaha illallah', fr:'La ilaha illallah', it:'La ilaha illallah', ja:'ラー・イラーハ・イッラッラー', ko:'라 일라하 일랄라', zh:'万物非主唯有真主', tr:'La ilahe illallah', hi:'ला इलाहा इल्लल्लाह', ms:'La ilaha illallah', id:'La ilaha illallah', th:'ลาอิลาฮะอิลลัลลอฮ์' } }
+            { stepGoal: 33, titleKey: 'postSalahStep1' },
+            { stepGoal: 33, titleKey: 'postSalahStep2' },
+            { stepGoal: 33, titleKey: 'postSalahStep3' },
+            { stepGoal: 1,  titleKey: 'postSalahStep4' }
         ];
         let postSalahActive = false;
         let postSalahStepIndex = 0;   // 0..3 — текущий этап
@@ -10146,19 +9665,8 @@
             }
         }
 
-        // Аварийный fallback на случай, если внешний i18n.js закэширован
-        // старой версией без нужных ключей — t() тогда вернёт сам ключ
-        // вместо текста; подстраховываемся здесь.
-        const _postSalahFallback = {
-            postSalahMainLabel: { ru:'Основной зикр', en:'Main dhikr', uz:"Asosiy zikr", de:'Haupt-Dhikr', es:'Dhikr principal', fr:'Dhikr principal', it:'Dhikr principale', ja:'通常のズィクル', ko:'기본 지크르', zh:'普通记主', tr:'Ana zikir', hi:'मुख्य ज़िक्र', ms:'Zikir utama', id:'Dzikir utama', th:'ซิกิรหลัก' },
-            postSalahOptionLabel: { ru:'Зикры после намаза', en:'Dhikrs after prayer', uz:'Namozdan keyingi zikrlar', de:'Dhikrs nach dem Gebet', es:'Dhikrs después del salat', fr:'Dhikrs après la prière', it:'Dhikr dopo la preghiera', ja:'礼拝後のズィクル集', ko:'예배 후 지크르들', zh:'礼拜后的记主词', tr:'Namazdan sonra zikirler', hi:'नमाज़ के बाद के ज़िक्र', ms:'Zikir-zikir selepas solat', id:'Dzikir-dzikir setelah salat', th:'บรรดาซิกิรหลังละหมาด' }
-        };
-        function _tPostSalah(key) {
-            const val = t(key);
-            if (val && val !== key) return val;
-            const fb = _postSalahFallback[key];
-            return (fb && (fb[currentLang] || fb.ru)) || val;
-        }
+        // Подписи берутся из i18n/<язык>.js (версия файла привязана к I18N_VERSION).
+        function _tPostSalah(key) { return t(key); }
         function updatePostSalahSelectorUI() {
             const btn = document.getElementById('postSalahSelectBtn');
             const btnText = document.getElementById('postSalahBtnText');
@@ -10198,7 +9706,7 @@
             const headerTitleEl = document.getElementById('headerTitle');
             if (!headerTitleEl) return;
             const step = POST_SALAH_STEPS[postSalahStepIndex];
-            const title = step ? (step.title[currentLang] || step.title.ru) : '';
+            const title = step ? t(step.titleKey) : '';
             headerTitleEl.innerText = title;
         }
 
@@ -10501,8 +10009,8 @@
         window.addEventListener('resize', () => { _cachedRingRadius = null; }, { passive: true });
 
         function formatGoalShort(n) {
-            if (n >= 1000000) return (n / 1000000 % 1 === 0 ? (n/1000000) : (n/1000000).toFixed(1)) + 'М';
-            if (n >= 1000)    return (n / 1000    % 1 === 0 ? (n/1000)    : (n/1000).toFixed(1))    + 'к';
+            if (n >= 1000000) return (n / 1000000 % 1 === 0 ? (n/1000000) : (n/1000000).toFixed(1)) + t('numSuffixM');
+            if (n >= 1000)    return (n / 1000    % 1 === 0 ? (n/1000)    : (n/1000).toFixed(1))    + t('numSuffixK');
             return String(n);
         }
 
@@ -11085,7 +10593,7 @@
             const text = getSpecialText(dhikr);
             const desc = getSpecialDesc(dhikr);
             card.innerHTML = `
-                <div class="special-drag-handle" title="Перетащить"><svg viewBox="0 0 24 24"><circle cx="9" cy="5" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="9" cy="19" r="1.2" fill="currentColor"/><circle cx="15" cy="5" r="1.2" fill="currentColor"/><circle cx="15" cy="12" r="1.2" fill="currentColor"/><circle cx="15" cy="19" r="1.2" fill="currentColor"/></svg></div>
+                <div class="special-drag-handle" title="${t('titleDrag')}"><svg viewBox="0 0 24 24"><circle cx="9" cy="5" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="9" cy="19" r="1.2" fill="currentColor"/><circle cx="15" cy="5" r="1.2" fill="currentColor"/><circle cx="15" cy="12" r="1.2" fill="currentColor"/><circle cx="15" cy="19" r="1.2" fill="currentColor"/></svg></div>
                 <div class="special-card-body">
                     <div class="special-card-name">${name}</div>
                     ${text ? `<div class="special-card-text">${text}</div>` : ''}
@@ -11220,8 +10728,8 @@
             _deleteSpecialFolderIdx = idx;
             const titleEl = document.getElementById('deleteSpecialFolderTitle');
             const subEl = document.getElementById('deleteSpecialFolderSub');
-            if (titleEl) titleEl.textContent = t('deleteFolderTitle') || 'Удалить папку?';
-            if (subEl) subEl.textContent = t('deleteDuaFolderSub') || 'Зикры внутри папки не будут удалены';
+            if (titleEl) titleEl.textContent = t('deleteFolderTitle');
+            if (subEl) subEl.textContent = t('deleteDuaFolderSub');
             document.getElementById('deleteSpecialFolderOverlay').classList.add('show');
         }
         function confirmDeleteSpecialFolder() {
@@ -12700,7 +12208,7 @@
                 return; // All duas are in folders, nothing to show here
             }
             if (filtered.length === 0 && duaSearchQuery) {
-                container.innerHTML = `<div class="empty-state"><p>Ничего не найдено</p></div>`; return;
+                container.innerHTML = `<div class="empty-state"><p>${t('noResults')}</p></div>`; return;
             }
             const fragment = document.createDocumentFragment();
             for (let i = 0; i < filtered.length; i++) {
@@ -13203,12 +12711,17 @@
         }
 
         function ensureNames99DuaFolder() {
-            if (!Array.isArray(names99) || names99.length === 0) return;
             // The folder id is stable even if the user renames the folder.
             if (duaFolders.some(f => f && f.id === NAMES99_FOLDER_ID)) return;
             try {
                 if (localStorage.getItem(NAMES99_DELETED_KEY) === '1') return;
             } catch (e) {}
+            // Данные ещё не скачаны — скачиваем и повторяем (папка появится сама).
+            if (!Array.isArray(names99)) {
+                loadNames99().then(list => { if (Array.isArray(list) && list.length) ensureNames99DuaFolder(); });
+                return;
+            }
+            if (names99.length === 0) return;
 
             const ids = [];
             names99.forEach((n, i) => {
@@ -13232,6 +12745,7 @@
             try {
                 localStorage.setItem('azkar_duas', JSON.stringify(duas));
                 localStorage.setItem('azkar_dua_folders', JSON.stringify(duaFolders));
+                localStorage.setItem(NAMES99_SYNC_FLAG, currentLang + '|' + DATA_VERSION);
             } catch (e) {}
             markDataChanged();
             // The seed happens after the startup render, so refresh both the
@@ -13247,7 +12761,31 @@
         // Re-localize the built-in folder after a language change. The folder
         // name is only updated while it still carries the builtin marker (a
         // user rename clears it), but the 99 entries themselves stay localized.
+        // Первый вызов при запуске может доверять отметке «уже синхронизировано
+        // на этом языке» и не скачивать allah-names.js. Все последующие (смена
+        // языка, импорт, облако) проверяют по-настоящему.
+        let _names99TrustSyncFlag = true;
         function _syncNames99FolderLanguage() {
+            const syncKey = currentLang + '|' + DATA_VERSION;
+            const trustFlag = _names99TrustSyncFlag;
+            _names99TrustSyncFlag = false;
+            if (!Array.isArray(names99)) {
+                let alreadySynced = false;
+                try { alreadySynced = trustFlag && localStorage.getItem(NAMES99_SYNC_FLAG) === syncKey; } catch (e) {}
+                const hasNames = duas.some(d => d && d.builtin === 'name99');
+                if (alreadySynced || !hasNames) {
+                    _syncNames99FolderName();
+                    return;
+                }
+                const langAtCall = currentLang;
+                loadNames99().then(list => {
+                    if (!Array.isArray(list) || currentLang !== langAtCall) return;
+                    _syncNames99FolderLanguage();
+                    if (typeof markDirty === 'function') markDirty('dua', 'favorites');
+                });
+                _syncNames99FolderName();
+                return;
+            }
             const folder = duaFolders.find(f => f && f.id === NAMES99_FOLDER_ID);
             let changed = false;
             if (folder && folder.builtin === 'names99') {
@@ -13272,6 +12810,18 @@
             }
             // Persist the one-time migration from the old Arabic cards.
             if (changed) saveDataDebounced();
+            try { localStorage.setItem(NAMES99_SYNC_FLAG, currentLang + '|' + DATA_VERSION); } catch (e) {}
+        }
+        // Только название папки (берётся из переводов интерфейса, данные не нужны).
+        function _syncNames99FolderName() {
+            const folder = duaFolders.find(f => f && f.id === NAMES99_FOLDER_ID);
+            if (folder && folder.builtin === 'names99') {
+                const translatedName = t('namesTitle');
+                if (folder.name !== translatedName) {
+                    folder.name = translatedName;
+                    saveDataDebounced();
+                }
+            }
         }
 
         function closeOpenDuaFolders() {
@@ -14314,6 +13864,7 @@
                         } catch(e1) {}
                         // Задачи/списки перечитываем через loadChecklist() — он сам
                         // разберёт новый формат (списки) или мигрирует старый v4.
+                        _invalidateDefaultsSync();
                         try { loadChecklist(); } catch(e4) {}
                         // applyLanguage перерисовывает дуа, папки дуа, избранное,
                         // имена, статистику, спец-зикры И задачи (папки/подпапки).
@@ -14388,18 +13939,18 @@
 
         /* ===== THEME SYSTEM ===== */
         const DARK_THEMES = [
-            { id: 'dark',         label: 'Золото',    bg: '#0a0a0a',  accent: '#d4af37' },
-            { id: 'dark-emerald', label: 'Изумруд',   bg: '#060f0a',  accent: '#2ecc71' },
-            { id: 'dark-purple',  label: 'Аметист',   bg: '#07050f',  accent: '#a855f7' },
-            { id: 'dark-blue',    label: 'Сапфир',    bg: '#030b12',  accent: '#38bdf8' },
-            { id: 'dark-rose',    label: 'Роза',      bg: '#0f0509',  accent: '#f472b6' },
+            { id: 'dark', bg: '#0a0a0a',  accent: '#d4af37' },
+            { id: 'dark-emerald', bg: '#060f0a',  accent: '#2ecc71' },
+            { id: 'dark-purple', bg: '#07050f',  accent: '#a855f7' },
+            { id: 'dark-blue', bg: '#030b12',  accent: '#38bdf8' },
+            { id: 'dark-rose', bg: '#0f0509',  accent: '#f472b6' },
         ];
         const LIGHT_THEMES = [
-            { id: 'light',          label: 'Медь',    bg: '#f8f6f2',  accent: '#b85c1a' },
-            { id: 'light-rosesapphire', label: 'Сапфир', bg: '#fdf2f6',  accent: '#c2698f' },
-            { id: 'light-lavender', label: 'Лаванда', bg: '#f5f3fa',  accent: '#7c5cbf' },
-            { id: 'light-ocean',    label: 'Океан',   bg: '#f0f7fc',  accent: '#0369a1' },
-            { id: 'light-mint',     label: 'Мята',    bg: '#f0faf6',  accent: '#0d7a5f' },
+            { id: 'light', bg: '#f8f6f2',  accent: '#b85c1a' },
+            { id: 'light-rosesapphire', bg: '#fdf2f6',  accent: '#c2698f' },
+            { id: 'light-lavender', bg: '#f5f3fa',  accent: '#7c5cbf' },
+            { id: 'light-ocean', bg: '#f0f7fc',  accent: '#0369a1' },
+            { id: 'light-mint', bg: '#f0faf6',  accent: '#0d7a5f' },
         ];
 
         function isDarkTheme(th) {
@@ -14512,7 +14063,7 @@
 
             const isDark = isDarkTheme();
             const list = isDark ? DARK_THEMES : LIGHT_THEMES;
-            document.getElementById('themePickerTitle').textContent = isDark ? '🌙 Тёмные темы' : '☀️ Светлые темы';
+            document.getElementById('themePickerTitle').textContent = isDark ? t('themePickerDark') : t('themePickerLight');
             const grid = document.getElementById('themeGrid');
             grid.innerHTML = '';
             list.forEach(th => {
@@ -14520,7 +14071,7 @@
                 sw.className = 'theme-swatch' + (settings.theme === th.id ? ' active' : '');
                 sw.innerHTML = `
                     <div class="theme-swatch-circle" style="background:${th.bg};border-color:${settings.theme===th.id?th.accent:'transparent'};box-shadow:${settings.theme===th.id?'0 0 0 3px '+th.accent+'33':''};"><div style="position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 60% 40%,${th.accent}55,transparent 70%);"></div><div style="position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:14px;height:3px;border-radius:2px;background:${th.accent};opacity:0.85;"></div></div>
-                    <div class="theme-swatch-label">${th.label}</div>`;
+                    <div class="theme-swatch-label">${t('themeName_' + th.id)}</div>`;
                 sw.onclick = () => {
                     applyTheme(th.id);
                     saveDataDebounced();
@@ -14597,22 +14148,22 @@
             });
         }
         const CLICK_SOUNDS = [
-            { id: 'default',  label: 'Капля',    emoji: '💧', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.type='sine'; o.frequency.value=1200; const vol=Math.pow(v/10,2)*0.8+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.08); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.08); }},
-            { id: 'soft',     label: 'Мягкий',   emoji: '🫧', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.type='sine'; o.frequency.value=800; const vol=Math.pow(v/10,2)*0.6+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.15); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.15); }},
-            { id: 'snap',     label: 'Щелчок',   emoji: '🫰', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.type='square'; o.frequency.value=1800; const vol=Math.pow(v/10,2)*0.5+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.03); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.03); }},
-            { id: 'crystal',  label: 'Кристалл', emoji: '✨', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.type='sine'; o.frequency.value=2000; const vol=Math.pow(v/10,2)*0.5+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.12); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.12); }},
-            { id: 'pop',      label: 'Стекло',   emoji: '🔹', play: (ctx,v) => { const now=ctx.currentTime, vol=Math.pow(v/10,2)*0.34+0.012; [[1760,0,0.11,1],[2637,0.018,0.16,0.45]].forEach(([freq,del,dur,mix])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.setValueAtTime(freq,now+del);g.gain.setValueAtTime(0.0001,now+del);g.gain.linearRampToValueAtTime(vol*mix,now+del+0.008);g.gain.exponentialRampToValueAtTime(0.0001,now+del+dur);o.start(now+del);o.stop(now+del+dur+0.02);}); }},
-            { id: 'bubble',   label: 'Перо',     emoji: '🪶', play: (ctx,v) => { const now=ctx.currentTime, vol=Math.pow(v/10,2)*0.18+0.008; const o=ctx.createOscillator(),g=ctx.createGain(),f=ctx.createBiquadFilter(); o.connect(f);f.connect(g);g.connect(ctx.destination);o.type='triangle';o.frequency.setValueAtTime(560,now);o.frequency.linearRampToValueAtTime(430,now+0.14);f.type='lowpass';f.frequency.setValueAtTime(1200,now);f.frequency.exponentialRampToValueAtTime(520,now+0.18);g.gain.setValueAtTime(0.0001,now);g.gain.linearRampToValueAtTime(vol,now+0.025);g.gain.exponentialRampToValueAtTime(0.0001,now+0.18);o.start(now);o.stop(now+0.2); }},
-            { id: 'tick',     label: 'Тик',      emoji: '⏱️', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.type='triangle'; o.frequency.value=2400; const vol=Math.pow(v/10,2)*0.4+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.025); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.025); }},
-            { id: 'ding',     label: 'Динь',     emoji: '🛎️', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.type='sine'; o.frequency.value=1600; const vol=Math.pow(v/10,2)*0.6+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.2); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.2); }},
-            { id: 'flute',    label: 'Флейта',   emoji: '🪈', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.type='sine'; o.frequency.setValueAtTime(1400,ctx.currentTime); o.frequency.setValueAtTime(1760,ctx.currentTime+0.04); const vol=Math.pow(v/10,2)*0.5+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.18); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.18); }},
-            { id: 'shimmer',  label: 'Вспышка',   emoji: '💫', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(),o2=ctx.createOscillator(),g2=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o2.connect(g2);g2.connect(ctx.destination); o.type='sine'; o.frequency.value=1200; o2.type='sine'; o2.frequency.value=1805; const vol=Math.pow(v/10,2)*0.45+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g2.gain.setValueAtTime(vol*0.7,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.1); g2.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.1); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.1); o2.start(ctx.currentTime); o2.stop(ctx.currentTime+0.1); }}
+            { id: 'default', emoji: '💧', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.type='sine'; o.frequency.value=1200; const vol=Math.pow(v/10,2)*0.8+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.08); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.08); }},
+            { id: 'soft', emoji: '🫧', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.type='sine'; o.frequency.value=800; const vol=Math.pow(v/10,2)*0.6+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.15); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.15); }},
+            { id: 'snap', emoji: '🫰', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.type='square'; o.frequency.value=1800; const vol=Math.pow(v/10,2)*0.5+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.03); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.03); }},
+            { id: 'crystal', emoji: '✨', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.type='sine'; o.frequency.value=2000; const vol=Math.pow(v/10,2)*0.5+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.12); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.12); }},
+            { id: 'pop', emoji: '🔹', play: (ctx,v) => { const now=ctx.currentTime, vol=Math.pow(v/10,2)*0.34+0.012; [[1760,0,0.11,1],[2637,0.018,0.16,0.45]].forEach(([freq,del,dur,mix])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.setValueAtTime(freq,now+del);g.gain.setValueAtTime(0.0001,now+del);g.gain.linearRampToValueAtTime(vol*mix,now+del+0.008);g.gain.exponentialRampToValueAtTime(0.0001,now+del+dur);o.start(now+del);o.stop(now+del+dur+0.02);}); }},
+            { id: 'bubble', emoji: '🪶', play: (ctx,v) => { const now=ctx.currentTime, vol=Math.pow(v/10,2)*0.18+0.008; const o=ctx.createOscillator(),g=ctx.createGain(),f=ctx.createBiquadFilter(); o.connect(f);f.connect(g);g.connect(ctx.destination);o.type='triangle';o.frequency.setValueAtTime(560,now);o.frequency.linearRampToValueAtTime(430,now+0.14);f.type='lowpass';f.frequency.setValueAtTime(1200,now);f.frequency.exponentialRampToValueAtTime(520,now+0.18);g.gain.setValueAtTime(0.0001,now);g.gain.linearRampToValueAtTime(vol,now+0.025);g.gain.exponentialRampToValueAtTime(0.0001,now+0.18);o.start(now);o.stop(now+0.2); }},
+            { id: 'tick', emoji: '⏱️', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.type='triangle'; o.frequency.value=2400; const vol=Math.pow(v/10,2)*0.4+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.025); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.025); }},
+            { id: 'ding', emoji: '🛎️', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.type='sine'; o.frequency.value=1600; const vol=Math.pow(v/10,2)*0.6+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.2); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.2); }},
+            { id: 'flute', emoji: '🪈', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.type='sine'; o.frequency.setValueAtTime(1400,ctx.currentTime); o.frequency.setValueAtTime(1760,ctx.currentTime+0.04); const vol=Math.pow(v/10,2)*0.5+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.18); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.18); }},
+            { id: 'shimmer', emoji: '💫', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain(),o2=ctx.createOscillator(),g2=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o2.connect(g2);g2.connect(ctx.destination); o.type='sine'; o.frequency.value=1200; o2.type='sine'; o2.frequency.value=1805; const vol=Math.pow(v/10,2)*0.45+0.02; g.gain.setValueAtTime(vol,ctx.currentTime); g2.gain.setValueAtTime(vol*0.7,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.1); g2.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.1); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.1); o2.start(ctx.currentTime); o2.stop(ctx.currentTime+0.1); }}
         ];
 
         const GOAL_SOUNDS = [
-            { id: 'default',  label: 'Аккорд',   emoji: '🎵', play: (ctx,v) => { [880,1320].forEach((freq,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=freq;const vol=(Math.pow(v/10,2)*0.9+0.02)/(i+1);g.gain.setValueAtTime(vol,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+1.2);o.start(ctx.currentTime);o.stop(ctx.currentTime+1.2);}); }},
-            { id: 'chime',    label: 'Колокол',  emoji: '🔔', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.setValueAtTime(600,ctx.currentTime);o.frequency.exponentialRampToValueAtTime(1200,ctx.currentTime+0.3);const vol=Math.pow(v/10,2)*0.7+0.02;g.gain.setValueAtTime(vol,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.8);o.start(ctx.currentTime);o.stop(ctx.currentTime+0.8);}},
-            { id: 'peace',    label: 'Покой',    emoji: '🕯️', play: (ctx,v) => {
+            { id: 'default', emoji: '🎵', play: (ctx,v) => { [880,1320].forEach((freq,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=freq;const vol=(Math.pow(v/10,2)*0.9+0.02)/(i+1);g.gain.setValueAtTime(vol,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+1.2);o.start(ctx.currentTime);o.stop(ctx.currentTime+1.2);}); }},
+            { id: 'chime', emoji: '🔔', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.setValueAtTime(600,ctx.currentTime);o.frequency.exponentialRampToValueAtTime(1200,ctx.currentTime+0.3);const vol=Math.pow(v/10,2)*0.7+0.02;g.gain.setValueAtTime(vol,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.8);o.start(ctx.currentTime);o.stop(ctx.currentTime+0.8);}},
+            { id: 'peace', emoji: '🕯️', play: (ctx,v) => {
                 const now = ctx.currentTime;
                 const vol = Math.pow(v/10,2)*0.2+0.01;
                 [[432,0,1.55,1],[648,0.08,1.25,0.24]].forEach(([freq,del,dur,mix])=>{
@@ -14625,8 +14176,8 @@
                     o.connect(g); g.connect(ctx.destination);
                     o.start(now+del); o.stop(now+del+dur+0.05);
                 });
-            }},{ id: 'celebrate',label: 'Восход',   emoji: '🌅', play: (ctx,v) => { [[523,0],[659,0.12],[784,0.24]].forEach(([freq,del])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=freq;const vol=Math.pow(v/10,2)*0.6+0.02;g.gain.setValueAtTime(0,ctx.currentTime+del);g.gain.linearRampToValueAtTime(vol,ctx.currentTime+del+0.04);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+del+0.9);o.start(ctx.currentTime+del);o.stop(ctx.currentTime+del+0.9);}); }},
-            { id: 'wave',     label: 'Искра',    emoji: '✨', play: (ctx,v) => {
+            }},{ id: 'celebrate', emoji: '🌅', play: (ctx,v) => { [[523,0],[659,0.12],[784,0.24]].forEach(([freq,del])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=freq;const vol=Math.pow(v/10,2)*0.6+0.02;g.gain.setValueAtTime(0,ctx.currentTime+del);g.gain.linearRampToValueAtTime(vol,ctx.currentTime+del+0.04);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+del+0.9);o.start(ctx.currentTime+del);o.stop(ctx.currentTime+del+0.9);}); }},
+            { id: 'wave', emoji: '✨', play: (ctx,v) => {
                 const now = ctx.currentTime;
                 const vol = Math.pow(v/10,2)*0.32+0.015;
                 [[784,0,0.55,1],[988,0.09,0.5,0.72],[1175,0.18,0.62,0.5]].forEach(([freq,del,dur,mix])=>{
@@ -14640,11 +14191,11 @@
                     o.connect(g); g.connect(ctx.destination);
                     o.start(now+del); o.stop(now+del+dur+0.05);
                 });
-            }},{ id: 'glory',    label: 'Слава',    emoji: '👑', play: (ctx,v) => { [[523,0],[659,0.08],[784,0.16],[1047,0.24]].forEach(([freq,del])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=freq;const vol=Math.pow(v/10,2)*0.5+0.02;g.gain.setValueAtTime(0,ctx.currentTime+del);g.gain.linearRampToValueAtTime(vol,ctx.currentTime+del+0.03);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+del+1.0);o.start(ctx.currentTime+del);o.stop(ctx.currentTime+del+1.0);}); }},
-            { id: 'moon',     label: 'Луна',     emoji: '🌙', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.setValueAtTime(440,ctx.currentTime);o.frequency.setValueAtTime(880,ctx.currentTime+0.3);const vol=Math.pow(v/10,2)*0.6+0.02;g.gain.setValueAtTime(vol,ctx.currentTime);g.gain.setValueAtTime(vol*0.8,ctx.currentTime+0.3);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+1.4);o.start(ctx.currentTime);o.stop(ctx.currentTime+1.4);}},
-            { id: 'star',     label: 'Звезда',   emoji: '⭐', play: (ctx,v) => { [1318,1568,2093].forEach((freq,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=freq;const vol=(Math.pow(v/10,2)*0.6+0.02)/(i+1);g.gain.setValueAtTime(vol,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+1.5);o.start(ctx.currentTime);o.stop(ctx.currentTime+1.5);}); }},
-            { id: 'echo',     label: 'Эхо',      emoji: '🪞', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=880;const vol=Math.pow(v/10,2)*0.7+0.02;[0,0.35,0.7].forEach((del,i)=>{g.gain.setValueAtTime(vol*(1-i*0.3),ctx.currentTime+del);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+del+0.3);});g.gain.setValueAtTime(0,ctx.currentTime);g.gain.linearRampToValueAtTime(vol,ctx.currentTime+0.01);o.start(ctx.currentTime);o.stop(ctx.currentTime+1.1);}},
-            { id: 'harp',     label: 'Арфа',     emoji: '🎸', play: (ctx,v) => { [[262,0],[330,0.06],[392,0.12],[523,0.18]].forEach(([freq,del])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=freq;const vol=Math.pow(v/10,2)*0.5+0.02;g.gain.setValueAtTime(0,ctx.currentTime+del);g.gain.linearRampToValueAtTime(vol,ctx.currentTime+del+0.01);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+del+1.2);o.start(ctx.currentTime+del);o.stop(ctx.currentTime+del+1.2);}); }}
+            }},{ id: 'glory', emoji: '👑', play: (ctx,v) => { [[523,0],[659,0.08],[784,0.16],[1047,0.24]].forEach(([freq,del])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=freq;const vol=Math.pow(v/10,2)*0.5+0.02;g.gain.setValueAtTime(0,ctx.currentTime+del);g.gain.linearRampToValueAtTime(vol,ctx.currentTime+del+0.03);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+del+1.0);o.start(ctx.currentTime+del);o.stop(ctx.currentTime+del+1.0);}); }},
+            { id: 'moon', emoji: '🌙', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.setValueAtTime(440,ctx.currentTime);o.frequency.setValueAtTime(880,ctx.currentTime+0.3);const vol=Math.pow(v/10,2)*0.6+0.02;g.gain.setValueAtTime(vol,ctx.currentTime);g.gain.setValueAtTime(vol*0.8,ctx.currentTime+0.3);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+1.4);o.start(ctx.currentTime);o.stop(ctx.currentTime+1.4);}},
+            { id: 'star', emoji: '⭐', play: (ctx,v) => { [1318,1568,2093].forEach((freq,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=freq;const vol=(Math.pow(v/10,2)*0.6+0.02)/(i+1);g.gain.setValueAtTime(vol,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+1.5);o.start(ctx.currentTime);o.stop(ctx.currentTime+1.5);}); }},
+            { id: 'echo', emoji: '🪞', play: (ctx,v) => { const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=880;const vol=Math.pow(v/10,2)*0.7+0.02;[0,0.35,0.7].forEach((del,i)=>{g.gain.setValueAtTime(vol*(1-i*0.3),ctx.currentTime+del);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+del+0.3);});g.gain.setValueAtTime(0,ctx.currentTime);g.gain.linearRampToValueAtTime(vol,ctx.currentTime+0.01);o.start(ctx.currentTime);o.stop(ctx.currentTime+1.1);}},
+            { id: 'harp', emoji: '🎸', play: (ctx,v) => { [[262,0],[330,0.06],[392,0.12],[523,0.18]].forEach(([freq,del])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=freq;const vol=Math.pow(v/10,2)*0.5+0.02;g.gain.setValueAtTime(0,ctx.currentTime+del);g.gain.linearRampToValueAtTime(vol,ctx.currentTime+del+0.01);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+del+1.2);o.start(ctx.currentTime+del);o.stop(ctx.currentTime+del+1.2);}); }}
         ];
 
         const SOUND_LABELS = UI_I18N.soundLabels || {};
@@ -14716,7 +14267,7 @@
             CLICK_SOUNDS.forEach(s => {
                 const opt = document.createElement('div');
                 opt.className = 'sound-option' + (current === s.id ? ' active' : '');
-                opt.innerHTML = '<div class="sound-icon-circle">' + s.emoji + '</div><div class="sound-option-label">' + getSoundLabel('click', s.id, s.label) + '</div>';
+                opt.innerHTML = '<div class="sound-icon-circle">' + s.emoji + '</div><div class="sound-option-label">' + getSoundLabel('click', s.id) + '</div>';
                 opt.onclick = () => {
                     settings.clickSoundType = s.id;
                     settings.clickSound = true;
@@ -14744,7 +14295,7 @@
             GOAL_SOUNDS.forEach(s => {
                 const opt = document.createElement('div');
                 opt.className = 'sound-option' + (current === s.id ? ' active' : '');
-                opt.innerHTML = '<div class="sound-icon-circle">' + s.emoji + '</div><div class="sound-option-label">' + getSoundLabel('goal', s.id, s.label) + '</div>';
+                opt.innerHTML = '<div class="sound-icon-circle">' + s.emoji + '</div><div class="sound-option-label">' + getSoundLabel('goal', s.id) + '</div>';
                 opt.onclick = () => {
                     settings.goalSoundType = s.id;
                     settings.sound = true;
@@ -15145,7 +14696,7 @@
             num = Math.max(0, Number(num) || 0);
             if (num < 1000) return String(num);
             const short = (Math.round(num / 100) / 10).toFixed(1).replace(/\.0$/, '');
-            return short + 'к';
+            return short + t('numSuffixK');
         }
         window.formatOnlineCount = formatOnlineCount;
 
@@ -16864,7 +16415,7 @@
             _notifCurrent = null;
             const titleEl = document.getElementById('hadithBannerTitle');
             const textEl = document.getElementById('hadithBannerText');
-            if (titleEl) titleEl.textContent = (typeof t === 'function') ? t('hadithLabel') : 'Хадис';
+            if (titleEl) titleEl.textContent = t('hadithLabel');
             if (textEl) textEl.textContent = _hadithText(h);
             const icEl = banner.querySelector('.hadith-banner-icon'); if (icEl) icEl.textContent = '📖';
             banner.style.display = 'flex';
@@ -17023,13 +16574,13 @@
             try {
                 if ('Notification' in window) {
                     if (Notification.permission === 'default') await requestNotifPermission();
-                    if (Notification.permission === 'denied') showToast(tn('notifPermDenied', 'Разрешите уведомления в настройках браузера'), 2600);
+                    if (Notification.permission === 'denied') showToast(t('notifPermDenied'), 2600);
                 }
             } catch (e) {}
             try {
                 const pt = window.PrayerTimes;
                 if (pt && !pt.getLocation()) {
-                    showToast(tn('notifNeedLocation', 'Разрешите геолокацию — нужна для времён намаза'), 2800);
+                    showToast(t('notifNeedLocation'), 2800);
                     pt.requestGeo(() => scheduleNotifEvents());
                 }
             } catch (e) {}
@@ -17050,11 +16601,11 @@
         }
 
         function openNotifPopup() {
-            const set = (id, key, fb) => { const el = document.getElementById(id); if (el) el.textContent = tn(key, fb); };
-            set('notifPopTitle', 'labelNotifications', 'Уведомления');
-            set('notifLblHadith', 'labelHadith', 'Хадисы');
-            set('notifLblPrayer', 'notifRowPrayer', 'Время намазов');
-            set('notifLblUmama', 'notifRowUmama', 'Дуа Абу Умамы');
+            const set = (id, key) => { const el = document.getElementById(id); if (el) el.textContent = t(key); };
+            set('notifPopTitle', 'labelNotifications');
+            set('notifLblHadith', 'labelHadith');
+            set('notifLblPrayer', 'notifRowPrayer');
+            set('notifLblUmama', 'notifRowUmama');
             updateHadithUI();
             _notifPopupOpenedAt = Date.now();
             const ov = document.getElementById('notifPopOverlay');
@@ -17102,8 +16653,8 @@
                     const off = _zikrOffsetMin(dk + '|' + sl.key);
                     const ts = new Date(day.getFullYear(), day.getMonth(), day.getDate(), sl.hour, off, 0, 0).getTime();
                     out.push({ ts, tag: 'azkar-zikr-' + sl.key + '-' + dk, icon: '🕌',
-                        title: tn('notifZikrTitle', 'Не забывайте поминать Аллаха'),
-                        body: tn('notifZikrBody', 'СубханАллах, Альхамдулиллях, Аллаху Акбар 🌙 — каждое из этих слов станет светом для вашего сердца.') });
+                        title: t('notifZikrTitle'),
+                        body: t('notifZikrBody') });
                 });
             }
             return out;
@@ -17132,15 +16683,15 @@
                     const clock = _pad2(at.getHours()) + ':' + _pad2(at.getMinutes());
                     if (wantPrayer) {
                         out.push({ ts, tag: 'azkar-prayer-' + p.key + '-' + dk, icon: '🕌',
-                            title: tn('notifPrayerTitle', 'Время намаза'),
+                            title: t('notifPrayerTitle'),
                             body: (names[p.key] || p.key) + ' · ' + clock });
                     }
                     if (wantUmama && (p.key === 'fajr' || p.key === 'asr')) {
                         out.push({ ts: ts + UMAMA_DELAY_MS, tag: 'azkar-umama-' + p.key + '-' + dk, icon: '🤲',
-                            title: tn('notifUmamaTitle', 'Дуа Абу Умамы'),
+                            title: t('notifUmamaTitle'),
                             body: p.key === 'fajr'
-                                ? tn('notifUmamaMorning', 'Утреннее дуа — время Фаджра')
-                                : tn('notifUmamaEvening', 'Вечернее дуа — время Асра') });
+                                ? t('notifUmamaMorning')
+                                : t('notifUmamaEvening') });
                     }
                 });
             }
@@ -17537,7 +17088,7 @@
                     disallowReturnToOpener: false,
                 });
 
-                _pipWindow.document.title = 'Зикр';
+                _pipWindow.document.title = t('pipTitle');
                 _pipWindow.document.head.innerHTML = `<style>
                     *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-webkit-touch-callout:none;}
                     body{display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -17549,11 +17100,11 @@
                         background:transparent;color:${accent};font-family:inherit;font-size:1rem;font-weight:600;
                         cursor:pointer;transition:background 0.12s,transform 0.1s;letter-spacing:0.5px;}
                     #pb:active{background:${accent}22;transform:scale(0.94);}
-                </style>
-                <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&display=swap" rel="stylesheet">`;
+                    @font-face{font-family:'Cormorant Garamond';src:url('${new URL('fonts/cormorantgaramond.woff2', location.href).href}') format('woff2');font-weight:300 700;font-display:swap;}
+                </style>`;
 
-                const label = currentLang === 'en' ? 'DHIKR' : currentLang === 'uz' ? 'ZIKR' : 'ЗИКР';
-                const tapLabel = currentLang === 'en' ? 'TAP' : currentLang === 'uz' ? 'BOSING' : 'НАЖМИ';
+                const label = t('pipLabel');
+                const tapLabel = t('pipTap');
                 _pipWindow.document.body.innerHTML = `
                     <div id="pl">${label}</div>
                     <div id="pn">${count}</div>
@@ -17990,496 +17541,21 @@
         //  good deeds rather than counted dhikr.
         // v4: Each folder has exactly 5 tasks. Folders may also contain
         // `subfolders` — nested folders with their own tasks (one level deep).
-        const CL_DEFAULT_FOLDERS = [
-                {
-                        "names": {
-                                "ru": "Ежедневные",
-                                "en": "Daily",
-                                "uz": "Kunlik",
-                                "de": "Täglich",
-                                "es": "Diario",
-                                "fr": "Quotidien",
-                                "it": "Quotidiano",
-                                "ja": "毎日",
-                                "ko": "매일",
-                                "zh": "每日",
-                                "tr": "Günlük",
-                                "hi": "दैनिक",
-                                "ms": "Harian",
-                                "id": "Harian",
-                                "th": "รายวัน"
-                        },
-                        "subfolders": [],
-                        "tasks": [
-                                {
-                                        "names": {
-                                                "ru": "Прочитать Коран (минимум 10 минут)",
-                                                "en": "Read Qur'an (at least 10 minutes)",
-                                                "uz": "Qur'on o'qish (kamida 10 daqiqa)",
-                                                "de": "Qur'an lesen (mindestens 10 Minuten)",
-                                                "es": "Leer el Corán (al menos 10 minutos)",
-                                                "fr": "Lire le Coran (au moins 10 minutes)",
-                                                "it": "Leggere il Corano (almeno 10 minuti)",
-                                                "ja": "クルアーンを読む（最低10分）",
-                                                "ko": "꾸란 읽기 (최소 10분)",
-                                                "zh": "诵读《古兰经》（至少10分钟）",
-                                                "tr": "Kur'an oku (en az 10 dakika)",
-                                                "hi": "क़ुरआन पढ़ें (कम से कम 10 मिनट)",
-                                                "ms": "Baca al-Quran (sekurang-kurangnya 10 minit)",
-                                                "id": "Baca al-Quran (minimal 10 menit)",
-                                                "th": "อ่านอัลกุรอาน (อย่างน้อย 10 นาที)"
-                                        },
-                                        "done": false
-                                },
-                                {
-                                        "names": {
-                                                "ru": "Прочитать суру Аль-Мульк перед сном",
-                                                "en": "Recite Surah Al-Mulk before sleep",
-                                                "uz": "Uxlashdan oldin Mulk surasini o'qish",
-                                                "de": "Sure Al-Mulk vor dem Schlafen rezitieren",
-                                                "es": "Recitar Sura Al-Mulk antes de dormir",
-                                                "fr": "Réciter la sourate Al-Mulk avant de dormir",
-                                                "it": "Recitare Sura Al-Mulk prima di dormire",
-                                                "ja": "就寝前にスーラ・アル＝ムルクを読む",
-                                                "ko": "잠자기 전에 알 물크 장 암송하기",
-                                                "zh": "睡前诵读《国权章》",
-                                                "tr": "Uyumadan önce Mülk sûresini oku",
-                                                "hi": "सोने से पहले सूरह अल-मुल्क पढ़ें",
-                                                "ms": "Baca Surah Al-Mulk sebelum tidur",
-                                                "id": "Baca Surah Al-Mulk sebelum tidur",
-                                                "th": "อ่านซูเราะฮ์อัลมุลก์ก่อนนอน"
-                                        },
-                                        "done": false
-                                },
-                                {
-                                        "names": {
-                                                "ru": "Прочитать аят аль-Курси перед сном",
-                                                "en": "Recite Ayat al-Kursi before sleep",
-                                                "uz": "Uxlashdan oldin Oyat al-Kursini o'qish",
-                                                "de": "Ayat al-Kursi vor dem Schlafen rezitieren",
-                                                "es": "Recitar Ayat al-Kursi antes de dormir",
-                                                "fr": "Réciter Ayat al-Kursi avant de dormir",
-                                                "it": "Recitare Ayat al-Kursi prima di dormire",
-                                                "ja": "就寝前にアーヤトゥル・クルシーを読む",
-                                                "ko": "잠자기 전 아야트 알 쿠르시 암송하기",
-                                                "zh": "睡前诵读《宝座节》",
-                                                "tr": "Uyumadan önce Ayetü'l-Kürsî'yi oku",
-                                                "hi": "सोने से पहले आयतुल-कुर्सी पढ़ें",
-                                                "ms": "Baca Ayat al-Kursi sebelum tidur",
-                                                "id": "Baca Ayat al-Kursi sebelum tidur",
-                                                "th": "อ่านอายะตุลกุรซีย์ก่อนนอน"
-                                        },
-                                        "done": false
-                                },
-                                {
-                                        "names": {
-                                                "ru": "Прочитать «Аль-Ихлас», «Аль-Фалак» и «Ан-Нас» (3 раза перед сном)",
-                                                "en": "Recite Al-Ikhlas, Al-Falaq and An-Nas (3 times before sleep)",
-                                                "uz": "«Al-Ixlos», «Al-Falaq» va «An-Nos» suralarini o'qish (uxlashdan oldin 3 marta)",
-                                                "de": "Al-Ikhlas, Al-Falaq und An-Nas (3-mal vor dem Schlafen) rezitieren",
-                                                "es": "Recitar Al-Ijlas, Al-Falaq y An-Nas (3 veces antes de dormir)",
-                                                "fr": "Réciter Al-Ikhlas, Al-Falaq et An-Nas (3 fois avant de dormir)",
-                                                "it": "Recitare Al-Ikhlas, Al-Falaq e An-Nas (3 volte prima di dormire)",
-                                                "ja": "就寝前にアル＝イフラース、アル＝ファラク、アン＝ナースを3回読む",
-                                                "ko": "잠자기 전에 알 이클라스, 알 팔라크, 안 나스를 3번 암송",
-                                                "zh": "睡前诵读《忠诚章》《破晓章》《世人章》各3次",
-                                                "tr": "Uyumadan önce İhlas, Felak ve Nas'ı oku (3 kez)",
-                                                "hi": "सोने से पहले अल-इख़लास, अल-फ़लक़ और अन-नास पढ़ें (3 बार)",
-                                                "ms": "Baca Al-Ikhlas, Al-Falaq dan An-Nas (3 kali sebelum tidur)",
-                                                "id": "Baca Al-Ikhlas, Al-Falaq dan An-Nas (3 kali sebelum tidur)",
-                                                "th": "อ่านอัลอิคลาศ อัลฟะลัก และอันนาส (3 ครั้งก่อนนอน)"
-                                        },
-                                        "done": false
-                                },
-                                {
-                                        "names": {
-                                                "ru": "Совершить вуду перед сном",
-                                                "en": "Perform wudu before going to sleep",
-                                                "uz": "Uxlashdan oldin tahorat olish",
-                                                "de": "Wudu vor dem Schlafengehen vollziehen",
-                                                "es": "Hacer wudu antes de dormir",
-                                                "fr": "Faire les ablutions avant de dormir",
-                                                "it": "Fare il wudu prima di dormire",
-                                                "ja": "就寝前にウドゥーを行う",
-                                                "ko": "잠들기 전 우두 행하기",
-                                                "zh": "睡前做小净（伍杜）",
-                                                "tr": "Uyumadan önce abdest al",
-                                                "hi": "सोने से पहले वुज़ू करें",
-                                                "ms": "Ambil wuduk sebelum tidur",
-                                                "id": "Berwudu sebelum tidur",
-                                                "th": "อาบน้ำละหมาดก่อนนอน"
-                                        },
-                                        "done": false
-                                }
-                        ]
-                },
-                {
-                        "names": {
-                                "ru": "Добрые дела",
-                                "en": "Good deeds",
-                                "uz": "Yaxshi amallar",
-                                "de": "Gute Taten",
-                                "es": "Buenas obras",
-                                "fr": "Bonnes actions",
-                                "it": "Buone azioni",
-                                "ja": "善行",
-                                "ko": "선행",
-                                "zh": "善行",
-                                "tr": "İyi ameller",
-                                "hi": "अच्छे कर्म",
-                                "ms": "Amalan baik",
-                                "id": "Amal baik",
-                                "th": "ความดี"
-                        },
-                        "subfolders": [],
-                        "tasks": [
-                                {
-                                        "names": {
-                                                "ru": "Дать садака",
-                                                "en": "Give sadaqa (charity)",
-                                                "uz": "Sadaqa berish",
-                                                "de": "Sadaqa (Wohltätigkeit) geben",
-                                                "es": "Dar sadaqa (caridad)",
-                                                "fr": "Donner la sadaqa (aumône)",
-                                                "it": "Dare la sadaqa (carità)",
-                                                "ja": "サダカ（喜捨）をする",
-                                                "ko": "사다카 (자선) 베풀기",
-                                                "zh": "施舍（萨达卡）",
-                                                "tr": "Sadaka ver",
-                                                "hi": "सदक़ा दें (दान)",
-                                                "ms": "Beri sedekah",
-                                                "id": "Bersedekah",
-                                                "th": "บริจาคทาน (เศาะดะเกาะฮ์)"
-                                        },
-                                        "done": false
-                                },
-                                {
-                                        "names": {
-                                                "ru": "Помочь родителям или семье",
-                                                "en": "Help your parents or family",
-                                                "uz": "Ota-onangiz yoki oilangizga yordam berish",
-                                                "de": "Den Eltern oder der Familie helfen",
-                                                "es": "Ayudar a tus padres o familia",
-                                                "fr": "Aider tes parents ou ta famille",
-                                                "it": "Aiutare i genitori o la famiglia",
-                                                "ja": "両親や家族を助ける",
-                                                "ko": "부모님이나 가족 돕기",
-                                                "zh": "帮助父母或家人",
-                                                "tr": "Anne babana veya ailene yardım et",
-                                                "hi": "अपने माता-पिता या परिवार की मदद करें",
-                                                "ms": "Bantu ibu bapa atau keluarga",
-                                                "id": "Bantu orang tua atau keluarga",
-                                                "th": "ช่วยเหลือพ่อแม่หรือครอบครัว"
-                                        },
-                                        "done": false
-                                },
-                                {
-                                        "names": {
-                                                "ru": "Сделать дуа за родителей и семью",
-                                                "en": "Make du'a for your parents and family",
-                                                "uz": "Ota-ona va oila uchun duo qilish",
-                                                "de": "Bittgebet für Eltern und Familie sprechen",
-                                                "es": "Hacer du'a por tus padres y familia",
-                                                "fr": "Faire une dou'a pour tes parents et ta famille",
-                                                "it": "Fare du'a per i genitori e la famiglia",
-                                                "ja": "両親と家族のためにドゥアーをする",
-                                                "ko": "부모님과 가족을 위해 두아 드리기",
-                                                "zh": "为父母和家人作杜瓦（祈祷）",
-                                                "tr": "Anne baban ve ailen için dua et",
-                                                "hi": "अपने माता-पिता और परिवार के लिए दुआ करें",
-                                                "ms": "Berdoa untuk ibu bapa dan keluarga",
-                                                "id": "Berdoa untuk orang tua dan keluarga",
-                                                "th": "ขอดุอาอ์ให้พ่อแม่และครอบครัว"
-                                        },
-                                        "done": false
-                                },
-                                {
-                                        "names": {
-                                                "ru": "Улыбнуться брату/сестре по вере (улыбка — садака)",
-                                                "en": "Smile at a fellow Muslim (a smile is sadaqa)",
-                                                "uz": "Din qardoshingizga tabassum qilish (tabassum — sadaqa)",
-                                                "de": "Einen Glaubensbruder/-schwester anlächeln (ein Lächeln ist Sadaqa)",
-                                                "es": "Sonreír a un hermano o hermana en la fe (la sonrisa es sadaqa)",
-                                                "fr": "Sourire à un frère ou une sœur en la foi (le sourire est une sadaqa)",
-                                                "it": "Sorridere a un fratello o sorella nella fede (un sorriso è sadaqa)",
-                                                "ja": "同じ信仰の兄弟姉妹に微笑む（微笑みもサダカ）",
-                                                "ko": "신앙의 형제자매에게 미소짓기 (미소도 사다카)",
-                                                "zh": "对教中兄弟姐妹微笑（微笑也是施舍）",
-                                                "tr": "Bir Müslüman kardeşine gülümse (gülümseme sadakadır)",
-                                                "hi": "किसी मुसलमान भाई को मुस्कुराएँ (मुस्कान सदक़ा है)",
-                                                "ms": "Senyum kepada saudara Muslim (senyuman ialah sedekah)",
-                                                "id": "Tersenyum kepada saudara Muslim (senyum adalah sedekah)",
-                                                "th": "ยิ้มให้พี่น้องมุสลิม (รอยยิ้มคือทาน)"
-                                        },
-                                        "done": false
-                                },
-                                {
-                                        "names": {
-                                                "ru": "Покормить или напоить животное/птицу",
-                                                "en": "Feed or give water to an animal or bird",
-                                                "uz": "Hayvon yoki qushni boqish yoki suv berish",
-                                                "de": "Ein Tier oder einen Vogel füttern oder tränken",
-                                                "es": "Alimentar o dar de beber a un animal o ave",
-                                                "fr": "Nourrir ou abreuver un animal ou un oiseau",
-                                                "it": "Dare cibo o acqua a un animale o uccello",
-                                                "ja": "動物や鳥に餌や水を与える",
-                                                "ko": "동물이나 새에게 먹이나 물 주기",
-                                                "zh": "给动物或鸟喂食或饮水",
-                                                "tr": "Bir hayvanı veya kuşu besle ya da sula",
-                                                "hi": "किसी जानवर या पक्षी को खाना या पानी दें",
-                                                "ms": "Beri makan atau minum kepada haiwan atau burung",
-                                                "id": "Beri makan atau minum hewan atau burung",
-                                                "th": "ให้อาหารหรือน้ำแก่สัตว์หรือนก"
-                                        },
-                                        "done": false
-                                }
-                        ]
-                },
-                {
-                        "names": {
-                                "ru": "Духовный рост",
-                                "en": "Spiritual growth",
-                                "uz": "Ma'naviy o'sish",
-                                "de": "Spirituelles Wachstum",
-                                "es": "Crecimiento espiritual",
-                                "fr": "Croissance spirituelle",
-                                "it": "Crescita spirituale",
-                                "ja": "精神的成長",
-                                "ko": "영적 성장",
-                                "zh": "精神成长",
-                                "tr": "Manevi gelişim",
-                                "hi": "आध्यात्मिक विकास",
-                                "ms": "Perkembangan rohani",
-                                "id": "Pertumbuhan rohani",
-                                "th": "การเติบโตทางจิตวิญญาณ"
-                        },
-                        "subfolders": [],
-                        "tasks": [
-                                {
-                                        "names": {
-                                                "ru": "Совершить тахаджуд (ночной намаз)",
-                                                "en": "Pray Tahajjud (night prayer)",
-                                                "uz": "Tahajjud namozini (kechki nafl namozi) o'qish",
-                                                "de": "Tahajjud (Nachtgebet) verrichten",
-                                                "es": "Rezar el Tahajjud (oración nocturna)",
-                                                "fr": "Accomplir le Tahajjud (prière nocturne)",
-                                                "it": "Pregare il Tahajjud (preghiera notturna)",
-                                                "ja": "タハッジュド（夜の礼拝）を行う",
-                                                "ko": "타하주드 (밤 예배) 드리기",
-                                                "zh": "进行塔哈朱德（夜间礼拜）",
-                                                "tr": "Teheccüd namazı kıl (gece namazı)",
-                                                "hi": "तहज्जुद पढ़ें (रात की नमाज़)",
-                                                "ms": "Solat Tahajjud (solat malam)",
-                                                "id": "Salat Tahajud (salat malam)",
-                                                "th": "ละหมาดตะฮัจญุด (ละหมาดกลางคืน)"
-                                        },
-                                        "done": false
-                                },
-                                {
-                                        "names": {
-                                                "ru": "Соблюсти добровольный пост (нафль)",
-                                                "en": "Observe a voluntary fast (nafl)",
-                                                "uz": "Ixtiyoriy ro'za (nafl) tutish",
-                                                "de": "Freiwilliges Fasten (Nafl) einhalten",
-                                                "es": "Observar un ayuno voluntario (nafl)",
-                                                "fr": "Observer un jeûne surérogatoire (nafl)",
-                                                "it": "Osservare un digiuno volontario (nafl)",
-                                                "ja": "自発的な断食（ナフル）を行う",
-                                                "ko": "자발적 단식(나플) 지키기",
-                                                "zh": "保持自愿斋戒（拿夫里）",
-                                                "tr": "Nafile oruç tut",
-                                                "hi": "नफ़्ल रोज़ा रखें",
-                                                "ms": "Berpuasa sunat (nafl)",
-                                                "id": "Berpuasa sunah (nafl)",
-                                                "th": "ถือศีลอดสุนัต (นัฟล์)"
-                                        },
-                                        "done": false
-                                },
-                                {
-                                        "names": {
-                                                "ru": "Поразмышлять над одним аятом Корана",
-                                                "en": "Reflect on one verse of the Qur'an",
-                                                "uz": "Qur'ondan bir oyat haqida tafakkur qilish",
-                                                "de": "Über einen Vers des Qur'an nachdenken",
-                                                "es": "Reflexionar sobre un versículo del Corán",
-                                                "fr": "Méditer sur un verset du Coran",
-                                                "it": "Riflettere su un versetto del Corano",
-                                                "ja": "クルアーンの一節について熟考する",
-                                                "ko": "꾸란의 한 구절에 대해 묵상하기",
-                                                "zh": "思考《古兰经》中的一节经文",
-                                                "tr": "Kur'an'dan bir âyet üzerinde düşün",
-                                                "hi": "क़ुरआन की एक आयत पर विचार करें",
-                                                "ms": "Renungkan satu ayat al-Quran",
-                                                "id": "Renungkan satu ayat al-Quran",
-                                                "th": "ใคร่ครวญอายะฮ์หนึ่งของอัลกุรอาน"
-                                        },
-                                        "done": false
-                                },
-                                {
-                                        "names": {
-                                                "ru": "Послушать лекцию или хадис (не менее 10 минут)",
-                                                "en": "Listen to a lecture or hadith (at least 10 minutes)",
-                                                "uz": "Ma'ruza yoki hadis tinglash (kamida 10 daqiqa)",
-                                                "de": "Einen Vortrag oder Hadith anhören (mindestens 10 Minuten)",
-                                                "es": "Escuchar una charla o hadiz (al menos 10 minutos)",
-                                                "fr": "Écouter un cours ou un hadith (au moins 10 minutes)",
-                                                "it": "Ascoltare una lezione o un hadith (almeno 10 minuti)",
-                                                "ja": "講話やハディースを聴く（最低10分）",
-                                                "ko": "강의나 하디스 듣기 (최소 10분)",
-                                                "zh": "聆听讲座或圣训（至少10分钟）",
-                                                "tr": "Bir ders veya hadis dinle (en az 10 dakika)",
-                                                "hi": "कोई व्याख्यान या हदीस सुनें (कम से कम 10 मिनट)",
-                                                "ms": "Dengar ceramah atau hadis (sekurang-kurangnya 10 minit)",
-                                                "id": "Dengarkan ceramah atau hadis (minimal 10 menit)",
-                                                "th": "ฟังการบรรยายหรือหะดีษ (อย่างน้อย 10 นาที)"
-                                        },
-                                        "done": false
-                                },
-                                {
-                                        "names": {
-                                                "ru": "Сдержать гнев и промолчать в споре",
-                                                "en": "Hold back anger and stay silent in an argument",
-                                                "uz": "G'azabni jilovlash va bahsda jim turish",
-                                                "de": "Den Zorn zurückhalten und im Streit schweigen",
-                                                "es": "Contener la ira y callar en una discusión",
-                                                "fr": "Maîtriser sa colère et garder le silence dans une dispute",
-                                                "it": "Trattenere la rabbia e tacere in una discussione",
-                                                "ja": "怒りを抑え、口論で沈黙を守る",
-                                                "ko": "분노를 참고 다툼에서 침묵하기",
-                                                "zh": "克制愤怒，在争论中保持沉默",
-                                                "tr": "Öfkeni tut ve tartışmada sus",
-                                                "hi": "क्रोध को रोकें और बहस में चुप रहें",
-                                                "ms": "Tahan marah dan diam dalam pertengkaran",
-                                                "id": "Tahan amarah dan diam saat berdebat",
-                                                "th": "ระงับความโกรธและเงียบในการโต้เถียง"
-                                        },
-                                        "done": false
-                                }
-                        ]
-                },
-                {
-                        "names": {
-                                "ru": "Утренние и вечерние зикры",
-                                "en": "Morning & evening adhkar",
-                                "uz": "Ertalabki va kechki zikrlar",
-                                "de": "Morgen- und Abend-Adhkar",
-                                "es": "Adhkar de la mañana y la tarde",
-                                "fr": "Adhkar du matin et du soir",
-                                "it": "Adhkar del mattino e della sera",
-                                "ja": "朝と夕の祈り（アズカール）",
-                                "ko": "아침과 저녁의 아드카르",
-                                "zh": "晨昏念诵（阿兹卡）",
-                                "tr": "Sabah ve akşam zikirleri",
-                                "hi": "सुबह-शाम के अज़कार",
-                                "ms": "Zikir pagi & petang",
-                                "id": "Zikir pagi & petang",
-                                "th": "อัซการ์เช้าและเย็น"
-                        },
-                        "subfolders": [],
-                        "tasks": [
-                                {
-                                        "names": {
-                                                "ru": "Сайидул Истигфар — утром и вечером",
-                                                "en": "Sayyid al-Istighfar — morning and evening",
-                                                "uz": "Sayyidul Istig'for — ertalab va kechqurun",
-                                                "de": "Sayyid al-Istighfar — morgens und abends",
-                                                "es": "Sayyid al-Istighfar — mañana y tarde",
-                                                "fr": "Sayyid al-Istighfar — matin et soir",
-                                                "it": "Sayyid al-Istighfar — mattina e sera",
-                                                "ja": "サイイドル・イスティグファール — 朝と夕",
-                                                "ko": "사이이드 알 이스티그파르 — 아침과 저녁",
-                                                "zh": "赛义德·伊斯提格法尔 — 晨昏诵念",
-                                                "tr": "Seyyidü'l-İstiğfar — sabah ve akşam",
-                                                "hi": "सय्यिदुल-इस्तिग़फ़ार — सुबह और शाम",
-                                                "ms": "Sayyid al-Istighfar — pagi dan petang",
-                                                "id": "Sayyidul-Istigfar — pagi dan petang",
-                                                "th": "สัยยิดุลอิสติฆฟาร — เช้าและเย็น"
-                                        },
-                                        "done": false
-                                },
-                                {
-                                        "names": {
-                                                "ru": "Зикр Абу Умамы (от тревог и долгов) — утром и вечером",
-                                                "en": "Du'a of Abu Umamah (against worry and debt) — morning and evening",
-                                                "uz": "Abu Umoma duosi (g'am va qarzdan) — ertalab va kechqurun",
-                                                "de": "Bittgebet von Abu Umamah (gegen Sorgen und Schulden) — morgens und abends",
-                                                "es": "Du'a de Abu Umamah (contra la preocupación y la deuda) — mañana y tarde",
-                                                "fr": "Dou'a d'Abou Oumamah (contre l'angoisse et les dettes) — matin et soir",
-                                                "it": "Du'a di Abu Umamah (contro l'ansia e i debiti) — mattina e sera",
-                                                "ja": "アブー・ウマーマのドゥアー（不安と借金からの保護） — 朝と夕",
-                                                "ko": "아부 우마마의 두아 (근심과 빚으로부터) — 아침과 저녁",
-                                                "zh": "艾布·吴马麦的杜阿（脱离忧愁与债务） — 晨昏诵念",
-                                                "tr": "Ebû Ümâme'nin duası (kaygı ve borca karşı) — sabah ve akşam",
-                                                "hi": "अबू उमामा की दुआ (चिंता और क़र्ज़ के विरुद्ध) — सुबह और शाम",
-                                                "ms": "Doa Abu Umamah (terhadap kebimbangan dan hutang) — pagi dan petang",
-                                                "id": "Doa Abu Umamah (melawan kecemasan dan utang) — pagi dan petang",
-                                                "th": "ดุอาอ์ของอบูอุมามะฮ์ (แก้ความกังวลและหนี้สิน) — เช้าและเย็น"
-                                        },
-                                        "done": false
-                                },
-                                {
-                                        "names": {
-                                                "ru": "«Бисмилляхи лязи ля ядурру…» (3 раза утром и вечером — защита)",
-                                                "en": "\"Bismillahi lladhi la yadurru...\" (3 times morning and evening — protection)",
-                                                "uz": "«Bismillahil-laziy la yadurru…» (ertalab va kechqurun 3 marta — himoya)",
-                                                "de": "„Bismillahi lladhi la yadurru…“ (3-mal morgens und abends — Schutz)",
-                                                "es": "«Bismillahi lladhi la yadurru…» (3 veces mañana y tarde — protección)",
-                                                "fr": "« Bismillahi lladhi la yadurru… » (3 fois matin et soir — protection)",
-                                                "it": "«Bismillahi lladhi la yadurru…» (3 volte mattina e sera — protezione)",
-                                                "ja": "「ビスミッラー・ッラズィー・ラー・ヤドゥッル…」（朝夕3回 — 守護）",
-                                                "ko": "«비스밀라힐 라지 라 야두루…» (아침저녁 3번 — 보호)",
-                                                "zh": "\"奉以其名万物无害的安拉之名…\"（晨昏各3次 — 求护佑）",
-                                                "tr": "\"Bismillâhi'llezî lâ yedurru...\" (sabah ve akşam 3 kez — koruma)",
-                                                "hi": "\"बिस्मिल्लाहिल्लज़ी ला यदुर्रु...\" (सुबह-शाम 3 बार — सुरक्षा)",
-                                                "ms": "\"Bismillahilladhi la yadurru...\" (3 kali pagi dan petang — perlindungan)",
-                                                "id": "\"Bismillahilladzi la yadurru...\" (3 kali pagi dan petang — perlindungan)",
-                                                "th": "\"บิสมิลลาฮิลละซี ลายะฎุรรุ...\" (3 ครั้งเช้าและเย็น — การคุ้มครอง)"
-                                        },
-                                        "done": false
-                                },
-                                {
-                                        "names": {
-                                                "ru": "«Хасбияллаху ля иляха илля Хува» (7 раз утром и вечером)",
-                                                "en": "\"Hasbiyallahu la ilaha illa Huwa\" (7 times morning and evening)",
-                                                "uz": "«Hasbiyallohu la ilaha illa Huva» (ertalab va kechqurun 7 marta)",
-                                                "de": "„Hasbiyallahu la ilaha illa Huwa“ (7-mal morgens und abends)",
-                                                "es": "«Hasbiyallahu la ilaha illa Huwa» (7 veces mañana y tarde)",
-                                                "fr": "« Hasbiyallahou la ilaha illa Houwa » (7 fois matin et soir)",
-                                                "it": "«Hasbiyallahu la ilaha illa Huwa» (7 volte mattina e sera)",
-                                                "ja": "「ハスビヤッラーフ・ラー・イラーハ・イッラー・フワ」（朝夕7回）",
-                                                "ko": "«하스비얄라후 라 일라하 일라 후와» (아침저녁 7번)",
-                                                "zh": "\"哈斯比安拉胡，万物非主，唯有他\"（晨昏各7次）",
-                                                "tr": "\"Hasbiyallâhu lâ ilâhe illâ Hû\" (sabah ve akşam 7 kez)",
-                                                "hi": "\"हस्बियल्लाहु ला इलाहा इल्ला हुव\" (सुबह-शाम 7 बार)",
-                                                "ms": "\"Hasbiyallahu la ilaha illa Huwa\" (7 kali pagi dan petang)",
-                                                "id": "\"Hasbiyallahu la ilaha illa Huwa\" (7 kali pagi dan petang)",
-                                                "th": "\"หัสบิยัลลอฮุ ลาอิลาฮะอิลลาฮุวะ\" (7 ครั้งเช้าและเย็น)"
-                                        },
-                                        "done": false
-                                },
-                                {
-                                        "names": {
-                                                "ru": "«А'узу би калимятилляхит-таммати мин шарри ма халяк» (3 раза вечером)",
-                                                "en": "\"A'udhu bi-kalimatillahi t-tammati min sharri ma khalaq\" (3 times in the evening)",
-                                                "uz": "«A'uzu bi-kalimatillahit-tammati min sharri ma xalaq» (kechqurun 3 marta)",
-                                                "de": "„A'udhu bi-kalimatillahi t-tammati min sharri ma khalaq“ (3-mal abends)",
-                                                "es": "«A'udhu bi-kalimatillahi t-tammati min sharri ma khalaq» (3 veces por la tarde)",
-                                                "fr": "« A'oudhou bi-kalimatillahi t-tammati min charri ma khalaq » (3 fois le soir)",
-                                                "it": "«A'udhu bi-kalimatillahi t-tammati min sharri ma khalaq» (3 volte la sera)",
-                                                "ja": "「アウーズ・ビ・カリマーティッラーヒッ＝ターンマ…」（夕方3回）",
-                                                "ko": "«아우주 비 칼리마틸라힛 탐마티 민 샤르리 마 칼라크» (저녁 3번)",
-                                                "zh": "\"我借安拉至善的言辞，求免于他所造之物的恶\"（夜晚3次）",
-                                                "tr": "\"Eûzü bi-kelimâtillâhi't-tâmmâti min şerri mâ halak\" (akşam 3 kez)",
-                                                "hi": "\"अऊज़ु बि-कलिमातिल्लाहित-ताम्माति मिन शर्रि मा ख़लक़\" (शाम को 3 बार)",
-                                                "ms": "\"A'udhu bi-kalimatillahi t-tammati min sharri ma khalaq\" (3 kali pada waktu petang)",
-                                                "id": "\"A'udzu bi-kalimatillahi t-tammati min syarri ma khalaq\" (3 kali pada waktu petang)",
-                                                "th": "\"อะอูซุ บิกะลิมาติลลาฮิตตามมาติ มินชัรริ มาเคาะลัก\" (3 ครั้งในเวลาเย็น)"
-                                        },
-                                        "done": false
-                                }
-                        ]
-                }
-        ];
+        // Данные лежат в data/checklist-defaults.js и скачиваются только когда нужны
+        // (этап 3 оптимизации): первый запуск, удаление последнего списка, или
+        // один раз после обновления данных — дозаполнить переводы стандартных задач.
+        let CL_DEFAULT_FOLDERS = null;
+        const CL_DEFAULTS_FLAG = 'azkar_cl_defaults_v';
+        function loadClDefaults() {
+            if (CL_DEFAULT_FOLDERS) return Promise.resolve(CL_DEFAULT_FOLDERS);
+            return loadDataScript('data/checklist-defaults.js').then(() => {
+                if (Array.isArray(window.AZKAR_CL_DEFAULT_FOLDERS)) CL_DEFAULT_FOLDERS = window.AZKAR_CL_DEFAULT_FOLDERS;
+                return CL_DEFAULT_FOLDERS;
+            });
+        }
+        function _clDefaultFoldersCopy() {
+            return JSON.parse(JSON.stringify(CL_DEFAULT_FOLDERS || []));
+        }
 
         const CL_DAY_KEY = 'azkar_checklist_day_key';
 
@@ -18580,22 +17656,11 @@
             return false;
         }
 
-        function loadChecklist() {
-            // Новый формат — СПИСКИ (страницы) в azkar_checklist_lists_v5.
-            // Если его нет — мигрируем из старого azkar_checklist_v4 (или сеем
-            // дефолт) в список по умолчанию «Ежедневные». Старый ключ v4 НЕ
-            // удаляем — он остаётся как страховка и для импорта старых бэкапов.
-            let migrated = false;
-            let parsed = null;
-            try { const raw = localStorage.getItem(CL_LISTS_KEY); if (raw) parsed = JSON.parse(raw); } catch(e) { parsed = null; }
-            if (parsed && Array.isArray(parsed.lists) && parsed.lists.length) {
-                checklistLists = parsed.lists;
-                activeChecklistListId = parsed.activeId || (checklistLists[0] && checklistLists[0].id) || null;
-                // Backfill new-language names onto the built-in default «Ежедневные»
-                // list (and its preset folders/tasks) for users created before
-                // those languages existed. Matches by English name so renamed
-                // items are never touched.
-                (function backfillDefaultNames() {
+        // Добавляет переводы стандартным спискам/папкам/задачам пользователя
+        // (для тех, кто начал пользоваться до появления новых языков).
+        // Сопоставление по английскому названию — переименованное не трогается.
+        function _clBackfillDefaultNames() {
+            if (!CL_DEFAULT_FOLDERS) return;
                     const nameLookup = {};
                     (CL_DEFAULT_FOLDERS || []).forEach(f => {
                         if (f.names && f.names.en) nameLookup[f.names.en] = f.names;
@@ -18620,11 +17685,65 @@
                             (f.subfolders || []).forEach(sf => { fill(sf); (sf.tasks || []).forEach(fill); });
                         });
                     });
-                })();
+        }
+
+        function loadChecklist() {
+            // Новый формат — СПИСКИ (страницы) в azkar_checklist_lists_v5.
+            // Если его нет — мигрируем из старого azkar_checklist_v4 (или сеем
+            // дефолт) в список по умолчанию «Ежедневные». Старый ключ v4 НЕ
+            // удаляем — он остаётся как страховка и для импорта старых бэкапов.
+            let migrated = false;
+            let parsed = null;
+            try { const raw = localStorage.getItem(CL_LISTS_KEY); if (raw) parsed = JSON.parse(raw); } catch(e) { parsed = null; }
+            if (parsed && Array.isArray(parsed.lists) && parsed.lists.length) {
+                checklistLists = parsed.lists;
+                activeChecklistListId = parsed.activeId || (checklistLists[0] && checklistLists[0].id) || null;
+                // Backfill new-language names onto the built-in default «Ежедневные»
+                // list (and its preset folders/tasks) for users created before
+                // those languages existed. Matches by English name so renamed
+                // items are never touched.
+                // Дозаполнение нужно один раз на версию данных (или после импорта).
+                let needBackfill = true;
+                try { needBackfill = localStorage.getItem(CL_DEFAULTS_FLAG) !== DATA_VERSION; } catch (e) {}
+                if (needBackfill && !CL_DEFAULT_FOLDERS) {
+                    loadClDefaults().then(f => {
+                        if (!f) return;
+                        _clBackfillDefaultNames();
+                        saveChecklist();
+                        try { localStorage.setItem(CL_DEFAULTS_FLAG, DATA_VERSION); } catch (e) {}
+                        renderChecklistFolders();
+                        updateChecklistUI();
+                        updateChecklistListUI();
+                    });
+                } else if (needBackfill) {
+                    _clBackfillDefaultNames();
+                    try { localStorage.setItem(CL_DEFAULTS_FLAG, DATA_VERSION); } catch (e) {}
+                }
             } else {
                 let folders = null;
                 try { const v4 = localStorage.getItem('azkar_checklist_v4'); if (v4) folders = JSON.parse(v4); } catch(e) { folders = null; }
-                if (!Array.isArray(folders)) folders = JSON.parse(JSON.stringify(CL_DEFAULT_FOLDERS));
+                if (!Array.isArray(folders)) {
+                    if (!CL_DEFAULT_FOLDERS) {
+                        // Первый запуск: стандартные задачи ещё не скачаны.
+                        // Скачиваем и повторяем loadChecklist (обычно доли секунды).
+                        // Пустой список НЕ сохраняем — иначе стандартные задачи потерялись бы.
+                        checklistLists = [];
+                        activeChecklistListId = null;
+                        checklistFolders = [];
+                        loadClDefaults().then(f => {
+                            if (checklistLists.length) return; // уже что-то создано/импортировано
+                            if (!f) CL_DEFAULT_FOLDERS = []; // нет сети — создаём пустой список
+                            loadChecklist();
+                        });
+                        renderChecklistFolders();
+                        updateChecklistUI();
+                        updateChecklistListUI();
+                        return;
+                    }
+                    folders = _clDefaultFoldersCopy();
+                    // Свежие стандартные задачи уже содержат все переводы.
+                    try { localStorage.setItem(CL_DEFAULTS_FLAG, DATA_VERSION); } catch (e) {}
+                }
                 const id = _genListId();
                 checklistLists = [{ id: id, names: { ...CL_DEFAULT_LIST_NAMES }, folders: folders }];
                 activeChecklistListId = id;
@@ -18795,8 +17914,22 @@
             if (checklistLists.length === 0) {
                 // не оставляем пользователя без списков — пересоздаём дефолтный
                 const nid = _genListId();
-                checklistLists = [{ id: nid, names: { ...CL_DEFAULT_LIST_NAMES }, folders: JSON.parse(JSON.stringify(CL_DEFAULT_FOLDERS)) }];
+                checklistLists = [{ id: nid, names: { ...CL_DEFAULT_LIST_NAMES }, folders: _clDefaultFoldersCopy() }];
                 activeChecklistListId = nid;
+                if (!CL_DEFAULT_FOLDERS) {
+                    // Стандартные задачи ещё не скачаны — заполним, как только придут.
+                    loadClDefaults().then(f => {
+                        const l = checklistLists.find(x => x.id === nid);
+                        if (!f || !l || (l.folders && l.folders.length)) return;
+                        l.folders = _clDefaultFoldersCopy();
+                        if (activeChecklistListId === nid) checklistFolders = l.folders;
+                        normalizeChecklistData();
+                        saveChecklist();
+                        renderChecklistFolders();
+                        updateChecklistUI();
+                        updateChecklistListUI();
+                    });
+                }
             } else if (wasActive) {
                 activeChecklistListId = checklistLists[Math.max(0, idx - 1)].id;
             }
@@ -20331,11 +19464,6 @@
             // -------- Localized prayer names --------
             const PRAYER_I18N = UI_I18N.prayers || {};
 
-            PRAYER_I18N.tr = Object.assign({}, PRAYER_I18N.en, { fajr: "İmsak", sunrise: "Güneş", dhuhr: "Öğle", asr: "İkindi", maghrib: "Akşam", isha: "Yatsı", title: "Namaz vakitleri", today: "Bugün", next: "Sıradaki", passed: "geçti", enableTitle: "Namaz vakitlerini göster", enableText: "Şehrin için tam vakitleri hesaplamak için konum erişimine izin ver.", enableBtn: "Konuma izin ver", perm_title: "Konuma izin ver", perm_text: "Konum yalnızca iki özellik için kullanılır. Cihazından asla çıkmaz.", perm_b1: "5 vakit namaz için doğru saatler", perm_b2: "Kâbe'ye doğru kıble yönü", perm_allow: "İzin ver", perm_skip: "Şimdi değil", tomorrowFajr: "Yarın" });
-            PRAYER_I18N.hi = Object.assign({}, PRAYER_I18N.en, { fajr: "फ़ज्र", sunrise: "सूर्योदय", dhuhr: "ज़ुहर", asr: "अस्र", maghrib: "मग़रिब", isha: "इशा", title: "नमाज़ के समय", today: "आज", next: "अगला", passed: "बीत गया", enableTitle: "नमाज़ के समय दिखाएँ", enableText: "अपने शहर के सटीक समय की गणना के लिए स्थान की अनुमति दें।", enableBtn: "स्थान की अनुमति दें", perm_title: "स्थान की अनुमति दें", perm_text: "स्थान केवल दो सुविधाओं के लिए उपयोग होता है। यह आपके डिवाइस से कभी बाहर नहीं जाता।", perm_b1: "5 दैनिक नमाज़ों के सटीक समय", perm_b2: "काबा की ओर सटीक क़िबला दिशा", perm_allow: "अनुमति दें", perm_skip: "अभी नहीं", tomorrowFajr: "कल" });
-            PRAYER_I18N.ms = Object.assign({}, PRAYER_I18N.en, { fajr: "Subuh", sunrise: "Syuruk", dhuhr: "Zohor", asr: "Asar", maghrib: "Maghrib", isha: "Isyak", title: "Waktu solat", today: "Hari ini", next: "Seterusnya", passed: "berlalu", enableTitle: "Tunjukkan waktu solat", enableText: "Benarkan akses lokasi untuk mengira waktu tepat bagi bandar anda.", enableBtn: "Benarkan lokasi", perm_title: "Benarkan lokasi", perm_text: "Lokasi hanya digunakan untuk dua ciri. Ia tidak pernah keluar dari peranti anda.", perm_b1: "Waktu tepat untuk 5 waktu solat", perm_b2: "Arah kiblat tepat ke Kaabah", perm_allow: "Benarkan", perm_skip: "Bukan sekarang", tomorrowFajr: "Esok" });
-            PRAYER_I18N.id = Object.assign({}, PRAYER_I18N.en, { fajr: "Subuh", sunrise: "Terbit", dhuhr: "Zuhur", asr: "Asar", maghrib: "Magrib", isha: "Isya", title: "Waktu salat", today: "Hari ini", next: "Berikutnya", passed: "lewat", enableTitle: "Tampilkan waktu salat", enableText: "Izinkan akses lokasi untuk menghitung waktu tepat bagi kotamu.", enableBtn: "Izinkan lokasi", perm_title: "Izinkan lokasi", perm_text: "Lokasi hanya digunakan untuk dua fitur. Tidak pernah keluar dari perangkatmu.", perm_b1: "Waktu tepat untuk 5 salat harian", perm_b2: "Arah kiblat tepat ke Ka'bah", perm_allow: "Izinkan", perm_skip: "Nanti saja", tomorrowFajr: "Besok" });
-            PRAYER_I18N.th = Object.assign({}, PRAYER_I18N.en, { fajr: "ฟัจร์", sunrise: "พระอาทิตย์ขึ้น", dhuhr: "ซุฮร์", asr: "อัศร์", maghrib: "มัฆริบ", isha: "อิชาอ์", title: "เวลาละหมาด", today: "วันนี้", next: "ถัดไป", passed: "ผ่านไปแล้ว", enableTitle: "แสดงเวลาละหมาด", enableText: "อนุญาตการเข้าถึงตำแหน่งเพื่อคำนวณเวลาที่แม่นยำสำหรับเมืองของคุณ", enableBtn: "อนุญาตตำแหน่ง", perm_title: "อนุญาตตำแหน่ง", perm_text: "ตำแหน่งใช้เพียงสองฟีเจอร์เท่านั้น และไม่เคยออกจากอุปกรณ์ของคุณ", perm_b1: "เวลาที่แม่นยำสำหรับละหมาด 5 เวลา", perm_b2: "ทิศกิบลัตที่แม่นยำสู่กะอ์บะฮ์", perm_allow: "อนุญาต", perm_skip: "ไว้ทีหลัง", tomorrowFajr: "พรุ่งนี้" });
             function L() {
                 const lang = (typeof currentLang !== 'undefined' ? currentLang : 'en');
                 return PRAYER_I18N[lang] || PRAYER_I18N.en || PRAYER_I18N.ru;
@@ -21168,10 +20296,10 @@
                 if (elRing) elRing.classList.remove('ring-active');
                 if (elRingCircle) elRingCircle.style.strokeDashoffset = RING_FULL;
 
-                elAchievementTitle.textContent = opts.title || 'Ма шаа Аллах!';
+                elAchievementTitle.textContent = opts.title || t('completionTitle');
                 elAchievementName.textContent = opts.name || '';
                 elAchievementName.style.display = opts.name ? 'block' : 'none';
-                elAchievementSub.textContent = opts.sub || 'Цель достигнута';
+                elAchievementSub.textContent = opts.sub || t('completionSub');
                 _achievementOnTap = opts.onTap || null;
                 _achievementActive = true;
                 overlay.classList.add('achievement');
@@ -21231,7 +20359,7 @@
                 // Пре-подсказка выхода видна уже во время отсчёта (до затемнения),
                 // ярким текстом цвета темы. Позиционируется ВЫШЕ кнопок цели с тем же
                 // отступом, что и между кнопками цели и навбаром (см. positionPreHint).
-                if (elPreHint) elPreHint.textContent = (typeof t === 'function' && t('stealthHint')) || 'удержите для выхода';
+                if (elPreHint) elPreHint.textContent = t('stealthHint');
                 positionPreHint(screenId);
                 // Повторяем после того, как анимация появления экрана (translateY)
                 // завершится, чтобы координаты были точными.
@@ -21255,7 +20383,7 @@
                         elCountdown.classList.add('hidden');
                         overlay.classList.add('counting');
                         updateCountDisplay();
-                        elHint.textContent = (typeof t === 'function' && t('stealthHint')) || 'удержите для выхода';
+                        elHint.textContent = t('stealthHint');
                         acquireWakeLock();
                     }
                 }, 1000);
@@ -21549,6 +20677,7 @@
                             if (typeof loadCustomSpecialDhikrs === 'function') loadCustomSpecialDhikrs();
                             lastActiveSpecialId = localStorage.getItem('azkar_last_special_id') || null;
                         } catch(e1) {}
+                        _invalidateDefaultsSync();
                         try { if (typeof loadChecklist === 'function') loadChecklist(); } catch(e4) {}
                         if (typeof applyTheme === 'function') applyTheme(settings.theme || 'dark');
                         if (typeof applyLanguage === 'function') applyLanguage(currentLang);
@@ -21668,7 +20797,7 @@
         // ===== BACKUP MODAL =====
         function openBackupModal() {
             const L = i18n[currentLang] || i18n['en'] || i18n['ru'];
-            document.getElementById('backupModalTitle').textContent = L.backupTitle || 'Резервные копии';
+            document.getElementById('backupModalTitle').textContent = t('backupTitle');
             document.getElementById('backupModalOverlay').classList.add('show');
             _renderBackupList();
         }
@@ -21707,7 +20836,7 @@
             const L = i18n[currentLang] || i18n['en'] || i18n['ru'];
             window.getAllBackups(function(list) {
                 const container = document.getElementById('backupList');
-                container.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:0.9rem;padding:20px 0;" id="backupEmptyMsg"' + (list.length ? ' hidden' : '') + '>' + (L.backupEmpty || 'Нет сохранённых копий') + '</div>';
+                container.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:0.9rem;padding:20px 0;" id="backupEmptyMsg"' + (list.length ? ' hidden' : '') + '>' + t('backupEmpty') + '</div>';
                 if (!list.length) return;
                 list.forEach(function(item) {
                     const row = document.createElement('div');
@@ -21726,7 +20855,7 @@
                     const delBtn = document.createElement('button');
                     delBtn.style.cssText = 'flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:none;color:var(--text-dim);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;line-height:1;';
                     delBtn.textContent = '×';
-                    delBtn.title = 'Удалить';
+                    delBtn.title = t('titleDelete');
                     delBtn.onclick = function(e) {
                         e.stopPropagation();
                         const key = item._idbKey !== undefined ? item._idbKey : (item.id !== undefined ? item.id : item.savedAt);
@@ -21746,8 +20875,8 @@
             const L = i18n[currentLang] || i18n['en'] || i18n['ru'];
             const tt = document.getElementById('deleteBackupTitle');
             const ss = document.getElementById('deleteBackupSub');
-            if (tt) tt.textContent = L.backupDelete || 'Удалить эту копию?';
-            if (ss) ss.textContent = L.backupDeleteSub || 'Это действие нельзя отменить';
+            if (tt) tt.textContent = t('backupDelete');
+            if (ss) ss.textContent = t('backupDeleteSub');
             document.getElementById('deleteBackupOverlay').classList.add('show');
         }
         function cancelDeleteBackup() {
@@ -21769,8 +20898,8 @@
             const L = i18n[currentLang] || i18n['en'] || i18n['ru'];
             const tt = document.getElementById('restoreBackupTitle');
             const ss = document.getElementById('restoreBackupSub');
-            if (tt) tt.textContent = L.backupRestoreTitle || 'Восстановить эту копию?';
-            if (ss) ss.textContent = L.backupRestoreSub || 'Текущие данные будут заменены';
+            if (tt) tt.textContent = t('backupRestoreTitle');
+            if (ss) ss.textContent = t('backupRestoreSub');
             document.getElementById('restoreBackupOverlay').classList.add('show');
         }
         function cancelRestoreBackup() {
