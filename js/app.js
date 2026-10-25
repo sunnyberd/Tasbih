@@ -10,7 +10,7 @@
         // ==================== ЛЕНИВАЯ ЗАГРУЗКА ДАННЫХ (этап 3) ====================
         // DATA_VERSION повышать при любой правке файлов data/ и allah-names.js
         // (вместе с CACHE_NAME в sw.js) — иначе телефон возьмёт старую копию из кэша.
-        const DATA_VERSION = '105';
+        const DATA_VERSION = '109';
         const _dataScripts = {};
         function loadDataScript(src) {
             if (_dataScripts[src]) return _dataScripts[src];
@@ -44,11 +44,41 @@
         // первое создание папки «99 имён» или смена языка.
         let names99 = null;
         const NAMES99_SYNC_FLAG = 'azkar_names99_synced';
-        function loadNames99() {
-            if (names99) return Promise.resolve(names99);
-            return loadDataScript('allah-names.js').then(() => {
+        // ru / en / uz лежат прямо в allah-names.js. Для остальных языков —
+        // отдельный файл data/names99/<язык>.js (значение, описание, чтение),
+        // который скачивается только для выбранного языка и вливается в names99.
+        const NAMES99_BASE_LANGS = ['ru', 'en', 'uz'];
+        const _names99LangState = {};   // язык → 'ok' | 'failed'
+        function _names99NeedsLangFile(lang) { return NAMES99_BASE_LANGS.indexOf(lang) < 0; }
+        function _mergeNames99Lang(lang) {
+            const extra = window.AZKAR_NAMES_99_I18N && window.AZKAR_NAMES_99_I18N[lang];
+            if (!Array.isArray(extra) || !Array.isArray(names99)) return false;
+            names99.forEach((n, i) => {
+                const e = extra[i];
+                if (!e) return;
+                n[lang] = e[0];
+                n['desc_' + lang] = e[1];
+                if (e[2]) n['translit_' + lang] = e[2];
+            });
+            return true;
+        }
+        function names99Ready(lang) {
+            return Array.isArray(names99) && (!_names99NeedsLangFile(lang) || !!_names99LangState[lang]);
+        }
+        function loadNames99(lang) {
+            lang = lang || currentLang;
+            const base = names99 ? Promise.resolve(names99) : loadDataScript('allah-names.js').then(() => {
                 if (Array.isArray(window.AZKAR_NAMES_99)) names99 = window.AZKAR_NAMES_99;
                 return names99;
+            });
+            return base.then(list => {
+                if (!list || !_names99NeedsLangFile(lang) || _names99LangState[lang]) return list;
+                return loadDataScript('data/names99/' + lang + '.js').then(() => {
+                    // Не скачался (нет сети) — помечаем, чтобы не повторять по кругу;
+                    // покажется английский текст, как раньше.
+                    _names99LangState[lang] = _mergeNames99Lang(lang) ? 'ok' : 'failed';
+                    return list;
+                });
             });
         }
 
@@ -692,11 +722,15 @@
                 // Manual add zikr modal
                 manualAddTitle: 'manualAddTitle',
                 btnCancelManualAdd: 'btnCancel',
+                specialAchieveHint: 'tapToContinue',
             };
             for (let [id, key] of Object.entries(els)) {
                 let el = document.getElementById(id);
                 if (el) el.innerText = t(key);
             }
+            // Подписи для экранного диктора (aria-label) и единица таймера зикра
+            document.querySelectorAll('[data-i18n-aria]').forEach(el => el.setAttribute('aria-label', t(el.dataset.i18nAria)));
+            document.querySelectorAll('.zikr-timer-unit').forEach(el => { el.textContent = t('unitSeconds'); });
             // Placeholders that need to follow the active language
             const _addFolderInput = document.getElementById('addFolderInput');
             if (_addFolderInput) _addFolderInput.placeholder = t('placeholderFolderName');
@@ -4092,8 +4126,8 @@
                 if (localStorage.getItem(NAMES99_DELETED_KEY) === '1') return;
             } catch (e) {}
             // Данные ещё не скачаны — скачиваем и повторяем (папка появится сама).
-            if (!Array.isArray(names99)) {
-                loadNames99().then(list => { if (Array.isArray(list) && list.length) ensureNames99DuaFolder(); });
+            if (!names99Ready(currentLang)) {
+                loadNames99().then(list => { if (Array.isArray(list) && list.length && names99Ready(currentLang)) ensureNames99DuaFolder(); });
                 return;
             }
             if (names99.length === 0) return;
@@ -4144,7 +4178,7 @@
             const syncKey = currentLang + '|' + DATA_VERSION;
             const trustFlag = _names99TrustSyncFlag;
             _names99TrustSyncFlag = false;
-            if (!Array.isArray(names99)) {
+            if (!names99Ready(currentLang)) {
                 let alreadySynced = false;
                 try { alreadySynced = trustFlag && localStorage.getItem(NAMES99_SYNC_FLAG) === syncKey; } catch (e) {}
                 const hasNames = duas.some(d => d && d.builtin === 'name99');
@@ -4153,8 +4187,8 @@
                     return;
                 }
                 const langAtCall = currentLang;
-                loadNames99().then(list => {
-                    if (!Array.isArray(list) || currentLang !== langAtCall) return;
+                loadNames99(langAtCall).then(list => {
+                    if (!Array.isArray(list) || currentLang !== langAtCall || !names99Ready(langAtCall)) return;
                     _syncNames99FolderLanguage();
                     // Перерисовать открытый раздел сразу, скрытые — при открытии.
                     if (_isScreenActive('screen-dua')) { renderDuaFolders(); renderDuas(); _dirty.dua = false; _dirty.duaFolders = false; }
