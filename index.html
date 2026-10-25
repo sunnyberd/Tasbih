@@ -7677,7 +7677,8 @@
                   <path d="M2 6.5C2 5.4 2.9 4.5 4 4.5H10.5C11.3 4.5 12 5.2 12 6V19C12 19 10 18.5 8 18.5H4C2.9 18.5 2 17.6 2 16.5V6.5Z"/>
                   <path d="M22 6.5C22 5.4 21.1 4.5 20 4.5H13.5C12.7 4.5 12 5.2 12 6V19C12 19 14 18.5 16 18.5H20C21.1 18.5 22 17.6 22 16.5V6.5Z"/>
                   <line x1="12" y1="6" x2="12" y2="19" stroke-width="1"/>
-                  <path d="M6 8H9M6 11H9M6 14H8" stroke-width="1.2" opacity="0.7"/>
+                  <path d="M6 8H9M6 11H9M6 14H9" stroke-width="1.2" opacity="0.7"/>
+                  <path d="M15 8H18M15 11H18M15 14H18" stroke-width="1.2" opacity="0.7"/>
                 </svg></div>
                 <span class="nav-label" id="navDua">Дуа</span>
             </div>
@@ -16692,7 +16693,7 @@
         const HADITH_OVERDUE_DELAY_MS = 3000;     // если время прошло, пока приложение было закрыто
 
         // Время следующего хадиса хранится в localStorage: так оно переживает
-        // перезапуск приложения, и в каждом окне 2–4 часа хадис приходит ровно один раз.
+        // перезапуск приложения, и в каждом окне 3–6 часа хадис приходит ровно один раз.
         function _hadithReadNext() {
             try { const v = parseInt(localStorage.getItem(HADITH_NEXT_KEY) || '0', 10); return isNaN(v) ? 0 : v; }
             catch (e) { return 0; }
@@ -16706,7 +16707,7 @@
             _hadithWriteNext(ts);
             return ts;
         }
-        // Показать хадис и начать новое окно 2–4 часа.
+        // Показать хадис и начать новое окно 3–6 часа.
         function _hadithFireAndReschedule() {
             _hadithTimer = null;
             _hadithWriteNext(0);
@@ -16760,7 +16761,7 @@
         }
 
         // Передаёт расписание хадисов в Service Worker. SW показывает случайный
-        // хадис раз в 2–4 часа: если приложение открыто — присылает сообщение и
+        // хадис раз в 3–6 часа: если приложение открыто — присылает сообщение и
         // мы рисуем баннер; если свёрнуто/закрыто (и SW ещё жив) — системное
         // уведомление. Возвращает true, если SW взял расписание на себя.
         function sendHadithScheduleToSW(delayMs) {
@@ -16776,7 +16777,7 @@
                         title: (typeof t === 'function') ? t('hadithLabel') : 'Хадис',
                         minMs: HADITH_MIN_MS,
                         maxMs: HADITH_MAX_MS,
-                        // первый показ SW — ровно в сохранённое время, дальше он сам берёт 2–4 ч
+                        // первый показ SW — ровно в сохранённое время, дальше он сам берёт 3–6 ч
                         firstDelayMs: delayMs || 0,
                         icon: 'icon-192.png',
                         badge: 'icon-192.png'
@@ -16821,7 +16822,7 @@
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.addEventListener('message', event => {
                 if (event.data?.type === 'HADITH_NOTIFIED' && hadithOn()) {
-                    // SW сам показал системное уведомление — начинаем новое окно 2–4 ч
+                    // SW сам показал системное уведомление — начинаем новое окно 3–6 ч
                     _hadithWriteNext(0);
                     scheduleHadith();
                     return;
@@ -17076,6 +17077,10 @@
         const _notifFired = new Set();
         // Дуа Абу Умамы приходит не в сам момент намаза, а спустя это время.
         const UMAMA_DELAY_MS = 15 * 60 * 1000;
+        // Если таймер страницы «проспал» (экран выключен, вкладка была в фоне),
+        // событие всё равно показываем — но только если опоздали не больше чем на
+        // полчаса, чтобы не вываливать старые намазы при возврате в приложение.
+        const NOTIF_MISSED_WINDOW_MS = 30 * 60 * 1000;
         function _pad2(n) { return String(n).padStart(2, '0'); }
         // ----- Напоминание о зикре: два раза в день, ~12:00 и ~22:00 со случайным разбросом ±30 минут -----
         // Разброс «случайный», но стабильный в пределах дня (считается из даты), чтобы пересчёты
@@ -17169,9 +17174,20 @@
             const now = Date.now();
             let list = [];
             try { list = buildNotifEvents(); } catch (e) {}
-            list.filter(e => e.ts <= now + 1500 && e.ts > now - 90000 && !_notifFired.has(e.tag))
+            list.filter(e => e.ts <= now + 1500 && e.ts > now - NOTIF_MISSED_WINDOW_MS && !_notifFired.has(e.tag))
                 .forEach(e => { _notifFired.add(e.tag); _notifDeliver(e); });
             scheduleNotifEvents();
+        }
+
+        // Догоняем события, которые наступили, пока таймеры страницы были
+        // заморожены (свёрнутое приложение, выключенный экран). Вызывается при
+        // возврате в приложение: иначе событие просто терялось.
+        function _notifDeliverMissed() {
+            const now = Date.now();
+            let list = [];
+            try { list = buildNotifEvents(); } catch (e) { return; }
+            list.filter(e => e.ts <= now && e.ts > now - NOTIF_MISSED_WINDOW_MS && !_notifFired.has(e.tag))
+                .forEach(e => { _notifFired.add(e.tag); _notifDeliver(e); });
         }
 
         function _notifDeliver(ev) {
@@ -17209,7 +17225,9 @@
             _hadithBannerTimer = setTimeout(() => hideHadithBanner({ pin: true }), 7000);
         }
 
-        document.addEventListener('visibilitychange', () => { if (!document.hidden) scheduleNotifEvents(); });
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) { _notifDeliverMissed(); scheduleNotifEvents(); }
+        });
         setInterval(() => { if (!document.hidden) scheduleNotifEvents(); }, 5 * 60 * 1000);
         setTimeout(scheduleNotifEvents, 1500);
         setTimeout(scheduleNotifEvents, 6000);
@@ -21951,6 +21969,11 @@
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.addEventListener('message', e => {
             if (e.data && e.data.type === 'OPEN_HADITH_POPUP') openHadithPopupRaw(e.data.text, e.data.source || '');
+            // SW уже показал эти события системным уведомлением — помечаем их,
+            // чтобы при возврате в приложение не показать баннер повторно.
+            if (e.data && e.data.type === 'NOTIF_EVENTS_SHOWN' && Array.isArray(e.data.tags)) {
+                try { e.data.tags.forEach(t => _notifFired.add(t)); } catch (err) {}
+            }
         });
     }
 })();

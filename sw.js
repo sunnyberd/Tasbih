@@ -4,9 +4,9 @@
 // v70 — дуа Абу Умамы: Фаджр и Аср (через 15 минут после намаза), новые тексты и иконка.
 // v69 — добавлены уведомления времён намазов и зикра Абу Умамы
 // (SCHEDULE_EVENTS / CANCEL_EVENTS — список событий с точным временем от страницы).
-// v68 — хадисы раз в 2–4 часа (тестовая минута убрана); страница
+// v68 — хадисы раз в 3–6 часа (тестовая минута убрана); страница
 // присылает SW точное время первого показа (firstDelayMs), дальше SW сам берёт
-// случайный интервал 2–4 ч; после системного уведомления SW сообщает странице
+// случайный интервал 3–6 ч; после системного уведомления SW сообщает странице
 // (HADITH_NOTIFIED), чтобы та начала новое окно; в настройках снова есть
 // переключатель хадисов.
 // Бампать CACHE_NAME при каждом релизе → activate-handler выкинет старый кэш.
@@ -14,10 +14,8 @@
 // v93 — 99 имён без арабского текста: название, значение, описание; новая иконка задач.
 // v92 — 99 имён Аллаха переехали в папку раздела «Дуа»; «Избранное» — свайп
 // из «Дуа»; «Задачи» вынесены в нижнюю навигацию вместо «Избранного».
-// v98 — в hadiths.js добавлены точные номера всех хадисов (по нумерации
-// sunnah.com); текст «الجنة تحت أقدام الأمهات» заменён достоверным
-// «الزمها فإن الجنة تحت رجليها» (ан-Насаи, 3104).
-const CACHE_NAME = 'azkar-v98';
+// v102 — иконка «Дуа» в навбаре: три равные полоски на обеих страницах книги.
+const CACHE_NAME = 'azkar-v102';
 
 // v90 — хадис, показанный в баннере и не открытый, остаётся в шторке уведомлений;
 // тап по такому уведомлению открывает попап с этим хадисом; тестовый интервал 1 мин.
@@ -35,7 +33,7 @@ self.addEventListener('activate', (event) => {
 });
 
 // ===== HADITH RANDOM NOTIFICATIONS =====
-// Случайный показ хадиса раз в 2–4 часа. Если приложение открыто — шлём
+// Случайный показ хадиса раз в 3–6 часа. Если приложение открыто — шлём
 // сообщение странице (баннер). Если свёрнуто/закрыто и SW ещё жив — системное
 // уведомление. ВАЖНО (PWA): когда приложение полностью закрыто надолго, ОС
 // может усыпить SW, поэтому фоновые уведомления — «по возможности», без гарантии.
@@ -51,8 +49,8 @@ function scheduleHadith(cfg, firstDelayMs) {
     if (cfg) _hadithCfg = cfg;
     const c = _hadithCfg;
     if (!c || !Array.isArray(c.items) || !c.items.length) return;
-    const min = c.minMs || (2 * 60 * 60 * 1000);
-    const max = c.maxMs || (4 * 60 * 60 * 1000);
+    const min = c.minMs || (3 * 60 * 60 * 1000);
+    const max = c.maxMs || (6 * 60 * 60 * 1000);
     let delay = min + Math.floor(Math.random() * Math.max(1, max - min));
     // Первый показ — ровно в то время, которое сохранила страница (если прислала)
     if (typeof firstDelayMs === 'number' && firstDelayMs > 0) delay = firstDelayMs;
@@ -83,7 +81,7 @@ function fireHadith() {
                 clients.forEach(cl => cl.postMessage({ type: 'HADITH_NOTIFIED' }));
             }).catch(() => {});
         }
-        scheduleHadith(); // перепланируем следующий случайный интервал 2–4 ч
+        scheduleHadith(); // перепланируем следующий случайный интервал 3–6 ч
     }).catch(() => { scheduleHadith(); });
 }
 
@@ -153,10 +151,12 @@ function fireDueEvents() {
     if (!due.length) { armNextEvent(); return; }
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
         const visible = clients.some(cl => cl.visibilityState === 'visible');
+        const shownTags = [];
         due.forEach(ev => {
             if (_evFiredTags.has(ev.tag)) return;
             _evFiredTags.add(ev.tag);
             if (visible) return; // страница сама покажет баннер
+            shownTags.push(ev.tag);
             self.registration.showNotification(ev.title, {
                 body: ev.body,
                 icon: _evCfg.icon,
@@ -167,6 +167,11 @@ function fireDueEvents() {
                 data: { url: self.registration.scope }
             }).catch(() => {});
         });
+        // Сообщаем открытой странице, какие события уже показаны. Иначе при
+        // возврате в приложение она показала бы их повторно как «пропущенные».
+        if (shownTags.length) {
+            clients.forEach(cl => cl.postMessage({ type: 'NOTIF_EVENTS_SHOWN', tags: shownTags }));
+        }
         armNextEvent();
     }).catch(() => { armNextEvent(); });
 }
