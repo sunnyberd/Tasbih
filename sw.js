@@ -24,14 +24,20 @@
 // v105 — ЭТАП 3: контент вынесен из index.html. data/special-dhikrs.js грузится
 // сразу; data/checklist-defaults.js и allah-names.js — только когда нужны.
 // DATA_VERSION совпадает с DATA_VERSION в index.html — менять вместе.
-const CACHE_NAME = 'azkar-v105';
+// v106 — ЭТАП 4: основной код вынесен в js/app.js, страница отзывов — в js/feedback.js
+// (фоновая компиляция + кэш байткода); скрытые экраны не рендерятся при запуске.
+// APP_VERSION совпадает с ?v= у js/*.js в index.html — менять вместе.
+const CACHE_NAME = 'azkar-v106';
 const I18N_VERSION = '104';
 const DATA_VERSION = '105';
+const APP_VERSION = '106';
 
 // Оболочка приложения — кладётся в кэш сразу при установке SW,
 // чтобы второй запуск (и офлайн) был мгновенным.
 const PRECACHE_URLS = [
     './',
+    'js/app.js?v=' + APP_VERSION,
+    'js/feedback.js?v=' + APP_VERSION,
     'i18n/en.js?v=' + I18N_VERSION,
     'hadiths.js',
     'data/special-dhikrs.js?v=' + DATA_VERSION,
