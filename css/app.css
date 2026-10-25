@@ -5207,3 +5207,42 @@ html {
 .acc-toast.show { opacity:1; transform:translate(-50%,0); }
 @keyframes accUp { from { transform:translateY(18px); opacity:0; } to { transform:none; opacity:1; } }
 @media (prefers-reduced-motion: reduce) { .acc-modal { animation:none; } }
+
+/* ===================================================================
+   ОБЛЕГЧЁННЫЙ РЕЖИМ (этап 6) — класс .lite на <html>
+   Включается автоматически на слабых Android-телефонах или вручную в
+   настройках. Дизайн тот же, убраны только эффекты, которые телефон
+   пересчитывает каждый кадр (размытие под «стеклом», постоянные анимации).
+   =================================================================== */
+/* 1. Размытие фона — самый тяжёлый эффект. Затемнение окон остаётся. */
+html.lite *, html.lite *::before, html.lite *::after {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+}
+/* 2. Отдельные графические слои заранее не создаём — экономия видеопамяти.
+      Браузер сам создаст слой на время анимации. */
+html.lite *, html.lite *::before, html.lite *::after { will-change: auto !important; }
+/* 3. Бесконечные анимации останавливаем: звёзды, пульс «онлайн», иконка геолокации,
+      переливание заголовка достижения. Анимации нажатий и переходов остаются. */
+html.lite .star-icon { animation: none !important; opacity: 0.75; }
+html.lite .online-dot,
+html.lite .geo-perm-icon::before,
+html.lite .special-achieve-hint { animation: none !important; }
+html.lite [class*="achieve-title"], html.lite #specialAchieveTitle, html.lite #postSalahAchieveTitle { animation: none !important; }
+/* 4. Тени — компактнее (мягкие тени с большим радиусом дорого рисовать). */
+html.lite {
+    --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.35);
+    --shadow-md: 0 3px 10px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 6px 14px -6px rgba(0, 0, 0, 0.5);
+}
+html.lite[data-theme^="light"] {
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 3px 8px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 5px 12px -6px rgba(0, 0, 0, 0.08);
+}
+html.lite .overlay-card,
+html.lite .special-achieve-card,
+html.lite #completionOverlay .overlay-card,
+html.lite .about-app-card {
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.55), 0 0 0 1px var(--border) !important;
+}
