@@ -3,7 +3,14 @@
 
 (function () {
     var R = document.getElementById("fbHost").attachShadow({ mode: "open" });
-    R.appendChild(document.getElementById("fbTemplate").content.cloneNode(true));
+    // ЭТАП 5: содержимое страницы (разметка + ~45 КБ стилей) вставляется только при
+    // первом открытии — раньше браузер разбирал его при каждом запуске приложения.
+    var _fbMounted = false;
+    function fbMount() {
+        if (_fbMounted) return;
+        _fbMounted = true;
+        R.appendChild(document.getElementById("fbTemplate").content.cloneNode(true));
+    }
 
     /* ==================== ЧАСТЬ 1: СЛОВАРИ ПЕРЕВОДОВ ==================== */
     var FB = (window.AZKAR_UI_TRANSLATIONS && window.AZKAR_UI_TRANSLATIONS.feedbackPage) || {};
@@ -825,6 +832,7 @@
 
         var inited = false;
         window.fbOpen = function () {
+            fbMount();
             if (!inited) { inited = true; init(); return; }
             lang = detectLang();
             applyLanguage(lang, { save: false });
