@@ -3,7 +3,7 @@
 // Структура: AZKAR_I18N_REGISTER(язык, основной словарь t(), UI-словари).
 // Новый ключ добавляй во ВСЕ файлы папки i18n/, иначе будет показан английский текст.
 AZKAR_I18N_REGISTER("tr", {
-    "headerTitle": "Şüphesiz kalpler ancak Allah'ı anmakla huzur bulur",
+    "headerTitle": "Şüphesiz ancak Allah'ı anmakla\nkalpler huzur bulur",
     "postSalahHeaderTitle": "Namazdan sonra tesbih",
     "postSalahOptionLabel": "Namazdan sonra zikirler",
     "postSalahExitLabel": "Tesbih",

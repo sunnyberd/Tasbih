@@ -1097,6 +1097,26 @@
             updatePostSalahDisplay();
         }
 
+        // Девиз на главной: строки делятся только по \n из i18n
+        // («Воистину, поминанием Аллаха» / «утешаются сердца»). Если строка не
+        // влезает по ширине экрана — уменьшаем шрифт, а не переносим её.
+        (function initHeaderTitleFit() {
+            const el = document.getElementById('headerTitle');
+            if (!el) return;
+            function fit() {
+                el.style.fontSize = '';
+                const avail = el.clientWidth;
+                if (avail > 0 && el.scrollWidth > avail) {
+                    const base = parseFloat(getComputedStyle(el).fontSize) || 16;
+                    el.style.fontSize = Math.max(10, Math.floor(base * avail / el.scrollWidth * 10) / 10) + 'px';
+                }
+            }
+            new MutationObserver(fit).observe(el, { childList: true, characterData: true, subtree: true });
+            if (window.ResizeObserver && el.parentElement) new ResizeObserver(fit).observe(el.parentElement);
+            if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit).catch(() => {});
+            fit();
+        })();
+
         function exitPostSalahMode() {
             postSalahActive = false;
             const headerTitleEl = document.getElementById('headerTitle');
@@ -1249,10 +1269,26 @@
         // only resets when the next Fajr arrives. If location/Fajr is not yet
         // known we fall back to local midnight (so behavior remains sensible
         // before the user grants geolocation).
+        // Последнее известное время Фаджра хранится в localStorage: при запуске
+        // задачи (чеклист) проверяют смену дня ещё ДО того, как модуль намазов
+        // готов. Без этого ключ дня считался от полуночи и задачи сбрасывались
+        // в 00:00, а не на Фаджр.
+        var _fajrCacheWritten = null;
         function _islamicDayKey() {
             const now = new Date();
-            const fajrH = (window.PrayerTimes && typeof window.PrayerTimes.getFajrHours === 'function')
+            let fajrH = (window.PrayerTimes && typeof window.PrayerTimes.getFajrHours === 'function')
                 ? window.PrayerTimes.getFajrHours() : null;
+            if (fajrH !== null && !isNaN(fajrH)) {
+                if (_fajrCacheWritten !== fajrH) {
+                    _fajrCacheWritten = fajrH;
+                    try { localStorage.setItem('azkar_last_fajr_hours', String(fajrH)); } catch(e) {}
+                }
+            } else {
+                try {
+                    const cached = parseFloat(localStorage.getItem('azkar_last_fajr_hours'));
+                    fajrH = (cached > 0 && cached < 12) ? cached : null;
+                } catch(e) { fajrH = null; }
+            }
             let d = now;
             if (fajrH !== null && !isNaN(fajrH)) {
                 const nowH = now.getHours() + now.getMinutes()/60 + now.getSeconds()/3600;
@@ -3100,13 +3136,62 @@
                 requestAnimationFrame(_animate);
             }
 
+            // Последняя известная локация (её сохраняет модуль намазов в
+            // azkar_geoloc). Если геолокация хоть раз была включена — кибла
+            // работает и после того, как её выключили.
+            function _savedLocation() {
+                try {
+                    const loc = window.PrayerTimes && window.PrayerTimes.getLocation && window.PrayerTimes.getLocation();
+                    if (loc) return loc;
+                    const s = JSON.parse(localStorage.getItem('azkar_geoloc') || 'null');
+                    if (s && typeof s.lat === 'number' && typeof s.lng === 'number') return { lat: s.lat, lng: s.lng };
+                } catch(e) {}
+                return null;
+            }
+
+            // Ставит стрелку на Мекку по координатам и запускает компас.
+            function _applyQiblaLocation(lat, lng) {
+                const status = document.getElementById('qiblaStatus');
+                const errBtn = document.getElementById('qiblaErrBtn');
+                const compassBtn = document.getElementById('qiblaCompassBtn');
+                _inited = true;
+                _angle = _bearing(lat, lng);
+                if (status) status.textContent = '';
+                if (errBtn) errBtn.style.display = 'none';
+                _updateNeedle();
+                // iOS 13+: permission must come from a user gesture — show button
+                if (_isIOSDevice()) {
+                    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                        if (!_orientListening && compassBtn) {
+                            compassBtn.textContent = _l().compassBtn;
+                            compassBtn.style.display = '';
+                        }
+                    } else {
+                        _startOrientation();
+                        if (!_orientListening && status) {
+                            status.textContent = _l().compassNotSupported;
+                        }
+                    }
+                } else {
+                    _startOrientation();
+                    if (!_orientListening && status) {
+                        status.textContent = _l().compassNotSupported;
+                    }
+                }
+            }
+
             // Public: called when user opens qibla screen
             window.qiblaOnOpen = function() {
                 _localizeCardinals();
                 _drawMarks();
                 _updateNeedle();
                 if (!_inited) {
-                    if (_isIOSDevice()) {
+                    const saved = _savedLocation();
+                    if (saved) {
+                        // Сразу по сохранённой локации; GPS (если включён) лишь уточнит её
+                        _applyQiblaLocation(saved.lat, saved.lng);
+                        if (!_isIOSDevice()) window.qiblaInit();
+                    } else if (_isIOSDevice()) {
                         const status = document.getElementById('qiblaStatus');
                         const errBtn = document.getElementById('qiblaErrBtn');
                         if (status) status.textContent = _l().loading;
@@ -3131,36 +3216,33 @@
                 const errBtn = document.getElementById('qiblaErrBtn');
                 const compassBtn = document.getElementById('qiblaCompassBtn');
                 const l = _l();
-                if (status) status.textContent = l.loading;
-                if (errBtn) errBtn.style.display = 'none';
-                if (compassBtn) compassBtn.style.display = 'none';
-                if (!navigator.geolocation) {
-                    if (status) status.textContent = l.geoNotSupported;
-                    return;
+                const saved = _savedLocation();
+                if (!_inited) {
+                    if (status) status.textContent = l.loading;
+                    if (errBtn) errBtn.style.display = 'none';
+                    if (compassBtn) compassBtn.style.display = 'none';
                 }
+                // Геолокация недоступна/выключена: работаем по сохранённой локации
+                const useSavedOr = (msg, showBtn) => {
+                    if (saved) {
+                        if (!_inited) _applyQiblaLocation(saved.lat, saved.lng);
+                        return;
+                    }
+                    if (status) status.textContent = msg;
+                    if (errBtn && showBtn) {
+                        errBtn.textContent = _l().geoBtn;
+                        errBtn.style.display = '';
+                    }
+                };
+                if (!navigator.geolocation) { useSavedOr(l.geoNotSupported, false); return; }
                 const isIOS = _isIOSDevice();
                 const onSuccess = (pos) => {
-                    _inited = true;
-                    _angle = _bearing(pos.coords.latitude, pos.coords.longitude);
-                    if (status) status.textContent = '';
-                    _updateNeedle();
-                    // iOS 13+: permission must come from a user gesture — show button
-                    if (isIOS) {
-                        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                            if (!_orientListening && compassBtn) {
-                                compassBtn.textContent = _l().compassBtn;
-                                compassBtn.style.display = '';
-                            }
-                        } else {
-                            _startOrientation();
-                            if (!_orientListening && status) {
-                                status.textContent = _l().compassNotSupported;
-                            }
-                        }
-                    } else {
-                        _startOrientation();
-                        if (!_orientListening && status) {
-                            status.textContent = _l().compassNotSupported;
+                    const lat = pos.coords.latitude, lng = pos.coords.longitude;
+                    _applyQiblaLocation(lat, lng);
+                    // Запоминаем свежую локацию (и для времени намазов)
+                    if (!saved || Math.abs(saved.lat - lat) > 0.01 || Math.abs(saved.lng - lng) > 0.01) {
+                        if (window.PrayerTimes && window.PrayerTimes.setLocation) {
+                            try { window.PrayerTimes.setLocation(lat, lng); } catch(e) {}
                         }
                     }
                 };
@@ -3169,21 +3251,11 @@
                         // Retry with low accuracy on iOS
                         navigator.geolocation.getCurrentPosition(
                             onSuccess,
-                            () => {
-                                if (status) status.textContent = _l().geoDenied;
-                                if (errBtn) {
-                                    errBtn.textContent = _l().geoBtn;
-                                    errBtn.style.display = '';
-                                }
-                            },
+                            () => useSavedOr(_l().geoDenied, true),
                             { timeout: 20000, maximumAge: 300000, enableHighAccuracy: false }
                         );
                     } else {
-                        if (status) status.textContent = _l().geoDenied;
-                        if (errBtn) {
-                            errBtn.textContent = _l().geoBtn;
-                            errBtn.style.display = '';
-                        }
+                        useSavedOr(_l().geoDenied, true);
                     }
                 };
                 navigator.geolocation.getCurrentPosition(
@@ -9338,6 +9410,13 @@
         }
 
         function applyChecklistDailyRollover() {
+            // Модуль намазов ещё не готов, а время Фаджра не закэшировано, но
+            // локация сохранена — ждём модуль (initDayRolloverWatcher повторит
+            // проверку), иначе день посчитается от полуночи и задачи сбросятся в 00:00.
+            try {
+                if (!window.PrayerTimes && localStorage.getItem('azkar_geoloc') &&
+                    !localStorage.getItem('azkar_last_fajr_hours')) return false;
+            } catch(e) {}
             const today = getChecklistDayKey();
             let last = null;
             try { last = localStorage.getItem(CL_DAY_KEY); } catch(e) {}
@@ -11880,6 +11959,14 @@
         //  • Чеклист, статистика — обычный суточный сброс.
         (function initDayRolloverWatcher() {
             let _lastDayKey = (typeof _islamicDayKey === 'function') ? _islamicDayKey() : null;
+            // Модуль намазов уже готов — проверяем смену дня у задач (при запуске
+            // она могла быть отложена, пока не было известно время Фаджра).
+            try {
+                if (typeof applyChecklistDailyRollover === 'function' && applyChecklistDailyRollover()) {
+                    if (typeof renderChecklistFolders === 'function') renderChecklistFolders();
+                    if (typeof updateChecklistUI === 'function') updateChecklistUI();
+                }
+            } catch(e) {}
             function check() {
                 if (typeof _islamicDayKey !== 'function') return;
                 const k = _islamicDayKey();

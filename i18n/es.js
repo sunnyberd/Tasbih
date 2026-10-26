@@ -3,7 +3,7 @@
 // Структура: AZKAR_I18N_REGISTER(язык, основной словарь t(), UI-словари).
 // Новый ключ добавляй во ВСЕ файлы папки i18n/, иначе будет показан английский текст.
 AZKAR_I18N_REGISTER("es", {
-    "headerTitle": "Ciertamente, en el recuerdo de Allah los corazones encuentran paz",
+    "headerTitle": "Ciertamente, en el recuerdo de Allah\nlos corazones encuentran paz",
     "postSalahHeaderTitle": "Tasbih después del salat",
     "postSalahOptionLabel": "Dhikrs después del salat",
     "postSalahExitLabel": "Tasbih",

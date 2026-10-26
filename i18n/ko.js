@@ -3,7 +3,7 @@
 // Структура: AZKAR_I18N_REGISTER(язык, основной словарь t(), UI-словари).
 // Новый ключ добавляй во ВСЕ файлы папки i18n/, иначе будет показан английский текст.
 AZKAR_I18N_REGISTER("ko", {
-    "headerTitle": "진실로 알라를 기억함으로써 마음은 평안을 얻는다",
+    "headerTitle": "진실로 알라를 기억함으로써\n마음은 평안을 얻는다",
     "postSalahHeaderTitle": "예배 후 타스비흐",
     "postSalahOptionLabel": "예배 후 지크르들",
     "postSalahExitLabel": "타스비흐",

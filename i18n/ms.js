@@ -3,7 +3,7 @@
 // Структура: AZKAR_I18N_REGISTER(язык, основной словарь t(), UI-словари).
 // Новый ключ добавляй во ВСЕ файлы папки i18n/, иначе будет показан английский текст.
 AZKAR_I18N_REGISTER("ms", {
-    "headerTitle": "Sesungguhnya dengan mengingati Allah, hati menjadi tenang",
+    "headerTitle": "Sesungguhnya dengan mengingati Allah,\nhati menjadi tenang",
     "postSalahHeaderTitle": "Tasbih selepas solat",
     "postSalahOptionLabel": "Zikir-zikir selepas solat",
     "postSalahExitLabel": "Tasbih",

@@ -3,7 +3,7 @@
 // Структура: AZKAR_I18N_REGISTER(язык, основной словарь t(), UI-словари).
 // Новый ключ добавляй во ВСЕ файлы папки i18n/, иначе будет показан английский текст.
 AZKAR_I18N_REGISTER("uz", {
-    "headerTitle": "Allohning zikri ila qalblar orom topur",
+    "headerTitle": "Albatta, Allohning zikri ila\nqalblar orom topur",
     "postSalahHeaderTitle": "Namozdan keyingi tasbih",
     "postSalahOptionLabel": "Namozdan keyingi zikrlar",
     "postSalahExitLabel": "Tasbih",

@@ -1,0 +1,1149 @@
+/* =====================================================================
+   AZKAR — DESIGN SYSTEM 2.0 «Noor»
+   Визуальный слой поверх css/app.css. Подключается ПОСЛЕ app.css и
+   меняет только внешний вид: цвета, поверхности, радиусы, тени,
+   типографику. Разметка, классы и логика приложения не затронуты —
+   чтобы откатить редизайн, достаточно убрать <link> на этот файл.
+
+   Принципы:
+   • Тональные поверхности вместо золотых рамок: глубина создаётся
+     светом и тенью, акцентный цвет темы — только для смысла
+     (активное, выполненное, главное действие).
+   • Волосяные линии (hairline) 1px с низкой прозрачностью.
+   • Мягкие крупные радиусы, «стекло» у плавающих элементов.
+   • Все токены выводятся из переменных темы (--bg, --text, --gold),
+     поэтому каждая из 10 тем получает новый дизайн автоматически.
+   После правок повысь APP_VERSION (?v= в index.html и в sw.js).
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   1. ТОКЕНЫ
+   --------------------------------------------------------------------- */
+html {
+    --ds-r-xl: 28px;
+    --ds-r-lg: 22px;
+    --ds-r-md: 16px;
+    --ds-r-sm: 12px;
+    --ds-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --ds-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+    --ds-ui: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --ds-display: 'Cormorant Garamond', Georgia, serif;
+}
+
+/* Тёмные темы (по умолчанию) */
+html[data-theme] {
+    --ds-card:        color-mix(in srgb, var(--text) 4.5%, var(--bg));
+    --ds-card-2:      color-mix(in srgb, var(--text) 8%, var(--bg));
+    --ds-sheet:       color-mix(in srgb, var(--text) 6.5%, var(--bg));
+    --ds-fill:        color-mix(in srgb, var(--text) 7%, transparent);
+    --ds-fill-strong: color-mix(in srgb, var(--text) 12%, transparent);
+    --ds-line:        color-mix(in srgb, var(--text) 8%, transparent);
+    --ds-line-strong: color-mix(in srgb, var(--text) 14%, transparent);
+    --ds-tint:        color-mix(in srgb, var(--gold) 13%, transparent);
+    --ds-tint-soft:   color-mix(in srgb, var(--gold) 7%, transparent);
+    --ds-accent-line: color-mix(in srgb, var(--gold) 42%, transparent);
+    --ds-danger-tint: color-mix(in srgb, var(--danger) 13%, transparent);
+    --ds-on-accent:   #14100a;
+    --ds-glass:       color-mix(in srgb, var(--ds-card-2) 74%, transparent);
+    --ds-highlight:   inset 0 1px 0 rgba(255, 255, 255, 0.045);
+    --ds-elev-1:      0 1px 1px rgba(0, 0, 0, 0.25), 0 10px 28px -16px rgba(0, 0, 0, 0.75);
+    --ds-elev-2:      0 2px 6px rgba(0, 0, 0, 0.25), 0 24px 56px -18px rgba(0, 0, 0, 0.85);
+    --ds-elev-3:      0 30px 80px -20px rgba(0, 0, 0, 0.9);
+    --ds-scrim:       rgba(0, 0, 0, 0.62);
+
+    /* Базовые переменные приложения → новые поверхности */
+    --surface:       var(--ds-card);
+    --surface-light: var(--ds-card-2);
+    --border:        var(--ds-line);
+    --border-hover:  var(--ds-accent-line);
+    --shadow-sm:     var(--ds-elev-1);
+    --shadow-md:     var(--ds-elev-2);
+    --shadow-lg:     var(--ds-elev-2);
+
+    /* Кнопки «литое золото» из app.css → чистая заливка акцентом */
+    --rich-ink: var(--ds-on-accent);
+    --rich-gold-fill: linear-gradient(180deg,
+        color-mix(in srgb, var(--gold-light) 30%, var(--gold)) 0%, var(--gold) 100%);
+    --rich-gold-gloss: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    --rich-inset: none;
+    --rich-inset-strong: none;
+    --rich-track-inset: none;
+}
+
+/* Светлые темы */
+html[data-theme^="light"] {
+    --ds-card:        #ffffff;
+    --ds-card-2:      color-mix(in srgb, var(--text) 3.5%, #ffffff);
+    --ds-sheet:       #ffffff;
+    --ds-fill:        color-mix(in srgb, var(--text) 5.5%, transparent);
+    --ds-fill-strong: color-mix(in srgb, var(--text) 10%, transparent);
+    --ds-line:        color-mix(in srgb, var(--text) 8%, transparent);
+    --ds-line-strong: color-mix(in srgb, var(--text) 14%, transparent);
+    --ds-tint:        color-mix(in srgb, var(--gold) 11%, transparent);
+    --ds-tint-soft:   color-mix(in srgb, var(--gold) 6%, transparent);
+    --ds-accent-line: color-mix(in srgb, var(--gold) 38%, transparent);
+    --ds-on-accent:   #ffffff;
+    --ds-glass:       rgba(255, 255, 255, 0.72);
+    --ds-highlight:   inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    --ds-elev-1:      0 1px 2px rgba(16, 24, 40, 0.04), 0 8px 24px -12px rgba(16, 24, 40, 0.12);
+    --ds-elev-2:      0 2px 6px rgba(16, 24, 40, 0.05), 0 22px 48px -18px rgba(16, 24, 40, 0.22);
+    --ds-elev-3:      0 30px 70px -24px rgba(16, 24, 40, 0.32);
+    --ds-scrim:       rgba(18, 22, 30, 0.32);
+    --rich-gold-fill: linear-gradient(180deg,
+        color-mix(in srgb, var(--gold-light) 22%, var(--gold)) 0%, var(--gold) 100%);
+    --rich-gold-gloss: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+/* ---------------------------------------------------------------------
+   2. ОСНОВА: фон, типографика
+   --------------------------------------------------------------------- */
+body {
+    font-family: var(--ds-ui);
+    font-variant-numeric: lining-nums;
+    background:
+        radial-gradient(120% 55% at 50% -12%, color-mix(in srgb, var(--gold) 11%, transparent) 0%, transparent 62%),
+        radial-gradient(90% 40% at 100% 100%, color-mix(in srgb, var(--gold) 4%, transparent) 0%, transparent 70%),
+        var(--bg);
+}
+html[data-theme^="light"] body {
+    background:
+        radial-gradient(120% 55% at 50% -12%, color-mix(in srgb, var(--gold) 9%, transparent) 0%, transparent 62%),
+        var(--bg);
+}
+
+/* Кнопки и поля по умолчанию берут шрифт интерфейса, а не системный */
+button, input, textarea, select { font-family: inherit; }
+
+/* Цифры Cormorant — современные (lining) вместо «старинных» */
+.count-value, .count-total, .goal-chip-num, .stat-value, .cop-percent,
+.clstat-card .num, .clstat-ring-pct, .clstat-folder-pct, .prayer-row-time,
+.header-clock, .pip-num, .cl-counter-remaining, .qibla-badge strong,
+#zikrTimer, #zikrTimerSpecial, #stealthCountdown, #stealthCount {
+    font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* Заголовки экранов */
+.screen-header { padding-top: clamp(16px, 4.5vw, 24px); padding-bottom: 10px; }
+.screen-header h2 {
+    font-family: var(--ds-display);
+    font-size: clamp(1.65rem, 6.6vw, 2.1rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+    background: linear-gradient(180deg, var(--text) 0%, color-mix(in srgb, var(--gold) 70%, var(--text)) 130%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+html[data-theme^="light"] .screen-header h2 {
+    background: linear-gradient(180deg, var(--text) 0%, var(--gold) 140%);
+    -webkit-background-clip: text; background-clip: text;
+}
+.screen-header p {
+    color: var(--text-dim);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    margin-top: 4px;
+}
+
+/* Липкая шапка экранов — матовое стекло вместо глухой заливки */
+.screen-sticky-head {
+    background: color-mix(in srgb, var(--bg) 84%, transparent);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    backdrop-filter: blur(20px) saturate(140%);
+}
+
+/* ---------------------------------------------------------------------
+   3. ПОВЕРХНОСТИ-КАРТОЧКИ
+   --------------------------------------------------------------------- */
+.dua-card, .special-card, .stat-card, .setting-item, .set-group,
+.stats-chart-area, .stats-time-area, .checklist-overall-progress, .cl-folder,
+.cl-task-card {
+    background: var(--ds-card);
+    border: 1px solid var(--ds-line);
+    box-shadow: var(--ds-highlight), var(--ds-elev-1);
+}
+.dua-card       { border-radius: var(--ds-r-xl); }
+.special-card   { border-radius: var(--ds-r-lg); }
+.stat-card      { border-radius: var(--ds-r-lg); }
+.setting-item   { border-radius: var(--ds-r-lg); }
+.set-group      { border-radius: var(--ds-r-lg); }
+.cl-folder      { border-radius: var(--ds-r-lg); }
+.stats-chart-area, .stats-time-area { border-radius: var(--ds-r-xl); }
+.checklist-overall-progress { border-radius: var(--ds-r-lg); }
+
+/* Выполненное — тонкий акцентный контур и лёгкий свет */
+.special-card.completed,
+.cl-folder.done, .cl-folder.special-folder-done,
+.cl-task-card.done, .cl-subfolder.done {
+    border-color: var(--ds-accent-line);
+    background:
+        linear-gradient(160deg, var(--ds-tint-soft), transparent 70%),
+        var(--ds-card);
+}
+.cl-task-card.done .cl-task-name { color: var(--text-dim); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--text) 25%, transparent); }
+
+/* Перетаскивание */
+.dua-card.dragging, .special-card.dragging, .cl-task-card.dragging {
+    background: var(--ds-card-2);
+    border-color: var(--ds-accent-line);
+    box-shadow: 0 0 0 2px var(--ds-tint), var(--ds-elev-3);
+}
+.dua-card.drag-over, .special-card.drag-over, .cl-task-card.drag-over {
+    border-color: var(--ds-accent-line);
+    background: var(--ds-tint-soft);
+}
+.dua-folder.folder-drag-over {
+    border-color: var(--gold) !important;
+    box-shadow: 0 0 0 3px var(--ds-tint), var(--ds-elev-2) !important;
+}
+#duaDragGhost {
+    border-radius: var(--ds-r-md);
+    background: var(--ds-glass);
+    border: 1px solid var(--ds-accent-line);
+    box-shadow: var(--ds-elev-3);
+    color: var(--text);
+}
+
+/* Пустое состояние */
+.empty-state {
+    background: transparent;
+    border: 1.5px dashed var(--ds-line-strong);
+    border-radius: var(--ds-r-xl);
+}
+
+/* ---------------------------------------------------------------------
+   4. ГЛАВНЫЙ ЭКРАН: шапка, кольцо, цели
+   --------------------------------------------------------------------- */
+html[data-theme] .premium-header {
+    background: none;
+}
+html[data-theme^="light"] .main-title { filter: none; }
+.star-icon { width: 9px; height: 9px; }
+.star-icon svg { opacity: 0.85; }
+.moon-icon { filter: drop-shadow(0 0 14px var(--gold-glow)); }
+
+.main-title {
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    line-height: 1.25;
+    background: linear-gradient(180deg, var(--text) 10%, color-mix(in srgb, var(--gold) 75%, var(--text)) 120%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-wrap: balance;
+}
+html[data-theme^="light"] .main-title {
+    background: linear-gradient(180deg, var(--text) 0%, var(--gold) 150%);
+    -webkit-background-clip: text; background-clip: text;
+}
+.header-divider { width: 44px; margin-top: 12px; }
+.header-divider::before {
+    height: 2px; border-radius: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    opacity: 0.8;
+}
+
+/* Переключатель «Основной зикр / после намаза» — стеклянная капсула */
+.post-salah-select-wrap { width: auto; min-width: 190px; max-width: 240px; display: table; margin: 14px auto 0; }
+.post-salah-select-btn,
+html[data-theme] .post-salah-select-btn {
+    padding: 9px 36px 9px 18px;
+    border-radius: 999px;
+    border: 1px solid var(--ds-line);
+    background: var(--ds-glass);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    color: var(--text);
+    font-weight: 600;
+    font-size: 0.78rem;
+    letter-spacing: 0.01em;
+    box-shadow: var(--ds-highlight), var(--ds-elev-1);
+}
+.post-salah-select-btn.open { border-color: var(--ds-accent-line); background: var(--ds-tint); }
+.post-salah-select-btn .post-salah-chevron { color: var(--gold); }
+
+/* Время намаза в углу */
+.header-clock-corner { border-radius: var(--ds-r-md); }
+.header-clock-corner:hover { background: var(--ds-fill); border-color: var(--ds-line); }
+.header-clock-prayer { font-weight: 700; letter-spacing: 0.12em; opacity: 1; }
+.header-clock {
+    font-family: var(--ds-ui);
+    font-weight: 600;
+    font-size: clamp(1.02rem, 4.1vw, 1.3rem);
+    letter-spacing: -0.01em;
+    background: linear-gradient(180deg, var(--text), color-mix(in srgb, var(--gold) 70%, var(--text)));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.header-countdown { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+/* Индикатор «онлайн» — маленькая стеклянная капсула */
+.online-presence {
+    padding: 5px 10px 5px 9px;
+    border-radius: 999px;
+    background: var(--ds-glass);
+    border: 1px solid var(--ds-line);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    font-size: 0.72rem;
+    top: calc(var(--safe-t) + 10px);
+    left: 12px;
+}
+.online-dot {
+    width: 6px; height: 6px;
+    background: #34d399;
+    box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.18);
+}
+.online-count { font-variant-numeric: tabular-nums; }
+
+/* --- Кольцо счётчика --- */
+.ring-outer-glow {
+    display: block;
+    position: absolute;
+    inset: -16%;
+    border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--gold) 16%, transparent) 0%, transparent 62%);
+    pointer-events: none;
+}
+.pr-bg {
+    stroke: color-mix(in srgb, var(--text) 8%, transparent);
+    stroke-width: 3;
+}
+.pr-fill {
+    stroke-width: 4.5;
+}
+.progress-ring-svg { filter: drop-shadow(0 0 6px var(--gold-glow)); }
+.inner-ring-decor {
+    inset: 9%;
+    border: 1px solid var(--ds-line);
+    background:
+        radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--text) 7%, transparent) 0%, transparent 55%),
+        radial-gradient(90% 70% at 50% 110%, color-mix(in srgb, var(--gold) 16%, transparent) 0%, transparent 70%),
+        var(--ds-card);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.07),
+        inset 0 -24px 48px -28px color-mix(in srgb, var(--gold) 30%, transparent),
+        0 30px 60px -30px rgba(0, 0, 0, 0.85);
+}
+html[data-theme^="light"] .inner-ring-decor {
+    background:
+        radial-gradient(120% 80% at 50% 0%, #ffffff 0%, transparent 60%),
+        radial-gradient(90% 70% at 50% 110%, color-mix(in srgb, var(--gold) 12%, transparent) 0%, transparent 70%),
+        var(--ds-card);
+    box-shadow:
+        inset 0 1px 0 #ffffff,
+        inset 0 -24px 48px -28px color-mix(in srgb, var(--gold) 22%, transparent),
+        0 30px 60px -28px rgba(16, 24, 40, 0.28);
+}
+.indicator-ball {
+    width: 14px; height: 14px; margin: -7px 0 0 -7px;
+    background: radial-gradient(circle at 35% 32%, #ffffff 0%, var(--gold-light) 38%, var(--gold) 100%);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 22%, transparent), 0 0 16px var(--gold);
+}
+.allah-svg { opacity: 0.92; filter: drop-shadow(0 2px 10px var(--gold-glow)); }
+.count-value {
+    font-family: var(--ds-ui);
+    font-weight: 350;
+    letter-spacing: -0.045em;
+    line-height: 1;
+    background: linear-gradient(180deg, var(--text) 15%, color-mix(in srgb, var(--gold) 80%, var(--text)) 115%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+html[data-theme^="light"] .count-value {
+    font-weight: 400;
+    background: linear-gradient(180deg, var(--text) 0%, var(--gold) 130%);
+    -webkit-background-clip: text; background-clip: text;
+}
+.count-total {
+    font-family: var(--ds-ui);
+    font-size: clamp(0.78rem, 3vw, 0.95rem);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    margin-top: 6px;
+}
+.count-total span { color: var(--gold); font-weight: 600; }
+.center-divider { width: 28px; height: 2px; border-radius: 2px; opacity: 0.7; margin-top: 12px; }
+#zikrTimer, #zikrTimerSpecial { font-family: var(--ds-ui); font-size: clamp(0.78rem, 3vw, 0.92rem); font-weight: 600; letter-spacing: 0.02em; }
+.zt-cur { font-weight: 700; }
+
+/* --- Цели: сегментированный переключатель --- */
+.goals-grid {
+    padding: 5px;
+    gap: 4px;
+    background: var(--ds-glass);
+    border: 1px solid var(--ds-line);
+    border-radius: 24px;
+    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+    box-shadow: var(--ds-highlight), var(--ds-elev-1);
+}
+.goal-chip {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 19px;
+    box-shadow: none;
+    padding: clamp(8px, 2.4vw, 11px) 4px;
+    transition: background-color 0.3s var(--ds-ease), border-color 0.3s var(--ds-ease), transform 0.18s var(--ds-spring);
+}
+.goal-chip.active {
+    background: var(--ds-tint);
+    border-color: color-mix(in srgb, var(--gold) 30%, transparent);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 6px 18px -10px var(--gold-glow);
+}
+.goal-chip-num {
+    font-family: var(--ds-ui);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text-muted);
+    font-size: calc(var(--chip-num) * 0.86);
+    line-height: 1.15;
+}
+.goal-chip.active .goal-chip-num { color: var(--gold); }
+.goal-chip-label { font-weight: 600; letter-spacing: 0.12em; opacity: 0.85; margin-top: 2px; }
+.goal-chip.active .goal-chip-label { color: color-mix(in srgb, var(--gold) 75%, var(--text)); }
+
+/* +1 при нажатии */
+.float-plus { font-family: var(--ds-ui); font-weight: 600; text-shadow: 0 0 12px var(--gold-glow); }
+
+/* ---------------------------------------------------------------------
+   5. НИЖНЯЯ НАВИГАЦИЯ — плавающее стекло
+   --------------------------------------------------------------------- */
+.nav-inner,
+html[data-theme] .nav-inner {
+    background: var(--ds-glass);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    backdrop-filter: blur(24px) saturate(160%);
+    border: 1px solid var(--ds-line-strong);
+    border-radius: 30px;
+    padding: 6px;
+    gap: 2px;
+    box-shadow: var(--ds-highlight), var(--ds-elev-2);
+}
+.nav-item {
+    border-radius: 24px;
+    border: 1px solid transparent;
+    gap: 3px;
+    padding-top: 8px; padding-bottom: 7px;
+    transition: background-color 0.35s var(--ds-ease), border-color 0.35s var(--ds-ease), transform 0.18s var(--ds-spring);
+}
+.nav-item:active { transform: scale(0.94); }
+.nav-item.active,
+html[data-theme] .nav-item.active {
+    background-image: none;
+    background-color: var(--ds-tint);
+    border-color: color-mix(in srgb, var(--gold) 22%, transparent);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+.nav-icon-wrap svg { stroke: var(--text-dim); color: var(--text-dim); }
+.nav-item.active .nav-icon-wrap svg,
+html[data-theme] .nav-item.active .nav-icon-wrap svg { stroke: var(--gold); color: var(--gold); stroke-width: 1.8; }
+.nav-label { font-weight: 600; letter-spacing: 0.01em; color: var(--text-dim); }
+.nav-item.active .nav-label,
+html[data-theme] .nav-item.active .nav-label { color: var(--gold); }
+@media (hover: hover) and (pointer: fine) {
+    .nav-item:not(.active):hover { background: var(--ds-fill); }
+}
+
+/* ---------------------------------------------------------------------
+   6. КНОПКИ
+   --------------------------------------------------------------------- */
+/* Главное действие — заливка акцентом */
+.overlay-btn-confirm, .cl-modal-confirm:not(.danger), .special-resume-continue,
+.geo-perm-btn-primary, .btn-gold, .method-geo-btn, .qibla-err-btn,
+.special-start-btn, .prayer-allow-btn, .acc-btn-primary, #accFbBtn:not(:disabled) {
+    background: var(--rich-gold-fill);
+    border: 1px solid transparent;
+    color: var(--ds-on-accent);
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    box-shadow: var(--rich-gold-gloss), 0 10px 24px -12px var(--gold-glow);
+    transition: transform 0.16s var(--ds-spring), filter 0.2s ease, box-shadow 0.2s ease;
+}
+.prayer-allow-btn svg, .method-geo-btn svg { color: currentColor; stroke: currentColor; }
+
+/* Вторичное — тональная кнопка */
+.overlay-btn-cancel, .cl-modal-cancel, .special-resume-start-over,
+.geo-perm-btn-secondary {
+    background: var(--ds-fill);
+    border: 1px solid transparent;
+    color: var(--text);
+    font-weight: 600;
+}
+.geo-perm-btn-secondary { background: transparent; color: var(--text-muted); }
+
+/* Опасное действие */
+.cl-modal-confirm.danger {
+    background: var(--ds-danger-tint);
+    border: 1px solid transparent;
+    color: var(--danger);
+    font-weight: 700;
+}
+.reset-btn,
+html[data-theme] .reset-btn {
+    background: var(--ds-danger-tint);
+    border: 1px solid color-mix(in srgb, var(--danger) 22%, transparent);
+    color: var(--danger);
+    border-radius: var(--ds-r-md);
+    font-weight: 600;
+    box-shadow: none;
+}
+
+/* Общие размеры кнопок в окнах */
+.overlay-btns button, .modal-actions button, .cl-modal-btn {
+    border-radius: 999px;
+    min-height: 46px;
+}
+.center .modal-actions button { min-height: 44px; }
+
+/* FAB — «сквиркл» с мягким свечением */
+.fab {
+    border-radius: 20px;
+    color: var(--ds-on-accent);
+    font-weight: 400;
+    box-shadow: var(--rich-gold-gloss), 0 14px 30px -10px var(--gold-glow), 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+.fab:active { transform: scale(0.92); }
+
+/* Назад */
+.back-btn {
+    background: var(--ds-glass);
+    border: 1px solid var(--ds-line);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    box-shadow: var(--ds-highlight), var(--ds-elev-1);
+}
+.back-btn svg { stroke: var(--text); }
+.back-btn:active { background: var(--ds-fill-strong); }
+
+/* Маленькие круглые действия: избранное / редактировать / удалить / добавить */
+.dua-action-btn, .special-action-btn, .cl-folder-delete, .cl-folder-edit,
+.cl-folder-add-sub, .cl-task-delete, .cl-task-edit, .cl-subfolder-edit,
+.cl-subfolder-delete, .cl-subfolder-add-task, .cl-list-option .clo-act,
+.cl-modal-daily-toggle {
+    background: var(--ds-fill);
+    border: 1px solid transparent;
+    box-shadow: none;
+}
+.dua-action-btn { color: var(--text-muted); }
+.dua-action-btn.edit, .special-action-btn, .cl-folder-edit, .cl-folder-add-sub,
+.cl-task-edit, .cl-subfolder-edit, .cl-subfolder-add-task, .cl-list-option .clo-act.edit { color: var(--gold); background: var(--ds-tint-soft); }
+.dua-action-btn.danger, .special-action-btn.del, .cl-folder-delete, .cl-task-delete,
+.cl-subfolder-delete, .cl-list-option .clo-act.del {
+    color: var(--danger);
+    background: color-mix(in srgb, var(--danger) 9%, transparent);
+    border-color: transparent;
+}
+.dua-action-btn.fav-active { color: var(--gold); background: var(--ds-tint); border-color: color-mix(in srgb, var(--gold) 30%, transparent); }
+.cl-modal-daily-toggle.active {
+    color: var(--gold);
+    background: var(--ds-tint);
+    border-color: var(--ds-accent-line);
+    box-shadow: none;
+}
+
+/* Кнопка режима редактирования */
+.special-edit-toggle {
+    border: 1px solid var(--ds-line);
+    background: var(--ds-fill);
+    color: var(--text);
+    border-radius: 999px;
+    font-weight: 600;
+    box-shadow: none;
+}
+.special-edit-toggle.active { background: var(--ds-tint); color: var(--gold); border-color: var(--ds-accent-line); }
+
+/* Импорт / экспорт */
+.data-btn {
+    background: var(--ds-fill);
+    border: 1px solid transparent;
+    border-radius: var(--ds-r-md);
+    color: var(--text);
+    font-weight: 600;
+    box-shadow: none;
+}
+
+/* Капсулы-селекторы */
+.lang-select-btn, .cl-list-select-btn, .cl-folder-select-btn,
+html[data-theme] .lang-select-btn, html[data-theme] .cl-list-select-btn {
+    background: var(--ds-fill);
+    border: 1px solid transparent;
+    box-shadow: none;
+    color: var(--text);
+    font-weight: 600;
+}
+.cl-folder-select-btn { border-radius: var(--ds-r-sm); }
+.lang-select-btn.open, .cl-list-select-btn.open, .cl-folder-select-btn.open {
+    background: var(--ds-tint);
+    border-color: var(--ds-accent-line);
+}
+
+/* Google / аккаунт */
+.google-signin-btn {
+    background: var(--ds-fill);
+    border: 1px solid var(--ds-line);
+    box-shadow: none;
+    border-radius: var(--ds-r-md);
+}
+.account-ghost-btn { border-radius: var(--ds-r-md); background: var(--ds-fill); border-color: transparent; }
+.google-mark, .google-glyph { box-shadow: none; }
+.account-profile, .acc-fb {
+    background: var(--ds-card-2);
+    border: 1px solid var(--ds-line);
+    border-radius: var(--ds-r-md);
+}
+.acc-btn { border-radius: 999px; box-shadow: none; }
+.acc-pill { box-shadow: var(--rich-gold-gloss); color: var(--ds-on-accent); }
+
+/* ---------------------------------------------------------------------
+   7. ПОЛЯ ВВОДА
+   --------------------------------------------------------------------- */
+.form-input, .form-textarea, .special-form-input, .special-form-textarea,
+.cl-modal-input, .acc-input, .acc-textarea {
+    font-family: var(--ds-ui);
+    background: var(--ds-fill);
+    border: 1px solid transparent;
+    border-radius: 14px;
+    color: var(--text);
+    box-shadow: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.form-input, .form-textarea { padding: 13px 16px; font-size: 0.95rem; }
+.form-input:focus, .form-textarea:focus, .special-form-input:focus,
+.special-form-textarea:focus, .cl-modal-input:focus, .acc-input:focus, .acc-textarea:focus {
+    outline: none;
+    background: var(--ds-card);
+    border-color: var(--ds-accent-line);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 14%, transparent);
+}
+.form-label, .special-form-label {
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    font-size: 0.66rem;
+    text-transform: uppercase;
+}
+
+/* Поиск — с иконкой лупы */
+.search-wrap { padding-top: 4px; padding-bottom: 8px; }
+.search-input {
+    background-color: var(--ds-fill);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: 17px 17px;
+    background-position: 16px 50%;
+    border: 1px solid transparent;
+    border-radius: var(--ds-r-md);
+    padding: 12px 18px 12px 44px;
+    font-weight: 500;
+}
+.search-input:focus {
+    background-color: var(--ds-card);
+    border-color: var(--ds-accent-line);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 14%, transparent);
+}
+
+/* ---------------------------------------------------------------------
+   8. ДУА И СПЕЦИАЛЬНЫЕ ЗИКРЫ
+   --------------------------------------------------------------------- */
+.dua-list, #duaFoldersContainer { gap: 12px; }
+.dua-card { padding: clamp(14px, 3.8vw, 18px) 20px; }
+.dua-name { font-weight: 700; letter-spacing: -0.005em; }
+.dua-text { font-weight: 500; }
+.dua-translation { color: var(--text-dim); }
+.dua-card .drag-handle { color: color-mix(in srgb, var(--text) 25%, transparent); }
+.card-dot { width: 5px; height: 5px; background: var(--text-dim); opacity: 0.35; }
+.card-dot.active { width: 16px; border-radius: 3px; opacity: 1; transform: none; }
+
+/* Карточки внутри папок — радиус меньше, чем у папки, и на тон светлее */
+.dua-folder-list .dua-card,
+.dua-folder-list .special-card {
+    border-radius: 18px;
+    background: var(--ds-card-2);
+    box-shadow: none;
+}
+html[data-theme^="light"] .dua-folder-list .dua-card,
+html[data-theme^="light"] .dua-folder-list .special-card { background: #ffffff; }
+.dua-folder-list .special-card.completed {
+    background: linear-gradient(160deg, var(--ds-tint-soft), transparent 70%), var(--ds-card-2);
+}
+
+.special-card { padding: clamp(14px, 3.8vw, 16px) 18px; }
+.special-card:active { background: var(--ds-card-2); }
+.special-card-name { font-weight: 700; }
+.special-card-desc { color: var(--text-dim); }
+.special-card-completed-badge { color: var(--gold); }
+
+.streak-badge, .streak-chip, .clstat-badge {
+    background: var(--ds-tint);
+    border: 1px solid transparent;
+    border-radius: 999px;
+}
+.streak-row {
+    background: var(--ds-card-2);
+    border: 1px solid var(--ds-line);
+    border-radius: var(--ds-r-md);
+}
+
+/* Детальная карточка (перед стартом) */
+.detail-title { font-weight: 700; }
+.detail-more-label { letter-spacing: 0.1em; font-weight: 700; }
+
+/* ---------------------------------------------------------------------
+   9. ЗАДАЧИ (чек-лист) И ПАПКИ
+   --------------------------------------------------------------------- */
+.checklist-folders { gap: 12px; }
+.cl-folder-header { padding: 14px 14px 14px 16px; }
+.cl-folder-icon, .cl-subfolder-icon {
+    width: 40px; height: 40px;
+    border-radius: 13px;
+    background: var(--ds-tint);
+    border: 1px solid transparent;
+    box-shadow: none;
+}
+.cl-folder-name, .cl-subfolder-name { font-weight: 700; letter-spacing: -0.005em; }
+.cl-folder-progress-text, .cl-subfolder-progress-text { font-weight: 500; font-variant-numeric: tabular-nums; }
+.cl-folder-chevron, .cl-subfolder-chevron { stroke: var(--text-dim); }
+.cl-folder-bar-wrap { border-bottom-color: var(--ds-line); }
+
+.cl-task-list { gap: 8px; padding: 10px; }
+.cl-task-card {
+    border-radius: var(--ds-r-md);
+    background: var(--ds-card-2);
+    box-shadow: none;
+    padding-top: 13px; padding-bottom: 13px;
+}
+html[data-theme^="light"] .cl-task-card { background: var(--ds-card); }
+.cl-task-name { color: var(--text); font-weight: 500; }
+.cl-task-card .drag-handle { color: color-mix(in srgb, var(--text) 25%, transparent); }
+
+.cl-subfolder {
+    background: var(--ds-card-2);
+    border: 1px solid var(--ds-line);
+    border-radius: var(--ds-r-md);
+}
+
+/* Чекбокс */
+.cl-checkbox {
+    width: 24px; height: 24px;
+    border: 1.5px solid color-mix(in srgb, var(--text) 24%, transparent);
+    transition: background-color 0.25s var(--ds-ease), border-color 0.25s var(--ds-ease), transform 0.25s var(--ds-spring);
+}
+.cl-checkbox.checked {
+    background: var(--gold);
+    border-color: var(--gold);
+    box-shadow: 0 4px 12px -4px var(--gold-glow);
+}
+.cl-check-icon { stroke: var(--ds-on-accent); stroke-width: 3; }
+
+/* Прогресс-бары */
+.cop-bar-bg, .cl-progress-bar-bg, .clstat-bar-bg, .cl-counter-bar {
+    background: color-mix(in srgb, var(--text) 8%, transparent);
+    border-radius: 999px;
+}
+.cop-bar-fill, .cl-progress-bar-fill, .clstat-bar-fill, .cl-counter-bar-fill {
+    background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 70%, transparent), var(--gold));
+    border-radius: 999px;
+    box-shadow: 0 0 10px -2px var(--gold-glow);
+}
+.cop-label { font-weight: 700; letter-spacing: 0.1em; color: var(--text-dim); font-size: 0.68rem; }
+.cop-percent { font-family: var(--ds-ui); font-weight: 700; letter-spacing: -0.02em; font-size: 1.05rem; }
+#dhikrOverallProgress .cop-percent { font-size: 1.15rem; }
+.cl-progress-pct { font-variant-numeric: tabular-nums; }
+
+/* Список-селектор и выпадающие меню */
+.cl-list-bar { margin: 2px 16px 12px; }
+
+/* Счётчик в задаче */
+.cl-counter-plus { border: 1px solid transparent; background: var(--ds-tint); border-radius: 999px; }
+.cl-counter-type-btn { border: 1px solid var(--ds-line); border-radius: var(--ds-r-sm); }
+.cl-counter-type-btn.active { border-color: var(--ds-accent-line); background: var(--ds-tint); }
+.cl-counter-card .cl-counter-remaining { font-family: var(--ds-ui); font-size: 0.98rem; }
+
+/* ---------------------------------------------------------------------
+   10. СТАТИСТИКА
+   --------------------------------------------------------------------- */
+.stats-summary { gap: 10px; }
+.stat-card {
+    align-items: flex-start;
+    text-align: left;
+    gap: 4px;
+    padding: 16px 16px 15px;
+}
+.stat-icon {
+    width: 36px; height: 36px;
+    border-radius: 12px;
+    background: var(--ds-tint);
+    border: 1px solid transparent;
+    box-shadow: none;
+    font-size: 1.05rem;
+    margin-bottom: 8px;
+}
+.stat-value {
+    font-family: var(--ds-ui);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    line-height: 1.05;
+    font-size: clamp(1.6rem, 6.4vw, 2rem);
+}
+.stat-label { color: var(--text-dim); font-weight: 600; letter-spacing: 0.02em; }
+
+.chart-title { font-weight: 700; color: var(--text); font-size: 0.9rem; }
+.period-selector,
+html[data-theme] .period-selector {
+    background: var(--ds-fill);
+    border: 1px solid transparent;
+    border-radius: 12px;
+    padding: 3px;
+    box-shadow: none;
+}
+.period-btn { border-radius: 9px; color: var(--text-muted); font-weight: 600; }
+.period-btn.active,
+html[data-theme] .period-btn.active {
+    background: var(--ds-card-2);
+    color: var(--text);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 4px 12px -4px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+html[data-theme^="light"] .period-btn.active {
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08), 0 4px 10px -4px rgba(16, 24, 40, 0.14);
+}
+.time-bar {
+    background: linear-gradient(0deg, color-mix(in srgb, var(--gold) 22%, transparent), var(--gold));
+    border-radius: 7px 7px 3px 3px;
+}
+.time-label { font-weight: 600; }
+
+/* Детальная статистика (окно) */
+.clstat-overall, .clstat-card, .clstat-folder {
+    background: var(--ds-card-2);
+    border: 1px solid var(--ds-line);
+    border-radius: var(--ds-r-lg);
+}
+html[data-theme^="light"] .clstat-overall,
+html[data-theme^="light"] .clstat-card,
+html[data-theme^="light"] .clstat-folder { background: color-mix(in srgb, var(--text) 3%, #ffffff); }
+.clstat-folder.done { border-color: var(--ds-accent-line); box-shadow: none; }
+.clstat-card .num, .clstat-ring-pct, .clstat-folder-pct { font-family: var(--ds-ui); font-weight: 700; letter-spacing: -0.02em; }
+.clstat-card .num { font-size: 1.25rem; }
+.clstat-ring-pct { font-size: 1.3rem; }
+.clstat-ring-track { stroke: color-mix(in srgb, var(--text) 9%, transparent); }
+.clstat-card .lbl, .clstat-section-title { letter-spacing: 0.1em; font-weight: 700; color: var(--text-dim); }
+.clstat-actions .cl-modal-btn {
+    border-color: transparent;
+    background: var(--ds-tint);
+    color: var(--gold);
+}
+
+/* ---------------------------------------------------------------------
+   11. НАСТРОЙКИ — сгруппированные списки
+   --------------------------------------------------------------------- */
+.set-section { margin-bottom: 22px; }
+.set-section-h {
+    color: var(--text-dim);
+    opacity: 1;
+    font-weight: 700;
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    padding: 0 16px 9px;
+}
+.set-row { padding: 13px 16px; border-radius: var(--ds-r-lg); }
+.set-row + .set-row::before { left: 63px; background: var(--ds-line); }
+.set-row:active { background: var(--ds-fill); }
+.set-row-lbl b { font-weight: 600; letter-spacing: -0.005em; }
+.set-row-lbl small { color: var(--text-dim); font-weight: 500; }
+.set-ic, .set-badge, .set-ic-btn, .acc-signout {
+    border-radius: 10px;
+    background: var(--ds-tint);
+    border: 1px solid transparent;
+}
+@media (hover: hover) and (pointer: fine) {
+    .set-row:hover, .lang-option:hover, .post-salah-option:hover { background: var(--ds-fill); }
+}
+
+/* Переключатели — в стиле iOS */
+.toggle-switch,
+html[data-theme] .toggle-switch {
+    width: 50px; height: 30px;
+    border: 0;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--text) 16%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 4%, transparent);
+    transition: background-color 0.3s var(--ds-ease);
+}
+.toggle-switch::after,
+html[data-theme] .toggle-switch::after {
+    width: 26px; height: 26px;
+    top: 2px; left: 2px;
+    background: #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28), 0 0 0 0.5px rgba(0, 0, 0, 0.06);
+    transition: transform 0.32s var(--ds-spring);
+}
+.toggle-switch.on,
+html[data-theme] .toggle-switch.on {
+    background: var(--gold);
+    border-color: transparent;
+    box-shadow: none;
+}
+.toggle-switch.on::after,
+html[data-theme] .toggle-switch.on::after {
+    transform: translateX(20px);
+    background: #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
+}
+
+/* Ползунки громкости / вибрации */
+.vibration-slider, .volume-slider {
+    height: 4px;
+    background: linear-gradient(to right,
+        var(--gold) 0%, var(--gold) var(--slider-pct, 50%),
+        color-mix(in srgb, var(--text) 14%, transparent) var(--slider-pct, 50%),
+        color-mix(in srgb, var(--text) 14%, transparent) 100%);
+}
+.vibration-slider::-webkit-slider-thumb, .volume-slider::-webkit-slider-thumb {
+    width: 22px; height: 22px;
+    background: #ffffff;
+    border: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35), 0 0 0 4px color-mix(in srgb, var(--gold) 18%, transparent);
+}
+.vibration-slider::-moz-range-thumb, .volume-slider::-moz-range-thumb {
+    width: 22px; height: 22px;
+    background: #ffffff;
+    border: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35), 0 0 0 4px color-mix(in srgb, var(--gold) 18%, transparent);
+}
+.vibration-slider-label, .volume-slider-label { font-weight: 600; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+
+/* Подпись версии */
+.app-version-love { color: var(--text-dim); }
+.app-version-name { color: var(--gold); }
+
+/* ---------------------------------------------------------------------
+   12. ВЫПАДАЮЩИЕ МЕНЮ
+   --------------------------------------------------------------------- */
+.lang-dropdown, .post-salah-dropdown, .cl-list-dropdown, .cl-folder-dropdown,
+.auto-extend-dropdown, .cl-folder-plus-menu {
+    background: color-mix(in srgb, var(--ds-sheet) 92%, transparent);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    backdrop-filter: blur(24px) saturate(150%);
+    border: 1px solid var(--ds-line-strong);
+    border-radius: 18px;
+    box-shadow: var(--ds-elev-3);
+    padding: 5px;
+}
+.lang-option, .post-salah-option, .cl-list-option, .cl-folder-option,
+.auto-extend-option, .cl-folder-plus-menu-item, .cl-list-new {
+    border-radius: 12px;
+    border-bottom: 0;
+    color: var(--text);
+    font-weight: 500;
+}
+.auto-extend-option + .auto-extend-option { border-top: 0; }
+.lang-option.active, .cl-list-option.active, .cl-folder-option.active {
+    background: var(--ds-tint);
+    color: var(--gold);
+    font-weight: 600;
+}
+.lang-option:active, .post-salah-option:active, .cl-list-option:active,
+.cl-folder-option:active, .cl-folder-plus-menu-item:active, .cl-list-new:active { background: var(--ds-fill); }
+.cl-folder-plus-menu-separator { margin: 4px 6px; background: var(--ds-line); }
+.cl-list-new { color: var(--gold); font-weight: 600; }
+
+/* ---------------------------------------------------------------------
+   13. ОКНА, ЛИСТЫ, ОВЕРЛЕИ
+   --------------------------------------------------------------------- */
+.modal-overlay, .overlay, .cl-modal-overlay, #specialModal, .theme-picker-overlay,
+.sound-picker-overlay, .notif-pop-overlay, .about-app-overlay, .acc-overlay,
+#hadithPopupOverlay, .stats-detail-overlay, .special-detail-overlay {
+    background: var(--ds-scrim);
+}
+
+/* Нижние листы */
+.modal-sheet, .theme-picker-sheet, .sound-picker-sheet {
+    background: var(--ds-sheet);
+    border: 1px solid var(--ds-line);
+    border-bottom: 0;
+    border-radius: 32px 32px 0 0;
+    box-shadow: var(--ds-elev-3), var(--ds-highlight);
+}
+.modal-handle, .theme-picker-handle, .sound-picker-handle, .acc-modal-handle {
+    width: 38px; height: 5px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--text) 18%, transparent);
+}
+
+/* Центральные карточки-окна */
+.center .modal-sheet, .overlay-card, .cl-modal, #specialModalSheet,
+.special-achieve-card, .stats-detail-card, .special-detail-card,
+#hadithPopupCard, .notif-pop, .about-app-card {
+    background: var(--ds-sheet);
+    border: 1px solid var(--ds-line-strong);
+    border-radius: var(--ds-r-xl);
+    box-shadow: var(--ds-elev-3), var(--ds-highlight);
+}
+.center .modal-sheet { border-bottom: 1px solid var(--ds-line-strong); }
+.acc-modal {
+    background: var(--ds-sheet);
+    border: 1px solid var(--ds-line-strong);
+    box-shadow: var(--ds-elev-3);
+}
+html[data-theme] #completionOverlay .overlay-card,
+.special-achieve-card {
+    border-color: var(--ds-accent-line);
+    background:
+        radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--gold) 16%, transparent) 0%, transparent 60%),
+        var(--ds-sheet);
+    box-shadow: var(--ds-elev-3), 0 0 60px -20px var(--gold-glow);
+}
+.about-app-card {
+    background:
+        radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--gold) 12%, transparent), transparent 46%),
+        var(--ds-sheet);
+}
+
+/* Заголовки окон */
+.modal-title, .overlay-title, .cl-modal-title, .special-modal-title, .prayer-modal-title,
+.method-modal-title, .clstat-title, .geo-perm-title, .theme-picker-title,
+.sound-picker-title, .notif-pop-title, .special-achieve-title, .hadith-label {
+    font-family: var(--ds-display);
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    background: linear-gradient(180deg, var(--text) 0%, color-mix(in srgb, var(--gold) 80%, var(--text)) 120%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+html[data-theme^="light"] .modal-title, html[data-theme^="light"] .overlay-title,
+html[data-theme^="light"] .cl-modal-title, html[data-theme^="light"] .special-modal-title,
+html[data-theme^="light"] .prayer-modal-title, html[data-theme^="light"] .method-modal-title,
+html[data-theme^="light"] .clstat-title, html[data-theme^="light"] .geo-perm-title,
+html[data-theme^="light"] .theme-picker-title, html[data-theme^="light"] .sound-picker-title,
+html[data-theme^="light"] .notif-pop-title, html[data-theme^="light"] .special-achieve-title,
+html[data-theme^="light"] .hadith-label {
+    background: linear-gradient(180deg, var(--text) 0%, var(--gold) 150%);
+    -webkit-background-clip: text; background-clip: text;
+}
+.overlay-sub, .prayer-modal-subtitle, .clstat-subtitle { color: var(--text-muted); }
+
+/* Строки внутри окон */
+.notif-row {
+    background: var(--ds-fill);
+    border: 1px solid transparent;
+    border-radius: var(--ds-r-md);
+}
+.notif-ic { background: var(--ds-tint); border-radius: 12px; }
+
+/* Время намазов */
+.prayer-list { gap: 6px; }
+.prayer-row {
+    background: var(--ds-fill);
+    border: 1px solid transparent;
+    border-radius: var(--ds-r-md);
+}
+.prayer-row.next {
+    background:
+        linear-gradient(120deg, color-mix(in srgb, var(--gold) 18%, transparent), color-mix(in srgb, var(--gold) 5%, transparent));
+    border-color: var(--ds-accent-line);
+    box-shadow: 0 10px 30px -16px var(--gold-glow);
+}
+.prayer-row.sunrise { background: transparent; border: 1px dashed var(--ds-line-strong); }
+.prayer-row-icon { background: var(--ds-fill); border: 1px solid transparent; }
+.prayer-row.next .prayer-row-icon { color: var(--ds-on-accent); box-shadow: 0 6px 14px -6px var(--gold-glow); }
+.prayer-row-name { font-family: var(--ds-ui); font-weight: 600; font-size: 0.92rem; }
+.prayer-row-time { font-family: var(--ds-ui); font-weight: 600; font-size: 1.05rem; letter-spacing: -0.01em; }
+.prayer-row-time.countdown { font-family: var(--ds-ui); font-size: 0.7rem; font-weight: 600; letter-spacing: 0.02em; }
+.prayer-method-trigger, .prayer-method-selector {
+    background: var(--ds-fill);
+    border: 1px solid transparent;
+    border-radius: var(--ds-r-md);
+}
+.prayer-method-list { border-color: var(--ds-line); border-radius: var(--ds-r-md); background: var(--ds-card); }
+.method-opt { border-bottom-color: var(--ds-line); border-radius: 10px; padding-left: 8px; padding-right: 8px; }
+.method-modal-list { border-top-color: var(--ds-line); }
+.prayer-empty-icon, .geo-perm-icon { background: var(--ds-tint); }
+
+/* Выбор темы и звука */
+.theme-swatch-circle { box-shadow: inset 0 0 0 1px var(--ds-line-strong); }
+.theme-swatch.active .theme-swatch-circle { border-color: var(--gold); box-shadow: 0 0 0 4px var(--ds-tint); }
+.theme-swatch-label, .sound-option-label { font-weight: 600; }
+.sound-option { border-radius: var(--ds-r-md); }
+.sound-option.active { background: var(--ds-tint); }
+.sound-icon-circle { background: var(--ds-fill); }
+.sound-option.active .sound-icon-circle { border-color: var(--gold); box-shadow: none; }
+
+/* Бейдж автопродления цели */
+#autoExtendBadge { border-width: 1px; }
+
+/* ---------------------------------------------------------------------
+   14. УВЕДОМЛЕНИЯ: тосты, баннер хадиса, плавающий счётчик
+   --------------------------------------------------------------------- */
+.toast, .hint-toast {
+    background: var(--ds-glass);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    backdrop-filter: blur(22px) saturate(160%);
+    border: 1px solid var(--ds-line-strong);
+    border-radius: 999px;
+    color: var(--text);
+    font-weight: 600;
+    box-shadow: var(--ds-elev-2);
+}
+.toast { padding: 11px 20px; }
+#hadithBanner {
+    background: var(--ds-glass);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    backdrop-filter: blur(22px) saturate(160%);
+    border: 1px solid var(--ds-line-strong);
+    border-radius: 22px;
+    box-shadow: var(--ds-elev-2);
+}
+.hadith-banner-title { letter-spacing: 0.1em; }
+.hadith-ornament-line { background: linear-gradient(90deg, transparent, var(--ds-line-strong), transparent); }
+.hadith-close-hint { border-top-color: var(--ds-line); }
+.acc-toast { box-shadow: var(--ds-elev-2); color: var(--ds-on-accent); }
+
+#pipCounterBtn {
+    background: var(--ds-glass);
+    border: 1px solid var(--ds-line-strong);
+    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+    box-shadow: var(--ds-elev-2), 0 0 0 3px var(--ds-tint);
+}
+#pipCounterBtn .pip-num { font-family: var(--ds-ui); font-weight: 600; letter-spacing: -0.02em; }
+
+/* ---------------------------------------------------------------------
+   15. КИБЛА
+   --------------------------------------------------------------------- */
+.qibla-badge {
+    background: var(--ds-glass);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    border: 1px solid var(--ds-line);
+    border-radius: 999px;
+    box-shadow: var(--ds-highlight), var(--ds-elev-1);
+    font-weight: 600;
+}
+.qibla-badge strong { font-family: var(--ds-ui); font-weight: 700; font-size: 1rem; }
+.qibla-sub { letter-spacing: 0.02em; }
+
+/* ---------------------------------------------------------------------
+   16. МИКРО-ДВИЖЕНИЕ
+   --------------------------------------------------------------------- */
+.dua-card, .special-card, .cl-task-card, .stat-card, .goal-chip, .back-btn,
+.dua-action-btn, .special-action-btn, .fab, .period-btn {
+    transition: background-color 0.3s var(--ds-ease), border-color 0.3s var(--ds-ease),
+                box-shadow 0.3s var(--ds-ease), filter 0.3s ease, transform 0.18s var(--ds-spring);
+}
+@media (hover: hover) and (pointer: fine) {
+    .dua-card:hover, .special-card:hover, .stat-card:hover, .cl-task-card:hover {
+        border-color: var(--ds-line-strong);
+        filter: none;
+    }
+}
+
+/* ---------------------------------------------------------------------
+   17. ОБЛЕГЧЁННЫЙ РЕЖИМ — без размытия и тяжёлых теней
+   --------------------------------------------------------------------- */
+html.lite[data-theme] {
+    --ds-glass: var(--ds-card-2);
+    --ds-elev-1: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --ds-elev-2: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --ds-elev-3: 0 8px 22px rgba(0, 0, 0, 0.5);
+}
+html.lite[data-theme^="light"] {
+    --ds-glass: #ffffff;
+    --ds-elev-1: 0 1px 3px rgba(16, 24, 40, 0.06);
+    --ds-elev-2: 0 4px 12px rgba(16, 24, 40, 0.08);
+    --ds-elev-3: 0 8px 22px rgba(16, 24, 40, 0.12);
+}
+html.lite .progress-ring-svg,
+html.lite .allah-svg { filter: none; }
+html.lite .screen-sticky-head { background: var(--bg); }

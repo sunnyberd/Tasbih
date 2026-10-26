@@ -3,7 +3,7 @@
 // Структура: AZKAR_I18N_REGISTER(язык, основной словарь t(), UI-словари).
 // Новый ключ добавляй во ВСЕ файлы папки i18n/, иначе будет показан английский текст.
 AZKAR_I18N_REGISTER("de", {
-    "headerTitle": "Wahrlich, im Gedenken Allahs finden die Herzen Ruhe",
+    "headerTitle": "Wahrlich, im Gedenken Allahs\nfinden die Herzen Ruhe",
     "postSalahHeaderTitle": "Tasbih nach dem Gebet",
     "postSalahOptionLabel": "Dhikrs nach dem Gebet",
     "postSalahExitLabel": "Tasbih",

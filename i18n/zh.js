@@ -3,7 +3,7 @@
 // Структура: AZKAR_I18N_REGISTER(язык, основной словарь t(), UI-словари).
 // Новый ключ добавляй во ВСЕ файлы папки i18n/, иначе будет показан английский текст.
 AZKAR_I18N_REGISTER("zh", {
-    "headerTitle": "确实，只有记念安拉，心灵才能得到安宁",
+    "headerTitle": "确实，只有记念安拉，\n心灵才能得到安宁",
     "postSalahHeaderTitle": "礼拜后赞辞（泰斯比哈）",
     "postSalahOptionLabel": "礼拜后的记主词",
     "postSalahExitLabel": "赞辞",

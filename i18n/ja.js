@@ -3,7 +3,7 @@
 // Структура: AZKAR_I18N_REGISTER(язык, основной словарь t(), UI-словари).
 // Новый ключ добавляй во ВСЕ файлы папки i18n/, иначе будет показан английский текст.
 AZKAR_I18N_REGISTER("ja", {
-    "headerTitle": "まことに、アッラーの御記憶によって心は安らぐ",
+    "headerTitle": "まことに、アッラーの御記憶によって\n心は安らぐ",
     "postSalahHeaderTitle": "礼拝後のタスビーフ",
     "postSalahOptionLabel": "礼拝後のズィクル集",
     "postSalahExitLabel": "タスビーフ",

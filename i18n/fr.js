@@ -3,7 +3,7 @@
 // Структура: AZKAR_I18N_REGISTER(язык, основной словарь t(), UI-словари).
 // Новый ключ добавляй во ВСЕ файлы папки i18n/, иначе будет показан английский текст.
 AZKAR_I18N_REGISTER("fr", {
-    "headerTitle": "Certes, c'est par le rappel d'Allah que les cœurs trouvent la paix",
+    "headerTitle": "Certes, c'est par le rappel d'Allah\nque les cœurs trouvent la paix",
     "postSalahHeaderTitle": "Tasbih après la prière",
     "postSalahOptionLabel": "Dhikrs après la prière",
     "postSalahExitLabel": "Tasbih",
