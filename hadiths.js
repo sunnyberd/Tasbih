@@ -297,6 +297,174 @@ window.AZKAR_HADITHS = [
             zh: "穆斯林，第2699号", tr: "Müslim, No. 2699", hi: "मुस्लिम, क्रमांक 2699",
             id: "Muslim, no. 2699", ms: "Muslim, no. 2699", th: "มุสลิม หมายเลข 2699"
         }
+    },
+
+    {
+        arabic: "إِذَا تَوَضَّأَ الْعَبْدُ الْمُسْلِمُ فَأَحْسَنَ وُضُوءَهُ خَرَجَتْ خَطَايَاهُ مِنْ جَسَدِهِ حَتَّى تَخْرُجَ مِنْ تَحْتِ أَظْفَارِهِ",
+        text: {
+            ru: "Кто совершает омовение должным образом, у того грехи выходят из тела, даже из-под ногтей.",
+            en: "When a Muslim performs ablution properly, his sins come out of his body, even from under his fingernails.",
+            uz: "Musulmon kishi tahoratni to'g'ri qilsa, uning gunohlari tanasidan chiqib ketadi, hatto tirnoqlari ostidan ham.",
+            de: "Wenn ein Muslim die Waschung richtig vollzieht, verlassen seine Sünden seinen Körper, sogar unter seinen Fingernägeln hervor.",
+            es: "Cuando un musulmán realiza bien la ablución, sus pecados salen de su cuerpo, incluso de debajo de sus uñas.",
+            fr: "Lorsqu'un musulman accomplit correctement son ablution, ses péchés sortent de son corps, jusque de sous ses ongles.",
+            it: "Quando un musulmano compie correttamente l'abluzione, i suoi peccati escono dal suo corpo, perfino da sotto le unghie.",
+            ja: "ムスリムが正しくウドゥー（小浄）を行えば、罪は身体から出て行き、爪の下からさえも出て行く。",
+            ko: "무슬림이 우두를 올바르게 하면, 그의 죄는 몸에서 빠져나가며 심지어 손톱 밑에서도 빠져나간다.",
+            zh: "穆斯林若完善地做小净，他的罪过就会从身体里排出，甚至从指甲缝里排出。",
+            tr: "Müslüman abdestini güzelce alırsa, günahları vücudundan çıkar, hatta tırnaklarının altından bile.",
+            hi: "जब मुसलमान अच्छी तरह वुज़ू करता है, तो उसके गुनाह उसके शरीर से निकल जाते हैं, यहाँ तक कि उसके नाख़ूनों के नीचे से भी।",
+            id: "Apabila seorang muslim berwudu dengan baik, dosa-dosanya keluar dari tubuhnya, bahkan dari bawah kuku-kukunya.",
+            ms: "Apabila seorang Muslim berwuduk dengan sempurna, dosa-dosanya keluar dari tubuhnya, sehingga dari bawah kukunya.",
+            th: "เมื่อมุสลิมคนหนึ่งอาบน้ำละหมาดอย่างดี บาปของเขาจะออกจากร่างกายของเขา แม้กระทั่งจากใต้เล็บของเขา"
+        },
+        source: {
+            ru: "Муслим, №245", en: "Muslim, No. 245", uz: "Muslim, №245",
+            de: "Muslim, Nr. 245", es: "Muslim, n.º 245", fr: "Muslim, n° 245",
+            it: "Muslim, n. 245", ja: "ムスリム 第245番", ko: "무슬림 245번",
+            zh: "穆斯林，第245号", tr: "Müslim, No. 245", hi: "मुस्लिम, क्रमांक 245",
+            id: "Muslim, no. 245", ms: "Muslim, no. 245", th: "มุสลิม หมายเลข 245"
+        }
+    },
+
+    {
+        arabic: "إِنَّ أَبْغَضَ الرِّجَالِ إِلَى اللَّهِ الأَلَدُّ الْخَصِمُ",
+        text: {
+            ru: "Поистине, самый ненавистный для Аллаха из мужчин — это непримиримый спорщик.",
+            en: "Indeed, the most hated of men to Allah is the most quarrelsome adversary.",
+            uz: "Albatta, odamlar ichida Allohga eng yoqimsiz kishi — eng qattiq janjalkashdir.",
+            de: "Wahrlich, der Mann, der Allah am meisten verhasst ist, ist der hartnäckigste Streitsüchtige.",
+            es: "Ciertamente, el hombre más aborrecido por Allah es el más pendenciero y contencioso.",
+            fr: "Certes, l'homme le plus détesté d'Allah est le plus acharné dans la querelle.",
+            it: "Certamente, l'uomo più odiato da Allah è il più litigioso e contenzioso.",
+            ja: "まことに、アッラーに最も嫌われる男は、頑固で争いを好む者である。",
+            ko: "진실로 알라께 가장 미움받는 남자는 완고하게 다투기를 좋아하는 자이다.",
+            zh: "真主最憎恶的人，就是最好争辩、最顽固的人。",
+            tr: "Allah katında erkeklerin en çok buğzettiği kişi, en inatçı tartışmacıdır.",
+            hi: "निश्चय ही अल्लाह के निकट सबसे घृणित पुरुष वह है जो सबसे अधिक झगड़ालू और हठी हो।",
+            id: "Sesungguhnya laki-laki yang paling dibenci Allah adalah orang yang paling keras kepala dalam berdebat.",
+            ms: "Sesungguhnya lelaki yang paling dibenci oleh Allah ialah orang yang paling keras kepala dan suka bertengkar.",
+            th: "แท้จริง ชายที่อัลลอฮ์ทรงเกลียดที่สุดคือผู้ที่ดื้อรั้นและชอบโต้เถียงที่สุด"
+        },
+        source: {
+            ru: "Аль-Бухари, №2457; Муслим, №2668", en: "Al-Bukhari, No. 2457; Muslim, No. 2668", uz: "Buxoriy, №2457; Muslim, №2668",
+            de: "Buchari, Nr. 2457; Muslim, Nr. 2668", es: "Bujari, n.º 2457; Muslim, n.º 2668", fr: "Bukhari, n° 2457 ; Muslim, n° 2668",
+            it: "Bukhari, n. 2457; Muslim, n. 2668", ja: "ブハーリー 第2457番; ムスリム 第2668番", ko: "부하리 2457번; 무슬림 2668번",
+            zh: "布哈里，第2457号；穆斯林，第2668号", tr: "Buhârî, No. 2457; Müslim, No. 2668", hi: "बुख़ारी, क्रमांक 2457; मुस्लिम, क्रमांक 2668",
+            id: "Bukhari, no. 2457; Muslim, no. 2668", ms: "Bukhari, no. 2457; Muslim, no. 2668", th: "บุคอรี หมายเลข 2457; มุสลิม หมายเลข 2668"
+        }
+    },
+
+    {
+        arabic: "إِذَا سَأَلْتُمُ اللَّهَ فَاسْأَلُوهُ الْفِرْدَوْسَ، فَإِنَّهُ أَوْسَطُ الْجَنَّةِ وَأَعْلَى الْجَنَّةِ، وَفَوْقَهُ عَرْشُ الرَّحْمَنِ، وَمِنْهُ تَفَجَّرُ أَنْهَارُ الْجَنَّةِ",
+        text: {
+            ru: "Когда просите у Аллаха, просите у Него аль-Фирдаус: поистине, он — середина Рая и самое высокое его место; над ним — Трон Милостивого, и из него разливаются реки Рая.",
+            en: "When you ask Allah, ask Him for al-Firdaws: indeed, it is the middle and the highest part of Paradise; above it is the Throne of the Most Merciful, and from it the rivers of Paradise flow.",
+            uz: "Allohdan so'raganingizda Firdavsni so'rang. Albatta, u Jannatning o'rtasi va eng yuqori joyidir. Uning ustida Rahmonning Arshi bor, undan Jannat daryolari oqib chiqadi.",
+            de: "Wenn ihr Allah bittet, so bittet Ihn um al-Firdaus; denn es ist die Mitte und der höchste Teil des Paradieses, über ihm ist der Thron des Barmherzigen, und aus ihm entspringen die Flüsse des Paradieses.",
+            es: "Cuando pidáis a Allah, pedidle al-Firdaus, pues es el centro y la parte más alta del Paraíso; sobre él está el Trono del Misericordioso, y de él brotan los ríos del Paraíso.",
+            fr: "Lorsque vous demandez à Allah, demandez-Lui al-Firdaws : c'est le centre et la partie la plus élevée du Paradis ; au-dessus se trouve le Trône du Très Miséricordieux, et de lui jaillissent les fleuves du Paradis.",
+            it: "Quando chiedete ad Allah, chiedetegli al-Firdaws: è il centro e la parte più alta del Paradiso; sopra di esso c'è il Trono del Misericordioso, e da esso sgorgano i fiumi del Paradiso.",
+            ja: "アッラーに求めるときは、フィルダウスを求めなさい。それは楽園の中央であり最も高い所で、その上にはラフマーンの玉座があり、そこから楽園の川々が湧き出ています。",
+            ko: "알라께 구하려거든 알 피르다우스를 구하라. 그곳은 낙원의 한가운데이자 가장 높은 곳이며, 그 위에는 자비로우신 분의 보좌가 있고, 거기서 낙원의 강들이 흘러나온다.",
+            zh: "你们向真主祈求时，就求祂赐予菲尔道斯乐园。它是乐园的中央、最高处，其上是至慈主的宝座，乐园的河流从那里涌出。",
+            tr: "Allah'tan istediğinizde Firdevs'i isteyin. Çünkü o Cennetin ortası ve en yücesidir; onun üzerinde Rahman'ın Arşı vardır ve ondan Cennet nehirleri akar.",
+            hi: "जब तुम अल्लाह से माँगो, तो उससे फ़िरदौस माँगो; वह जन्नत का बीच का और सबसे ऊँचा भाग है, उसके ऊपर रहमान का अर्श है और उसी से जन्नत की नदियाँ बहती हैं।",
+            id: "Apabila kalian meminta kepada Allah, mintalah Firdaus kepada-Nya; sesungguhnya ia adalah bagian tengah dan tertinggi surga, di atasnya ada Arasy Yang Maha Pengasih, dan darinya mengalir sungai-sungai surga.",
+            ms: "Apabila kamu memohon kepada Allah, mohonlah Firdaus; sesungguhnya ia ialah bahagian tengah dan tertinggi syurga, di atasnya ada 'Arasy Yang Maha Pemurah, dan daripadanya mengalir sungai-sungai syurga.",
+            th: "เมื่อพวกท่านขอต่ออัลลอฮ์ ก็จงขออัลฟิรเดาส์ เพราะแท้จริงมันคือส่วนกลางและส่วนสูงสุดของสวรรค์ เหนือมันคือบัลลังก์ของพระผู้ทรงกรุณาปรานี และจากมันมีแม่น้ำแห่งสวรรค์ไหลออกมา"
+        },
+        source: {
+            ru: "Аль-Бухари, №7423", en: "Al-Bukhari, No. 7423", uz: "Buxoriy, №7423",
+            de: "Buchari, Nr. 7423", es: "Bujari, n.º 7423", fr: "Bukhari, n° 7423",
+            it: "Bukhari, n. 7423", ja: "ブハーリー 第7423番", ko: "부하리 7423번",
+            zh: "布哈里，第7423号", tr: "Buhârî, No. 7423", hi: "बुख़ारी, क्रमांक 7423",
+            id: "Bukhari, no. 7423", ms: "Bukhari, no. 7423", th: "บุคอรี หมายเลข 7423"
+        }
+    },
+
+    {
+        arabic: "مَنْ بَاتَ طَاهِرًا فِي ثَوْبِهِ مَلَكٌ، فَلَا يَنْقَلِبُ سَاعَةً مِنَ اللَّيْلِ إِلَّا قَالَ: اللَّهُمَّ اغْفِرْ لِعَبْدِكَ فُلَانٍ فَإِنَّهُ بَاتَ طَاهِرًا",
+        text: {
+            ru: "Тот, кто будет засыпать с омовением, то в его рубахе заночует ангел, и не пройдёт ни один час в ночи, кроме как ангел будет говорить: «Всевышний, прости ему, ведь он заснул с омовением».",
+            en: "Whoever sleeps in a state of ablution, an angel will spend the night in his garment, and at every hour of the night the angel will say: \"O Allah, forgive him, for he slept in a state of ablution.\"",
+            uz: "Kim tahorat bilan uxlasa, uning kiyimida farishta tunaydi va tunning har bir soatida farishta: «Ey Alloh, u tahorat bilan uxlagani uchun uni kechir», deydi.",
+            de: "Wer mit Waschung schläft, in dessen Gewand übernachtet ein Engel; und zu jeder Stunde der Nacht sagt der Engel: „O Allah, vergib ihm, denn er ist mit Waschung eingeschlafen.“",
+            es: "Quien se acuesta en estado de ablución, un ángel pasa la noche en su ropa, y a cada hora de la noche el ángel dice: «¡Oh Allah, perdónale, pues se acostó en estado de ablución!».",
+            fr: "Celui qui s'endort en état d'ablution, un ange passe la nuit dans son vêtement, et à chaque heure de la nuit l'ange dit : « Ô Allah, pardonne-lui, car il s'est endormi en état d'ablution ! ».",
+            it: "Chi va a dormire in stato di abluzione, un angelo trascorre la notte nella sua veste, e ad ogni ora della notte l'angelo dice: «O Allah, perdonalo, perché si è addormentato in stato di abluzione!».",
+            ja: "ウドゥー（小浄）を保ったまま眠る者の衣服には天使が泊まり、夜のどの時刻にも天使はこう言います。「アッラーよ、この者を赦したまえ。ウドゥーをして眠ったのだから」",
+            ko: "우두(소정결)를 한 채 잠드는 자의 옷에는 천사가 밤을 지내며, 밤의 어느 시각이든 천사가 말한다. \"알라여, 그는 우두를 하고 잠들었으니 그를 용서하소서.\"",
+            zh: "凡身带小净而入睡的人，天使会在他的衣服上过夜；夜间每一个时辰，天使都会说：“主啊，请你赦宥他吧，他是带着小净入睡的。”",
+            tr: "Abdestli olarak uyuyan kimsenin elbisesinde bir melek geceler; gecenin her saatinde melek şöyle der: «Allah'ım, abdestli uyuduğu için onu bağışla.»",
+            hi: "जो व्यक्ति वुज़ू की हालत में सोता है, उसके वस्त्र में एक फ़रिश्ता रात बिताता है; रात की हर घड़ी में फ़रिश्ता कहता है: «ऐ अल्लाह, उसे माफ़ कर दे, क्योंकि वह वुज़ू के साथ सोया।»",
+            id: "Barang siapa tidur dalam keadaan berwudu, maka seorang malaikat bermalam di pakaiannya; setiap saat di malam hari malaikat itu berkata: “Ya Allah, ampunilah dia, karena ia tidur dalam keadaan berwudu.”",
+            ms: "Sesiapa yang tidur dalam keadaan berwuduk, maka seorang malaikat bermalam di pakaiannya; pada setiap saat di malam hari malaikat itu berkata: “Ya Allah, ampunilah dia, kerana dia tidur dalam keadaan berwuduk.”",
+            th: "ผู้ใดนอนในสภาพที่มีการอาบน้ำละหมาด มีมลาอิกะฮ์ค้างคืนอยู่ในเสื้อผ้าของเขา และในทุกชั่วโมงของกลางคืนมลาอิกะฮ์จะกล่าวว่า “ข้าแต่อัลลอฮ์ ขอทรงอภัยให้เขาด้วย เพราะเขานอนในสภาพที่มีการอาบน้ำละหมาด”"
+        },
+        source: {
+            ru: "Ас-Сильсиля ас-Сахиха, №2539", en: "As-Silsila as-Sahiha, No. 2539", uz: "As-Silsilat as-Sahiha, №2539",
+            de: "As-Silsila as-Sahiha, Nr. 2539", es: "As-Silsila as-Sahiha, n.º 2539", fr: "As-Silsila as-Sahiha, n° 2539",
+            it: "As-Silsila as-Sahiha, n. 2539", ja: "アッ＝シルシラ・アッ＝サヒーハ 第2539番", ko: "앗-실실라 앗-사히하 2539번",
+            zh: "《正确圣训系列》第2539号", tr: "Silsiletü's-Sahiha, No. 2539", hi: "सिलसिला अस-सहीहा, क्रमांक 2539",
+            id: "As-Silsilah Ash-Shahihah, no. 2539", ms: "As-Silsilah As-Sahihah, no. 2539", th: "อัส-สิลซิละฮ์ อัศ-เศาะฮีฮะฮ์ หมายเลข 2539"
+        }
+    },
+
+    {
+        arabic: "مَنْ قَالَ: سُبْحَانَ اللهِ وَبِحَمْدِهِ فِي يَوْمٍ مِائَةَ مَرَّةٍ، حُطَّتْ خَطَايَاهُ، وَإِنْ كَانَتْ مِثْلَ زَبَدِ الْبَحْرِ",
+        text: {
+            ru: "Кто скажет «Субхану-Ллахи ва бихамдихи» сто раз в день, у того грехи будут прощены, даже если они как пена морская.",
+            en: "Whoever says \"Subhan Allah wa bihamdihi\" one hundred times a day, his sins will be forgiven even if they were like the foam of the sea.",
+            uz: "Kim kuniga yuz marta «Subhanalloh va bihamdihi» desa, gunohlari kechiriladi, garchi ular dengiz ko'pigidek bo'lsa ham.",
+            de: "Wer am Tag hundertmal „Subhan Allah wa bihamdihi“ sagt, dem werden seine Sünden vergeben, selbst wenn sie wie der Schaum des Meeres wären.",
+            es: "Quien diga cien veces al día «Subḥān Allāh wa bihamdihi», sus pecados serán perdonados, aunque sean como la espuma del mar.",
+            fr: "Celui qui dit cent fois par jour « Subhan Allah wa bihamdihi », ses péchés lui seront pardonnés, fussent-ils comme l'écume de la mer.",
+            it: "Chi dice cento volte al giorno «Subhan Allah wa bihamdihi», i suoi peccati saranno perdonati, anche se fossero come la schiuma del mare.",
+            ja: "一日に百回「スブハーナッラーヒ・ワ・ビハムディヘ（アッラーは清らかなり、その讃美とともに）」と唱える者は、たとえ罪が海の泡のように多くとも、赦される。",
+            ko: "하루에 백 번 \"수브하낰라히 와 비함디히\"라고 말하는 자는, 그의 죄가 바다의 거품과 같을지라도 용서받는다.",
+            zh: "谁一天说一百遍“赞美真主，并赞颂祂”（Subhān Allāh wa bihamdihi），他的罪过即使如海上的泡沫，也会被勾销。",
+            tr: "Her gün yüz defa «Sübhanallahi ve bihamdihi» diyen kimsenin, günahları deniz köpüğü kadar bile olsa bağışlanır.",
+            hi: "जो व्यक्ति एक दिन में सौ बार «सुब्हानल्लाहि व बिहम्दिही» कहे, उसके गुनाह माफ़ कर दिए जाते हैं, भले ही वे समुद्र के झाग के बराबर हों।",
+            id: "Barang siapa membaca “Subhanallah wa bihamdihi” seratus kali dalam sehari, dosa-dosanya diampuni walaupun sebanyak buih di lautan.",
+            ms: "Sesiapa yang membaca “Subhanallahi wa bihamdihi” seratus kali dalam sehari, dosanya diampunkan walaupun sebanyak buih di laut.",
+            th: "ผู้ใดกล่าว «ซุบหานัลลอฮิ วะบิฮัมดิฮ์» วันละหนึ่งร้อยครั้ง บาปของเขาจะถูกลบล้าง แม้จะมากเท่าฟองคลื่นในทะเล"
+        },
+        source: {
+            ru: "Аль-Бухари, №6405", en: "Al-Bukhari, No. 6405", uz: "Buxoriy, №6405",
+            de: "Buchari, Nr. 6405", es: "Bujari, n.º 6405", fr: "Bukhari, n° 6405",
+            it: "Bukhari, n. 6405", ja: "ブハーリー 第6405番", ko: "부하리 6405번",
+            zh: "布哈里，第6405号", tr: "Buhârî, No. 6405", hi: "बुख़ारी, क्रमांक 6405",
+            id: "Bukhari, no. 6405", ms: "Bukhari, no. 6405", th: "บุคอรี หมายเลข 6405"
+        }
+    },
+
+    {
+        arabic: "قَالَ اللَّهُ: إِذَا أَرَادَ عَبْدِي أَنْ يَعْمَلَ سَيِّئَةً فَلَا تَكْتُبُوهَا عَلَيْهِ، فَإِنْ عَمِلَهَا فَاكْتُبُوهَا بِمِثْلِهَا، وَإِنْ تَرَكَهَا مِنْ أَجْلِي فَاكْتُبُوهَا لَهُ حَسَنَةً",
+        text: {
+            ru: "Аллах сказал: «Если Мой раб задумал совершить грех, не записывайте его на него. Если совершит — запишите один такой же грех. А если оставит его ради Меня — запишите ему благо».",
+            en: "Allah says: \"If My servant intends to commit an evil deed, do not record it against him. If he does it, record it as one like it. But if he refrains from it for My sake, record it for him as a good deed.\"",
+            uz: "Alloh aytadi: «Bandam yomonlik qilishni niyat qilsa, uni unga yozmanglar. Agar qilsa, unga shunga o'xshash bittasini yozinglar. Agar Mening roziligim uchun tark etsa, unga savob sifatida yozinglar».",
+            de: "Allah spricht: „Wenn Mein Diener die Absicht hat, eine böse Tat zu begehen, so schreibt sie ihm nicht auf. Tut er sie, schreibt sie ihm als eine gleiche auf. Verzichtet er aber um Meinetwillen darauf, so schreibt sie ihm als gute Tat auf.“",
+            es: "Dice Allah: «Si Mi siervo tiene la intención de cometer un mal, no se lo anotéis. Si lo comete, anotadle una falta igual. Pero si lo abandona por Mí, anotadle una buena acción».",
+            fr: "Allah dit : « Si Mon serviteur a l'intention de commettre une mauvaise action, ne la lui inscrivez pas. S'il la commet, inscrivez-la comme une seule mauvaise action semblable. S'il y renonce pour Moi, inscrivez-la-lui comme une bonne action. »",
+            it: "Allah dice: «Se il Mio servo ha l'intenzione di compiere un male, non glielo scrivete. Se lo compie, scrivetene uno solo uguale. Ma se vi rinuncia per amor Mio, scrivetelo come un bene».",
+            ja: "アッラーは仰せられる。「わが僕が悪事を行おうと意図しても、それを記録してはならない。もし行えば、同じ一つの悪事として記録せよ。しかし、わがために止めたならば、それを善行として記録せよ。」",
+            ko: "알라께서 말씀하셨다. \"내 종이 악한 일을 하려고 마음먹으면 그에게 기록하지 말라. 만약 그가 행하면 같은 하나의 죄로 기록하라. 그러나 나를 위해 그것을 버리면 그를 위한 선행으로 기록하라.\"",
+            zh: "真主说：“如果我的仆人打算做恶事，你们不要记录他的罪过；如果他做了，就按一件记录；如果他为了我而放弃，就为他记录一件善功。”",
+            tr: "Allah şöyle buyurur: «Kulum bir kötülük yapmaya niyetlenirse, onu ona yazmayın. Eğer yaparsa, bir benzeri olarak yazın. Ama Benim için bırakırsa, onu ona bir iyilik olarak yazın.»",
+            hi: "अल्लाह फ़रमाता है: «यदि मेरा बंदा कोई बुरा काम करने का इरादा करे, तो उसे उसके नाम न लिखो। यदि वह उसे करे, तो उसके बराबर एक ही लिखो। किंतु यदि वह मेरी ख़ातिर उसे छोड़ दे, तो उसके लिए उसे एक नेकी लिखो।»",
+            id: "Allah berfirman: “Jika hamba-Ku berniat melakukan keburukan, janganlah kalian catat keburukan itu atasnya. Jika ia melakukannya, catatlah satu keburukan yang semisal. Namun jika ia meninggalkannya karena Aku, catatlah baginya satu kebaikan.”",
+            ms: "Allah berfirman: “Jika hamba-Ku berniat melakukan kejahatan, janganlah kamu catatkan kejahatan itu ke atasnya. Jika dia melakukannya, catatlah satu kejahatan yang sama. Jika dia meninggalkannya kerana Aku, catatlah baginya satu kebaikan.”",
+            th: "อัลลอฮ์ตรัสว่า “หากบ่าวของข้าตั้งใจจะทำความชั่ว ก็อย่าบันทึกมันไว้แก่เขา หากเขาทำมัน ก็จงบันทึกไว้เท่าเดิมหนึ่งครั้ง แต่หากเขาละมันไว้เพื่อข้า ก็จงบันทึกให้เขาเป็นความดีหนึ่งครั้ง”"
+        },
+        source: {
+            ru: "Аль-Бухари, №7501", en: "Al-Bukhari, No. 7501", uz: "Buxoriy, №7501",
+            de: "Buchari, Nr. 7501", es: "Bujari, n.º 7501", fr: "Bukhari, n° 7501",
+            it: "Bukhari, n. 7501", ja: "ブハーリー 第7501番", ko: "부하리 7501번",
+            zh: "布哈里，第7501号", tr: "Buhârî, No. 7501", hi: "बुख़ारी, क्रमांक 7501",
+            id: "Bukhari, no. 7501", ms: "Bukhari, no. 7501", th: "บุคอรี หมายเลข 7501"
+        }
     }
 
     // ── Добавляй новые хадисы ЗДЕСЬ, выше этой строки ──

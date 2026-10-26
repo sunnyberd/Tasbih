@@ -37,7 +37,7 @@
 // (push-config.js + сервер Tasbih-push). Пока server в push-config.js пустой — всё как раньше.
 // v114 — девиз на главной строго в две строки; шапка «Отзывы» закреплена; задачи
 // сбрасываются на Фаджр; кибла и намазы работают по сохранённой локации без GPS.
-const CACHE_NAME = 'azkar-v116';
+const CACHE_NAME = 'azkar-v117';
 const I18N_VERSION = '114';
 const DATA_VERSION = '110';
 const APP_VERSION = '115';
