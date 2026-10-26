@@ -33,12 +33,14 @@
 // v109 — переводы: хадисы и 99 имён на всех 15 языках, подсказки и подписи
 // для экранного диктора, единица таймера.
 // v110 — 99 имён: все 15 языков в одной папке data/names99/, allah-names.js больше не используется.
+// v115 — push-уведомления, которые приходят даже при закрытом приложении
+// (push-config.js + сервер Tasbih-push). Пока server в push-config.js пустой — всё как раньше.
 // v114 — девиз на главной строго в две строки; шапка «Отзывы» закреплена; задачи
 // сбрасываются на Фаджр; кибла и намазы работают по сохранённой локации без GPS.
-const CACHE_NAME = 'azkar-v114';
-const I18N_VERSION = '113';
+const CACHE_NAME = 'azkar-v115';
+const I18N_VERSION = '114';
 const DATA_VERSION = '110';
-const APP_VERSION = '114';
+const APP_VERSION = '115';
 
 // Оболочка приложения — кладётся в кэш сразу при установке SW,
 // чтобы второй запуск (и офлайн) был мгновенным.
@@ -53,6 +55,7 @@ const PRECACHE_URLS = [
     // Ленивые данные тоже кладём в кэш заранее (в фоне), чтобы они были доступны офлайн
     'data/checklist-defaults.js?v=' + DATA_VERSION,
     'language-routing.js',
+    'push-config.js?v=' + APP_VERSION,
     'manifest.json',
     'icon-192.png',
     'fonts/cormorantgaramond.woff2',
@@ -250,6 +253,86 @@ function fireDueEvents() {
         armNextEvent();
     }).catch(() => { armNextEvent(); });
 }
+
+// ===== PUSH: уведомления, даже когда приложение закрыто =====
+// Push присылает сервер (папка Tasbih-push) по расписанию, которое ему отдала
+// страница. Содержимое: { t: заголовок, b: текст, g: тег, k: вид, s: источник хадиса }.
+try { importScripts('push-config.js?v=' + APP_VERSION); } catch (e) {}
+
+function _pushB64uToBytes(str) {
+    const s = String(str).replace(/-/g, '+').replace(/_/g, '/');
+    const bin = atob(s + '==='.slice((s.length + 3) % 4));
+    const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+}
+
+self.addEventListener('push', (event) => {
+    let d = {};
+    try { d = event.data ? event.data.json() : {}; } catch (e) {
+        try { d = { b: event.data ? event.data.text() : '' }; } catch (e2) {}
+    }
+    event.waitUntil(showPushNotification(d));
+});
+
+async function showPushNotification(d) {
+    const tag = d.g || ('azkar-push-' + Date.now());
+    const isHadith = d.k === 'hadith';
+    const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const visible = clients.some(cl => cl.visibilityState === 'visible');
+    let apple = false;
+    try {
+        const sub = await self.registration.pushManager.getSubscription();
+        apple = !!(sub && /push\.apple\.com/.test(sub.endpoint));
+    } catch (e) {}
+    // Приложение открыто — баннер покажет сама страница (у неё то же расписание).
+    // Safari (iPhone) требует показывать уведомление на каждый push — там показываем всегда.
+    if (visible && !apple && d.k !== 'test') return;
+    // Уже показано таймером страницы с тем же тегом — не дублируем
+    if (!apple) {
+        try {
+            const shown = await self.registration.getNotifications({ tag });
+            if (shown.length) return;
+        } catch (e) {}
+    }
+    await self.registration.showNotification(d.t || 'Azkar', {
+        body: d.b || '',
+        icon: 'icon-192.png',
+        badge: 'icon-192.png',
+        tag: tag,
+        renotify: false,
+        requireInteraction: false,
+        data: isHadith
+            ? { url: self.registration.scope, hadithText: d.b || '', hadithSource: d.s || '' }
+            : { url: self.registration.scope }
+    });
+    // Сообщаем странице: хадис показан (начать новое окно 3–6 ч) / событие показано
+    if (isHadith) clients.forEach(cl => cl.postMessage({ type: 'HADITH_NOTIFIED' }));
+    else clients.forEach(cl => cl.postMessage({ type: 'NOTIF_EVENTS_SHOWN', tags: [tag] }));
+}
+
+// Браузер сам заменил подписку — сообщаем серверу новую (расписание он перенесёт)
+self.addEventListener('pushsubscriptionchange', (event) => {
+    const cfg = self.AZKAR_PUSH || {};
+    if (!cfg.server) return;
+    event.waitUntil((async () => {
+        const oldSub = event.oldSubscription;
+        const sub = event.newSubscription || await self.registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: _pushB64uToBytes(cfg.publicKey)
+        });
+        await fetch(String(cfg.server).replace(/\/+$/, '') + '/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                subscription: sub.toJSON(),
+                oldEndpoint: oldSub ? oldSub.endpoint : '',
+                keepEvents: true,
+                events: []
+            })
+        });
+    })().catch(() => {}));
+});
 
 // ===== КЛИК ПО УВЕДОМЛЕНИЮ — открыть приложение =====
 self.addEventListener('notificationclick', (event) => {

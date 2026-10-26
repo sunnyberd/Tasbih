@@ -4,6 +4,9 @@
 // Новый ключ добавляй во ВСЕ файлы папки i18n/, иначе будет показан английский текст.
 AZKAR_I18N_REGISTER("en", {
     "headerTitle": "Verily, in the remembrance of Allah\ndo hearts find rest",
+    "pushTestScheduled": "Close the app — a test notification will arrive in about a minute",
+    "pushTestFail": "Push: subscription failed",
+    "pushTestBody": "Push notifications work ✓",
     "postSalahHeaderTitle": "Tasbih after prayer",
     "postSalahOptionLabel": "Dhikrs after prayer",
     "postSalahExitLabel": "Tasbih",

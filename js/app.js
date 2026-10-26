@@ -8113,8 +8113,9 @@
         // Показать хадис и начать новое окно 3–6 часа.
         function _hadithFireAndReschedule() {
             _hadithTimer = null;
+            const plannedTs = _hadithReadNext();
             _hadithWriteNext(0);
-            if (document.hidden && _hadithSystemNotify()) {
+            if (document.hidden && _hadithSystemNotify(plannedTs)) {
                 // приложение свёрнуто — баннера никто не увидит, показываем системное уведомление
             } else {
                 showRandomHadith();
@@ -8122,7 +8123,7 @@
             scheduleHadith();
         }
         // Системное уведомление с случайным хадисом (когда приложение свёрнуто).
-        function _hadithSystemNotify() {
+        function _hadithSystemNotify(plannedTs) {
             try {
                 if (!('Notification' in window) || Notification.permission !== 'granted' || !('serviceWorker' in navigator)) return false;
                 const list = getHadiths();
@@ -8135,7 +8136,7 @@
                 const source = _hadithSource(list[idx]);
                 navigator.serviceWorker.ready.then(reg => reg.showNotification(t('hadithLabel'), {
                     body: body, icon: 'icon-192.png', badge: 'icon-192.png',
-                    tag: 'azkar-hadith-' + Date.now(), renotify: false, requireInteraction: false,
+                    tag: 'azkar-hadith-' + (plannedTs || Date.now()), renotify: false, requireInteraction: false,
                     data: { url: reg.scope, hadithText: body, hadithSource: source }
                 })).catch(() => {});
                 return true;
@@ -8172,7 +8173,7 @@
             const list = getHadiths();
             navigator.serviceWorker.ready.then(reg => {
                 if (!reg || !reg.active) return;
-                if (hadithOn() && list.length) {
+                if (hadithOn() && list.length && !pushActive()) {
                     const items = list.map(h => _hadithText(h)).filter(Boolean);
                     reg.active.postMessage({
                         type: 'SCHEDULE_HADITH',
@@ -8196,6 +8197,7 @@
             clearHadithTimer();
             if (!hadithOn() || !getHadiths().length) {
                 sendHadithScheduleToSW();
+                schedulePushSync();
                 return;
             }
             // Service Worker отвечает за фон (когда вкладка скрыта/свёрнута), а
@@ -8211,6 +8213,7 @@
             if (!next || next <= now || next - now > HADITH_MAX_MS) next = _hadithRollNext();
             const delay = Math.max(next - now, HADITH_OVERDUE_DELAY_MS);
             sendHadithScheduleToSW(delay);
+            schedulePushSync();
             _hadithTimer = setTimeout(_hadithFireAndReschedule, delay);
         }
 
@@ -8496,27 +8499,29 @@
             x ^= x >>> 15; x = Math.imul(x, 2246822519); x ^= x >>> 13;
             return ((x >>> 0) % (2 * ZIKR_JITTER_MIN + 1)) - ZIKR_JITTER_MIN;   // −30…+30
         }
-        function _zikrEvents(base) {
+        function _zikrEvents(base, days) {
             const out = [];
-            for (let d = 0; d < 2; d++) {
+            for (let d = 0; d < days; d++) {
                 const day = new Date(base.getFullYear(), base.getMonth(), base.getDate() + d);
                 const dk = day.getFullYear() + '-' + (day.getMonth() + 1) + '-' + day.getDate();
                 ZIKR_SLOTS.forEach(sl => {
                     const off = _zikrOffsetMin(dk + '|' + sl.key);
                     const ts = new Date(day.getFullYear(), day.getMonth(), day.getDate(), sl.hour, off, 0, 0).getTime();
-                    out.push({ ts, tag: 'azkar-zikr-' + sl.key + '-' + dk, icon: '🕌',
+                    out.push({ ts, tag: 'azkar-zikr-' + sl.key + '-' + dk, kind: 'zikr', icon: '🕌',
                         title: t('notifZikrTitle'),
                         body: t('notifZikrBody') });
                 });
             }
             return out;
         }
-        function buildNotifEvents() {
+        // days — на сколько дней вперёд (страница и SW: 2; push-сервер: PUSH_DAYS)
+        function buildNotifEvents(days) {
+            days = days || 2;
             if (!notifMasterOn()) return [];
             const out = [];
             const base = new Date();
             // Напоминание о зикре — привязано к общему ползунку «Уведомления», геолокация не нужна.
-            _zikrEvents(base).forEach(e => out.push(e));
+            _zikrEvents(base, days).forEach(e => out.push(e));
             const wantPrayer = !!settings.notifPrayer, wantUmama = !!settings.notifAbuUmama;
             const pt = window.PrayerTimes;
             if ((!wantPrayer && !wantUmama) || !pt || typeof pt.getForDate !== 'function' || !pt.getLocation()) {
@@ -8524,7 +8529,7 @@
                 return out;
             }
             const names = (typeof pt.L === 'function' && pt.L()) || {};
-            for (let d = 0; d < 2; d++) {
+            for (let d = 0; d < days; d++) {
                 const day = new Date(base.getFullYear(), base.getMonth(), base.getDate() + d);
                 const dk = day.getFullYear() + '-' + (day.getMonth() + 1) + '-' + day.getDate();
                 (pt.getForDate(day) || []).forEach(p => {
@@ -8534,12 +8539,12 @@
                     const at = new Date(ts);
                     const clock = _pad2(at.getHours()) + ':' + _pad2(at.getMinutes());
                     if (wantPrayer) {
-                        out.push({ ts, tag: 'azkar-prayer-' + p.key + '-' + dk, icon: '🕌',
+                        out.push({ ts, tag: 'azkar-prayer-' + p.key + '-' + dk, kind: 'prayer', icon: '🕌',
                             title: t('notifPrayerTitle'),
                             body: (names[p.key] || p.key) + ' · ' + clock });
                     }
                     if (wantUmama && (p.key === 'fajr' || p.key === 'asr')) {
-                        out.push({ ts: ts + UMAMA_DELAY_MS, tag: 'azkar-umama-' + p.key + '-' + dk, icon: '🤲',
+                        out.push({ ts: ts + UMAMA_DELAY_MS, tag: 'azkar-umama-' + p.key + '-' + dk, kind: 'umama', icon: '🤲',
                             title: t('notifUmamaTitle'),
                             body: p.key === 'fajr'
                                 ? t('notifUmamaMorning')
@@ -8561,13 +8566,15 @@
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.ready.then(reg => {
                     if (!reg || !reg.active) return;
-                    if (list.length) {
+                    // Push-сервер сам пришлёт уведомление — таймер SW не нужен (иначе дубли)
+                    if (list.length && !pushActive()) {
                         reg.active.postMessage({ type: 'SCHEDULE_EVENTS', events: list, icon: 'icon-192.png', badge: 'icon-192.png' });
                     } else {
                         reg.active.postMessage({ type: 'CANCEL_EVENTS' });
                     }
                 }).catch(() => {});
             }
+            schedulePushSync();
             if (!list.length) return;
             _notifEvTimer = setTimeout(_notifFireDue, Math.max(500, list[0].ts - now));
         }
@@ -8634,6 +8641,174 @@
         setInterval(() => { if (!document.hidden) scheduleNotifEvents(); }, 5 * 60 * 1000);
         setTimeout(scheduleNotifEvents, 1500);
         setTimeout(scheduleNotifEvents, 6000);
+
+        // ===== PUSH: уведомления, даже когда приложение закрыто =====
+        // Страница сама считает расписание на PUSH_DAYS дней вперёд (намазы, дуа
+        // Абу Умамы, зикр, хадисы — уже на языке пользователя) и отправляет его
+        // на push-сервер (Cloudflare Worker, папка Tasbih-push) вместе с
+        // push-подпиской. Сервер в нужную минуту присылает push, и SW показывает
+        // уведомление. Пока в push-config.js не указан server — всё как раньше
+        // (таймеры страницы и SW). Пока push работает, таймеры SW отключены, чтобы
+        // не было дублей; баннеры при открытом приложении показывает страница.
+        // var/function — эти функции вызываются из кода выше, ещё до этой строки.
+        var PUSH_DAYS = 7;
+        var PUSH_STATE_KEY = 'azkar_push_state';      // { endpoint, hash, at }
+        var PUSH_RESYNC_MS = 6 * 60 * 60 * 1000;      // обновлять «горизонт» расписания
+        var _pushSyncTimer = null;
+        var _pushSyncing = false;
+        function _pushCfg() { return (typeof window !== 'undefined' && window.AZKAR_PUSH) || {}; }
+        function pushSupported() {
+            return !!(_pushCfg().server && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window);
+        }
+        function _pushReadState() {
+            try { return JSON.parse(localStorage.getItem(PUSH_STATE_KEY) || '{}') || {}; } catch (e) { return {}; }
+        }
+        function _pushWriteState(st) {
+            try { if (st) localStorage.setItem(PUSH_STATE_KEY, JSON.stringify(st)); else localStorage.removeItem(PUSH_STATE_KEY); } catch (e) {}
+        }
+        // Push включён и сервер уже принял подписку
+        function pushActive() {
+            try {
+                return pushSupported() && Notification.permission === 'granted' && !!_pushReadState().endpoint;
+            } catch (e) { return false; }
+        }
+        function _b64uToBytes(str) {
+            const s = String(str).replace(/-/g, '+').replace(/_/g, '/');
+            const bin = atob(s + '==='.slice((s.length + 3) % 4));
+            const out = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+            return out;
+        }
+        function _pushHash(str) {
+            let x = 2166136261;
+            for (let i = 0; i < str.length; i++) { x ^= str.charCodeAt(i); x = Math.imul(x, 16777619); }
+            return (x >>> 0).toString(36) + ':' + str.length;
+        }
+        // Хадисы на PUSH_DAYS дней: первый — в уже сохранённое время (то же, что
+        // у таймера страницы), дальше каждые 3–6 ч. Случайность «с зерном» из
+        // этого времени: пока оно не изменилось, расписание одно и то же.
+        function _hadithPushEvents(days) {
+            if (!hadithOn()) return [];
+            const list = getHadiths();
+            if (!list.length) return [];
+            const now = Date.now();
+            let ts = _hadithReadNext();
+            if (!ts || ts <= now || ts - now > HADITH_MAX_MS) return [];
+            let seed = (ts % 4294967296) >>> 0;
+            const rnd = () => {
+                seed = (seed + 0x6D2B79F5) >>> 0;
+                let r = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+                r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
+                return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+            };
+            const end = now + days * 24 * 60 * 60 * 1000;
+            const out = [];
+            let last = -1;
+            while (ts < end && out.length < 80) {
+                let idx = Math.floor(rnd() * list.length);
+                if (idx === last && list.length > 1) idx = (idx + 1) % list.length;
+                last = idx;
+                const body = _hadithText(list[idx]);
+                if (body) {
+                    out.push({ ts, tag: 'azkar-hadith-' + ts, kind: 'hadith',
+                        title: t('hadithLabel'), body, source: _hadithSource(list[idx]) });
+                }
+                ts += HADITH_MIN_MS + Math.floor(rnd() * (HADITH_MAX_MS - HADITH_MIN_MS + 1));
+            }
+            return out;
+        }
+        function _buildPushEvents() {
+            if (!notifMasterOn()) return [];
+            const now = Date.now() + 5000;
+            let list = [];
+            try { list = buildNotifEvents(PUSH_DAYS); } catch (e) {}
+            try { list = list.concat(_hadithPushEvents(PUSH_DAYS)); } catch (e) {}
+            return list.filter(e => e.ts > now)
+                .sort((a, b) => a.ts - b.ts)
+                .map(e => ({ ts: e.ts, tag: e.tag, kind: e.kind || '', title: e.title, body: e.body, source: e.source || '' }));
+        }
+        async function _pushSubscription(create) {
+            const reg = await navigator.serviceWorker.ready;
+            let sub = await reg.pushManager.getSubscription();
+            if (!sub && create) {
+                sub = await reg.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: _b64uToBytes(_pushCfg().publicKey)
+                });
+            }
+            return sub;
+        }
+        // Отправляет подписку и расписание на сервер (только если что-то изменилось)
+        async function syncPush(force) {
+            if (!pushSupported() || _pushSyncing) return false;
+            _pushSyncing = true;
+            const server = String(_pushCfg().server).replace(/\/+$/, '');
+            try {
+                const st = _pushReadState();
+                if (Notification.permission !== 'granted') {
+                    // Уведомления запретили — убираем подписку с сервера
+                    if (st.endpoint) {
+                        fetch(server + '/unsubscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ endpoint: st.endpoint }) }).catch(() => {});
+                        _pushWriteState(null);
+                    }
+                    return false;
+                }
+                const sub = await _pushSubscription(true);
+                if (!sub) return false;
+                const subJson = sub.toJSON();
+                const events = _buildPushEvents();
+                const body = JSON.stringify({ subscription: subJson, events: events });
+                const hash = _pushHash(body);
+                if (!force && st.endpoint === subJson.endpoint && st.hash === hash && Date.now() - (st.at || 0) < PUSH_RESYNC_MS) return true;
+                const res = await fetch(server + '/sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body });
+                if (!res.ok) return false;
+                const wasActive = !!st.endpoint;
+                _pushWriteState({ endpoint: subJson.endpoint, hash: hash, at: Date.now() });
+                // Push заработал — выключаем таймеры SW (иначе уведомления задвоятся)
+                if (!wasActive) {
+                    navigator.serviceWorker.ready.then(reg => {
+                        if (!reg || !reg.active) return;
+                        reg.active.postMessage({ type: 'CANCEL_EVENTS' });
+                        reg.active.postMessage({ type: 'CANCEL_HADITH' });
+                    }).catch(() => {});
+                }
+                return true;
+            } catch (e) {
+                return false;
+            } finally {
+                _pushSyncing = false;
+            }
+        }
+        function schedulePushSync(force) {
+            if (!pushSupported()) return;
+            clearTimeout(_pushSyncTimer);
+            _pushSyncTimer = setTimeout(() => { syncPush(!!force); }, force ? 300 : 3000);
+        }
+        // Проверка: открыть приложение с ?pushtest=1 → через ~1 минуту придёт
+        // тестовое уведомление (приложение нужно закрыть).
+        (function initPushTest() {
+            let wanted = false;
+            try { wanted = new URLSearchParams(location.search).get('pushtest') === '1'; } catch (e) {}
+            if (!wanted) return;
+            try { history.replaceState(null, '', location.pathname); } catch (e) {}
+            setTimeout(async () => {
+                if (!pushSupported()) { showToast('Push: server is not set in push-config.js', 4000); return; }
+                if ('Notification' in window && Notification.permission !== 'granted') await requestNotifPermission();
+                const ok = await syncPush(true);
+                const st = _pushReadState();
+                if (!ok || !st.endpoint) { showToast(tn('pushTestFail', 'Push: subscription failed'), 4000); return; }
+                try {
+                    const res = await fetch(String(_pushCfg().server).replace(/\/+$/, '') + '/test', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ endpoint: st.endpoint, delaySec: 60,
+                            title: t('notifPrayerTitle'), body: tn('pushTestBody', 'Push works ✓') })
+                    });
+                    showToast(res.ok ? tn('pushTestScheduled', 'Close the app — a test notification will arrive in about a minute')
+                                     : tn('pushTestFail', 'Push: subscription failed'), 6000);
+                } catch (e) { showToast(tn('pushTestFail', 'Push: subscription failed'), 4000); }
+            }, 2500);
+        })();
 
         function loadData() {
             const s = localStorage.getItem('azkar_settings');
@@ -9002,6 +9177,7 @@
             if (Notification.permission === 'granted') return 'granted';
             if (Notification.permission === 'denied') return 'denied';
             const result = await Notification.requestPermission();
+            if (result === 'granted') schedulePushSync(true);
             return result;
         }
 
