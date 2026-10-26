@@ -56,7 +56,7 @@
         @font-face { font-family: 'Scheherazade New'; src: url('fonts/scheherazadenew-bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF; }
     </style>
 
-    <link rel="stylesheet" href="css/app.css?v=111">
+    <link rel="stylesheet" href="css/app.css?v=113">
 </head>
 <body>
 
@@ -980,7 +980,7 @@
             </div>
             <!-- Облегчённый режим (этап 6): меньше эффектов — плавнее на слабых телефонах -->
             <div class="set-row" onclick="toggleLiteMode()">
-                <span class="set-ic" id="liteModeIcon">🪶</span>
+                <span class="set-ic" id="liteModeIcon"><svg viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg></span>
                 <div class="set-row-lbl"><b id="labelLiteMode">Облегчённый режим</b></div>
                 <div class="toggle-switch" id="liteModeToggle"></div>
             </div>
@@ -2342,6 +2342,12 @@
 .hero-spacer { display: block; width: 40px; height: 40px; }
 
 .hero.fb-sticky { position: sticky; top: 0; z-index: 30; margin: 0 -16px; padding: calc(var(--safe-t) + 14px) 16px 8px; background: color-mix(in srgb, var(--bg) 94%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+/* Шапка статична: заголовок, описание и полоска всегда на одном месте при любом языке */
+.hero-row { height: 2.7em; font-size: clamp(1.75rem, 7.5vw, 2.45rem); }
+.hero-row h1 { font-size: clamp(1.25rem, 5.6vw, 1.9rem); display: flex; align-items: center; justify-content: center; height: 100%; overflow: hidden; line-height: 1.15; margin: 0; padding: 0; text-align: center; }
+.hero-row .icon-btn, .hero-row .hero-spacer { align-self: center; font-size: 1rem; }
+.hero .hero-sub { height: 3em; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-top: 4px; text-align: center; }
+.hero .ornament { margin-top: 10px; }
 .composer { scroll-margin-top: 190px; }
 .fb-cancel { display: block; width: 100%; margin-top: 10px; padding: 10px; background: none; border: none; color: var(--text-muted); font: inherit; font-size: 0.85rem; cursor: pointer; }
 .rv-like { display: inline-flex; align-items: center; gap: 6px; padding: 6px 8px; background: none; border: none; border-radius: 999px; color: var(--text-dim); font: inherit; cursor: pointer; }
@@ -2569,7 +2575,7 @@
     // I18N_VERSION менять при КАЖДОМ изменении файлов i18n/ (вместе с CACHE_NAME в sw.js),
     // иначе телефон может взять старую копию из кэша.
     (function () {
-        var I18N_VERSION = '110';
+        var I18N_VERSION = '112';
         var LANGS = ['en', 'de', 'es', 'fr', 'it', 'ja', 'ko', 'ru', 'uz', 'zh', 'tr', 'hi', 'id', 'ms', 'th'];
         var I = window.AZKAR_I18N = window.AZKAR_I18N || {};
         var U = window.AZKAR_UI_TRANSLATIONS = window.AZKAR_UI_TRANSLATIONS || {};
@@ -2629,9 +2635,9 @@
         });
     })();
     </script>
-    <script src="js/feedback.js?v=111"></script>
+    <script src="js/feedback.js?v=113"></script>
     <script src="data/special-dhikrs.js?v=110"></script>
-    <script src="js/app.js?v=111"></script>
+    <script src="js/app.js?v=113"></script>
         <script>
         // Реальный свайп — баннер следует за пальцем, при отпускании улетает или возвращается
         window.addEventListener('load', function() {
