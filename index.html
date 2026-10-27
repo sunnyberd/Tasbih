@@ -56,7 +56,7 @@
         @font-face { font-family: 'Scheherazade New'; src: url('fonts/scheherazadenew-bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF; }
     </style>
 
-    <link rel="stylesheet" href="css/app.css?v=115">
+    <link rel="stylesheet" href="css/app.css?v=123">
 </head>
 <body>
 
@@ -2638,10 +2638,11 @@
         });
     })();
     </script>
-    <script src="js/feedback.js?v=115"></script>
+    <script src="js/feedback.js?v=123"></script>
     <script src="data/special-dhikrs.js?v=110"></script>
-    <script src="push-config.js?v=115"></script>
-    <script src="js/app.js?v=115"></script>
+    <script src="push-config.js?v=123"></script>
+    <script src="js/app.js?v=123"></script>
+    <script src="js/native.js?v=123"></script>
         <script>
         // Реальный свайп — баннер следует за пальцем, при отпускании улетает или возвращается
         window.addEventListener('load', function() {
@@ -2716,7 +2717,9 @@
             // Регистрируем Service Worker и периодически проверяем обновления.
             // Никаких всплывашек: новая версия скачивается в фоне и применяется
             // при следующем открытии приложения (навигация — network-first).
-            if ('serviceWorker' in navigator) {
+            // В Android-приложении (Capacitor) файлы уже лежат внутри APK — SW не нужен.
+            var _isNativeApp = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+            if ('serviceWorker' in navigator && !_isNativeApp) {
                 window.addEventListener('load', function() {
                     navigator.serviceWorker.register('./sw.js')
                         .then(function(reg) {

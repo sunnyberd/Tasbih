@@ -7679,6 +7679,16 @@
             updateGoogleAccountUI();
             try {
                 const ctx = await initFirebaseAccount();
+                // Android-приложение: Google запрещает вход внутри WebView —
+                // берём idToken из системного окна выбора аккаунта (js/native.js).
+                if (window.AzkarNative && window.AzkarNative.googleIdToken) {
+                    const idToken = await window.AzkarNative.googleIdToken();
+                    if (!idToken) return; // пользователь закрыл окно выбора аккаунта
+                    const cred = ctx.authApi.GoogleAuthProvider.credential(idToken);
+                    const result = await ctx.authApi.signInWithCredential(ctx.auth, cred);
+                    if (result && result.user) await applyFirebaseUser(result.user, { sync: true });
+                    return;
+                }
                 const provider = new ctx.authApi.GoogleAuthProvider();
                 provider.setCustomParameters({ prompt: 'select_account' });
 

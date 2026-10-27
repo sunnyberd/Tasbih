@@ -37,10 +37,18 @@
 // (push-config.js + сервер Tasbih-push). Пока server в push-config.js пустой — всё как раньше.
 // v114 — девиз на главной строго в две строки; шапка «Отзывы» закреплена; задачи
 // сбрасываются на Фаджр; кибла и намазы работают по сохранённой локации без GPS.
-const CACHE_NAME = 'azkar-v117';
+// v122 — Android: в тёмном режиме зикра скрыты строка состояния и навигация.
+// v121 — Android: WebView между системными полосами, полосы цвета theme-color (как в PWA).
+// v120 — Android: отступ под строку состояния, цвет значков по теме.
+// v119 — Android: пузырь в цветах темы, вибрация только «будильник».
+// v118 — Android: исправлен мост к нативному коду, вход через Google, геолокация.
+// v117 — тестер категории вибрации и постоянный пузырь в Android-приложении.
+// v125 — APK: уведомления (намаз, Абу Умама, зикр, хадисы) через будильник Android (js/native.js + NotifScheduler.java).
+// v116 — js/native.js: связка с Android-приложением (вибрация, счётчик поверх приложений).
+const CACHE_NAME = 'azkar-v125';
 const I18N_VERSION = '114';
 const DATA_VERSION = '110';
-const APP_VERSION = '115';
+const APP_VERSION = '123';
 
 // Оболочка приложения — кладётся в кэш сразу при установке SW,
 // чтобы второй запуск (и офлайн) был мгновенным.
@@ -49,6 +57,7 @@ const PRECACHE_URLS = [
     'js/app.js?v=' + APP_VERSION,
     'css/app.css?v=' + APP_VERSION,
     'js/feedback.js?v=' + APP_VERSION,
+    'js/native.js?v=' + APP_VERSION,
     'i18n/en.js?v=' + I18N_VERSION,
     'hadiths.js?v=' + DATA_VERSION,
     'data/special-dhikrs.js?v=' + DATA_VERSION,
