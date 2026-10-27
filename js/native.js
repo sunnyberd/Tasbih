@@ -26,7 +26,7 @@
 
     // Web Client ID из Firebase: Authentication → Sign-in method → Google →
     // «Конфигурация Web SDK» → Web client ID. Без него вход через Google в APK не работает.
-    var GOOGLE_WEB_CLIENT_ID = '';
+    var GOOGLE_WEB_CLIENT_ID = '939307317987-tlo9797ceo1hc3tejjfdhp6b7qodlqfj.apps.googleusercontent.com';
 
     // ---- Вход через Google (app.js → signInWithGoogle) ----
     window.AzkarNative = {

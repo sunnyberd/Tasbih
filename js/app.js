@@ -6117,9 +6117,11 @@
                 firebaseAuthApi = await import(base + 'firebase-auth.js');
                 firebaseFirestoreApi = await import(base + 'firebase-firestore.js');
 
-                const app = (appApi.getApps && appApi.getApps().length)
-                    ? appApi.getApp()
-                    : appApi.initializeApp(FIREBASE_CONFIG);
+                // Только основное приложение ([DEFAULT]): getApps() считает и отдельное
+                // приложение счётчика онлайна — если оно создано раньше, getApp() падал
+                // с app/no-app (так было в APK при входе через Google).
+                const app = (appApi.getApps ? appApi.getApps() : []).find(a => a.name === '[DEFAULT]')
+                    || appApi.initializeApp(FIREBASE_CONFIG);
                 firebaseAuth = firebaseAuthApi.getAuth(app);
                 firebaseDb = firebaseFirestoreApi.getFirestore(app);
 
