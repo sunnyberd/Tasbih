@@ -308,6 +308,10 @@
             title: n.title || 'Azkar', body: n.body, url: n.url || ''
         }).catch(function () {});
     };
+    // Экспорт данных: в WebView файл не «скачивается» — сохраняет Android (в «Загрузки»)
+    window.azkarSaveFile = function (name, text, mime) {
+        return N.saveFile({ name: name, data: text, mime: mime || 'application/json' });
+    };
     // Ссылки (сайт отзывов) — в браузере телефона, а не внутри приложения
     window.azkarOpenUrl = function (url) {
         N.openUrl({ url: url }).catch(function () {});

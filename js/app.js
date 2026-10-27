@@ -5302,11 +5302,19 @@
                     specialDhikrs: specialDhikrs
                 };
                 const json = JSON.stringify(data, null, 2);
+                const fileName = `azkar-backup-${dateStr}_${timeStr}.json`;
+                // APK: браузерного «скачивания» нет — файл сохраняет Android (native.js)
+                if (typeof window.azkarSaveFile === 'function') {
+                    window.azkarSaveFile(fileName, json).then(function (r) {
+                        if (r && r.saved) showToast(t('toastExported') + ' — Download/' + fileName, 3500);
+                    }).catch(function () { showToast(t('toastExportError')); });
+                    return;
+                }
                 const blob = new Blob([json], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `azkar-backup-${dateStr}_${timeStr}.json`;
+                a.download = fileName;
                 document.body.appendChild(a);
                 a.click();
                 setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);

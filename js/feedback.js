@@ -110,7 +110,10 @@
             var texts = tArr("ratingTexts");
             starBtns.forEach(function (btn, i) { btn.setAttribute("aria-label", texts[i] + " (" + (i + 1) + "/5)"); });
         }
+        // В браузерах нет узбекских названий месяцев (выходит «2026 M10 27») — пишем сами
+        var UZ_MONTHS = ["yanvar", "fevral", "mart", "aprel", "may", "iyun", "iyul", "avgust", "sentabr", "oktabr", "noyabr", "dekabr"];
         function fmtDate(ms) {
+            if (lang === "uz") { var d = new Date(ms); return d.getDate() + " " + UZ_MONTHS[d.getMonth()] + " " + d.getFullYear(); }
             try {
                 return new Intl.DateTimeFormat(lang, { day: "numeric", month: "short", year: "numeric" }).format(new Date(ms));
             } catch (e) { return new Date(ms).toLocaleDateString(); }

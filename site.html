@@ -95,7 +95,7 @@
         .btn-line:hover { border-color: var(--gold); }
 
         .tasbih-wrap { display: flex; flex-direction: column; align-items: center; }
-        .tasbih { position: relative; width: min(88vw, 430px); aspect-ratio: 1; cursor: pointer; user-select: none; -webkit-user-select: none;
+        .tasbih { position: relative; width: min(88vw, 430px); aspect-ratio: 1; cursor: pointer; container-type: inline-size; user-select: none; -webkit-user-select: none;
                   -webkit-tap-highlight-color: transparent; touch-action: manipulation; border-radius: 50%; }
         .tasbih svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
         .beads { transform-origin: 200px 200px; transition: transform 0.32s cubic-bezier(0.3, 1.4, 0.5, 1); }
@@ -105,11 +105,12 @@
         .thread { fill: none; stroke: color-mix(in srgb, var(--gold) 25%, transparent); stroke-width: 1; }
         .khatam { fill: none; stroke: color-mix(in srgb, var(--gold) 10%, transparent); stroke-width: 1; }
         .tassel { stroke: var(--gold); stroke-width: 1.3; fill: none; opacity: 0.8; }
-        .tasbih-center { position: absolute; inset: 22%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; }
-        .ar { font-family: var(--arabic); font-size: clamp(1.7rem, 8vw, 2.4rem); line-height: 1.5; color: var(--gold); direction: rtl; }
-        .translit { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.4px; margin-top: 2px; }
-        .meaning { font-size: 0.78rem; color: var(--ash); margin-top: 1px; }
-        .num { margin-top: 10px; font-family: var(--serif); font-size: clamp(2.6rem, 12vw, 3.4rem); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+        /* Текст — ровно по центру восьмиконечной звезды (квадрат 24%…76%), размеры от ширины чёток */
+        .tasbih-center { position: absolute; inset: 24%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; }
+        .ar { font-family: var(--arabic); font-size: 8cqw; line-height: 1.25; color: var(--gold); direction: rtl; margin-top: -1.5cqw; }
+        .translit { font-size: 3.1cqw; font-weight: 700; letter-spacing: 0.4px; margin-top: 0.6cqw; }
+        .meaning { font-size: 3cqw; color: var(--ash); margin-top: 0.2cqw; }
+        .num { margin-top: 2.6cqw; font-family: var(--serif); font-size: 10.5cqw; font-weight: 700; line-height: 0.9; font-variant-numeric: tabular-nums; }
         .num small { font-size: 0.42em; color: var(--ash); font-weight: 600; }
         .tasbih.tick .num { animation: tick 0.22s ease; }
         @keyframes tick { 40% { transform: scale(1.08); } }
@@ -122,12 +123,19 @@
         .sec-title { font-family: var(--serif); font-size: clamp(2rem, 7vw, 3rem); font-weight: 600; line-height: 1.08; max-width: 18em; text-wrap: balance; }
         .sec-sub { margin-top: 10px; color: var(--ash); max-width: 36em; }
 
-        /* Скриншоты: телефоны, на телефоне листаются пальцем */
-        .shots { display: flex; gap: 18px; margin-top: 34px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 8px 16px 18px; margin-left: -16px; margin-right: -16px; scrollbar-width: none; }
+        /* Скриншоты: телефоны в разных темах, листаются пальцем или стрелками */
+        .sec-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+        .shots-nav { display: none; gap: 10px; flex-shrink: 0; }
+        @media (min-width: 900px) { .shots-nav { display: flex; } }
+        .arrow { width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; color: var(--ink); transition: border-color 0.2s, opacity 0.2s; }
+        .arrow:hover { border-color: var(--gold); }
+        .arrow:disabled { opacity: 0.3; cursor: default; }
+        .arrow svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .shots { display: flex; gap: 20px; margin-top: 34px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 0 16px;
+                 padding: 8px 16px 24px; margin-left: -16px; margin-right: -16px; scrollbar-width: none; overscroll-behavior-x: contain; }
         .shots::-webkit-scrollbar { display: none; }
-        @media (min-width: 900px) { .shots { overflow: visible; justify-content: space-between; margin: 40px 0 0; padding: 0; } }
-        .shot { flex: 0 0 auto; width: min(62vw, 230px); scroll-snap-align: center; }
-        @media (min-width: 900px) { .shot { width: 23%; } .shot:nth-child(even) { transform: translateY(36px); } }
+        @media (min-width: 720px) { .shots { margin-left: -32px; margin-right: -32px; padding: 8px 32px 24px; scroll-padding: 0 32px; } }
+        .shot { flex: 0 0 auto; width: min(62vw, 240px); scroll-snap-align: start; }
         .phone { position: relative; border-radius: 34px; padding: 8px; background: linear-gradient(160deg, color-mix(in srgb, var(--gold) 32%, #2a2a2a), #151515 40%, #0c0c0c);
                  box-shadow: 0 30px 60px -28px rgba(0, 0, 0, 0.8), 0 0 0 1px color-mix(in srgb, var(--gold) 20%, transparent); }
         .phone img { width: 100%; height: auto; aspect-ratio: 390 / 844; object-fit: cover; border-radius: 27px; background: #0a0a0a; }
@@ -149,7 +157,7 @@
         .plat svg.ic { width: 34px; height: 34px; stroke: var(--gold); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
         .plat h3 { margin-top: 14px; font-family: var(--serif); font-size: 1.7rem; font-weight: 600; line-height: 1.15; }
         .plat p { margin-top: 8px; color: var(--ash); font-size: 0.94rem; flex: 1; }
-        .plat .btn { margin-top: 20px; align-self: flex-start; }
+        .plat > .btn { margin-top: 20px; align-self: flex-start; }
 
         /* Отзывы */
         .rv-top { display: grid; gap: 16px; margin-top: 30px; }
@@ -166,9 +174,40 @@
         .dist-track { height: 7px; border-radius: 99px; background: color-mix(in srgb, var(--ink) 9%, transparent); overflow: hidden; }
         .dist-fill { display: block; height: 100%; border-radius: 99px; background: var(--gold); }
         .dist-row span:last-child { text-align: right; }
-        .account { padding: 20px 22px; border-radius: 28px; border: 1px solid var(--line); background: var(--panel); display: flex; flex-direction: column; justify-content: center; gap: 12px; font-size: 0.9rem; color: var(--ash); }
-        .account b { color: var(--ink); }
-        .account-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        /* Свой отзыв / форма */
+        .mybox { padding: 22px; border-radius: 28px; border: 1px solid var(--line); background: var(--panel); font-size: 0.9rem; }
+        .mb-hint { color: var(--ash); }
+        .mb-hint + div { margin-top: 14px; }
+        .mb-user { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 0.82rem; color: var(--ash); }
+        .mb-user b { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .link-btn { color: var(--gold); font-size: 0.82rem; font-weight: 700; white-space: nowrap; }
+        .mb-title { margin-top: 14px; font-family: var(--serif); font-size: 1.6rem; font-weight: 600; line-height: 1.15; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .mb-acts { display: flex; gap: 6px; }
+        .icon-btn { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; color: var(--ash); }
+        .icon-btn:hover { color: var(--gold); border-color: var(--gold); }
+        .icon-btn.danger:hover { color: var(--danger); border-color: var(--danger); }
+        .icon-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+        .rate { display: flex; gap: 4px; margin-top: 12px; }
+        .rate button { padding: 2px; border-radius: 8px; }
+        .rate svg { width: 32px; height: 32px; fill: none; stroke: color-mix(in srgb, var(--ink) 35%, transparent); stroke-width: 1.4; transition: fill 0.15s, stroke 0.15s, transform 0.15s; }
+        .rate svg.f { fill: var(--gold); stroke: var(--gold); }
+        .rate button:active svg { transform: scale(0.88); }
+        .rate-cap { min-height: 1.4em; margin-top: 4px; font-size: 0.8rem; font-weight: 600; color: var(--gold); }
+        .rate-cap.empty { color: var(--ash); font-weight: 500; }
+        .fld { display: block; margin-top: 14px; font-size: 0.78rem; font-weight: 700; color: var(--ash); }
+        .inp { display: block; width: 100%; margin-top: 6px; padding: 12px 16px; border-radius: 18px; border: 1px solid var(--line); background: var(--night); color: var(--ink); font: inherit; font-size: 0.92rem; }
+        textarea.inp { min-height: 96px; max-height: 260px; resize: none; overflow-y: auto; line-height: 1.5; }
+        .inp:focus { outline: none; border-color: var(--gold); }
+        .err { margin-top: 6px; font-size: 0.78rem; color: var(--danger); }
+        .mb-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+        .mb-actions .btn { flex: 1; min-width: 140px; }
+        .mb-name { margin-top: 10px; font-weight: 700; }
+        .mb-text { margin-top: 4px; white-space: pre-wrap; overflow-wrap: anywhere; }
+        .mb-empty { margin-top: 6px; color: var(--ash); font-size: 0.86rem; }
+        .mb-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-top: 10px; font-size: 0.74rem; color: var(--ash); }
+        .mb-likes { display: inline-flex; align-items: center; gap: 5px; }
+        .mb-likes svg { width: 14px; height: 14px; fill: var(--gold); }
+        .btn[disabled] { opacity: 0.6; pointer-events: none; }
         .g-btn { display: inline-flex; align-items: center; gap: 9px; min-height: 42px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--night); font-size: 0.84rem; font-weight: 700; color: var(--ink); }
         .g-btn svg { width: 18px; height: 18px; }
 
@@ -200,8 +239,12 @@
         .reply-label { font-size: 0.72rem; font-weight: 700; color: var(--gold); }
         .reply-text { margin-top: 3px; font-size: 0.88rem; white-space: pre-wrap; overflow-wrap: anywhere; }
         .admin { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); display: flex; flex-direction: column; gap: 8px; }
-        .admin textarea, .admin select { width: 100%; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line); background: var(--night); font-size: 0.86rem; }
-        .admin textarea { min-height: 72px; resize: vertical; }
+        .admin textarea, .admin select { width: 100%; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--line); background-color: var(--night); font-size: 0.86rem; }
+        .admin select { appearance: none; -webkit-appearance: none; padding-right: 46px; cursor: pointer;
+                        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23958e7f' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+                        background-repeat: no-repeat; background-position: right 18px center; }
+        .admin select option { background: var(--night); color: var(--ink); }
+        .admin textarea { min-height: 72px; max-height: 240px; resize: none; overflow-y: auto; line-height: 1.5; }
         .admin-row { display: flex; gap: 8px; }
         .admin-row button { flex: 1; min-height: 38px; border-radius: 999px; font-size: 0.82rem; font-weight: 700; border: 1px solid var(--gold); color: var(--gold); }
         .admin-row button.del { border-color: var(--danger); color: var(--danger); }
@@ -209,10 +252,17 @@
         .spin { display: inline-block; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line); border-top-color: var(--gold); animation: sp 0.8s linear infinite; vertical-align: -4px; margin-right: 9px; }
         @keyframes sp { to { transform: rotate(360deg); } }
         .rv-note { margin-top: 10px; color: var(--ash); font-size: 0.88rem; }
-        .rv-empty { margin-top: 16px; padding: 30px 26px; border-radius: 28px; border: 1px dashed var(--line); max-width: 640px; }
-        .rv-empty h3 { font-family: var(--serif); font-size: 1.9rem; font-weight: 600; line-height: 1.15; }
-        .rv-empty p { margin-top: 8px; color: var(--ash); }
-        .rv-empty .btn { margin-top: 20px; }
+        .rv-empty { margin-top: 22px; color: var(--ash); }
+        .apk-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 20px; }
+        .apk-row .btn { margin-top: 0; }
+        .apk-meta { font-size: 0.8rem; color: var(--ash); }
+        .modal { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 16px; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+        .modal-card { width: 100%; max-width: 380px; padding: 26px 22px 20px; border-radius: 28px; border: 1px solid var(--line); background: var(--night); text-align: center; box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.8); }
+        .modal-card h3 { font-family: var(--serif); font-size: 1.6rem; font-weight: 600; line-height: 1.2; }
+        .modal-card p { margin-top: 8px; color: var(--ash); font-size: 0.9rem; }
+        .modal-card p:empty { display: none; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 22px; }
+        .modal-actions .btn { flex: 1; padding: 0 12px; }
 
         /* Вопросы */
         .faq { margin-top: 30px; max-width: 760px; }
@@ -268,7 +318,7 @@
                         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18"/></svg>
                         <span data-t="openWeb">Открыть веб-версию</span>
                     </a>
-                    <a class="btn btn-line hidden" id="apkBtn" href="#">
+                    <a class="btn btn-line hidden" id="apkBtn" href="Azkar.apk" download>
                         <svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
                         <span data-t="downloadApk">Скачать для Android</span>
                     </a>
@@ -303,12 +353,21 @@
     <!-- ===== Скриншоты ===== -->
     <section class="sec" id="inside">
         <div class="wrap">
-            <h2 class="sec-title" data-t="shotsTitle">Как это выглядит</h2>
-            <div class="shots">
+            <div class="sec-head">
+                <h2 class="sec-title" data-t="shotsTitle">Как это выглядит</h2>
+                <div class="shots-nav" aria-hidden="true">
+                    <button type="button" class="arrow" data-dir="-1" tabindex="-1"><svg viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg></button>
+                    <button type="button" class="arrow" data-dir="1" tabindex="-1"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>
+                </div>
+            </div>
+            <div class="shots" id="shots">
                 <figure class="shot"><div class="phone"><img data-shot="counter" alt="" loading="lazy" width="390" height="844"></div><figcaption data-t="shotCounter">Счётчик с целью</figcaption></figure>
                 <figure class="shot"><div class="phone"><img data-shot="names" alt="" loading="lazy" width="390" height="844"></div><figcaption data-t="shotNames">99 имён Аллаха</figcaption></figure>
                 <figure class="shot"><div class="phone"><img data-shot="tasks" alt="" loading="lazy" width="390" height="844"></div><figcaption data-t="shotTasks">Задачи на день</figcaption></figure>
+                <figure class="shot"><div class="phone"><img data-shot="qibla" alt="" loading="lazy" width="390" height="844"></div><figcaption data-t="shotQibla">Компас киблы</figcaption></figure>
                 <figure class="shot"><div class="phone"><img data-shot="stats" alt="" loading="lazy" width="390" height="844"></div><figcaption data-t="shotStats">Статистика</figcaption></figure>
+                <figure class="shot"><div class="phone"><img data-shot="special" alt="" loading="lazy" width="390" height="844"></div><figcaption data-t="shotSpecial">Готовые зикры</figcaption></figure>
+                <figure class="shot"><div class="phone"><img data-shot="settings" alt="" loading="lazy" width="390" height="844"></div><figcaption data-t="shotSettings">Настройки и 10 тем</figcaption></figure>
             </div>
         </div>
     </section>
@@ -346,7 +405,13 @@
                     <svg class="ic" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg>
                     <h3 data-t="andTitle">Приложение для Android</h3>
                     <p data-t="andText"></p>
-                    <a class="btn btn-line hidden" id="apkBtn2" href="#"><span data-t="downloadApk">Скачать для Android</span></a>
+                    <div class="apk-row hidden" id="apkRow">
+                        <a class="btn btn-gold" id="apkBtn2" href="Azkar.apk" download>
+                            <svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+                            <span data-t="install">Установить</span>
+                        </a>
+                        <span class="apk-meta" id="apkMeta"></span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -359,20 +424,15 @@
             <p class="sec-sub" data-t="siteSub">Что пишут пользователи Azkar</p>
             <div class="rv-top">
                 <div class="summary hidden" id="summary"></div>
-                <div class="account" id="account"></div>
+                <div class="mybox" id="mybox"></div>
             </div>
-            <div class="rv-empty hidden" id="rvEmpty">
-                <h3 data-t="beFirst">Будьте первым, кто оставит отзыв</h3>
-                <p data-t="a4"></p>
-                <a class="btn btn-gold" href="./"><span data-t="openWeb">Открыть веб-версию</span></a>
-            </div>
+            <p class="rv-empty hidden" id="rvEmpty" data-t="beFirst">Будьте первым, кто оставит отзыв</p>
             <div class="sort hidden" id="sort" role="tablist">
-                <button type="button" role="tab" aria-selected="true" data-sort="top" data-t="sortTop">Популярные</button>
-                <button type="button" role="tab" aria-selected="false" data-sort="new" data-t="sortNew">Новые</button>
+                <button type="button" role="tab" aria-selected="true" data-sort="new" data-t="sortNew">Новые</button>
+                <button type="button" role="tab" aria-selected="false" data-sort="top" data-t="sortTop">Популярные</button>
             </div>
             <div class="state" id="state"><span class="spin"></span><span data-t="loading">Загрузка…</span></div>
             <div class="feed" id="feed"></div>
-            <p class="rv-note hidden" id="rvNote" data-t="leaveInApp">Оставить свой отзыв можно в приложении Azkar</p>
         </div>
     </section>
 
@@ -406,7 +466,17 @@
 </footer>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="js/site-i18n.js?v=2"></script>
-<script src="js/site.js?v=3"></script>
+<div class="modal hidden" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="modal-card">
+        <h3 id="mTitle"></h3>
+        <p id="mSub"></p>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-line" id="mNo"></button>
+            <button type="button" class="btn btn-gold" id="mYes"></button>
+        </div>
+    </div>
+</div>
+<script src="js/site-i18n.js?v=3"></script>
+<script src="js/site.js?v=8"></script>
 </body>
 </html>
