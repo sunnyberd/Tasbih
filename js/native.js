@@ -290,6 +290,25 @@
     }
     N.addListener('notificationTap', openNotificationTap);
 
+    // Баннер в приложении не открыли — как в PWA, событие остаётся в шторке.
+    // В app.js это делается через Service Worker, которого в APK нет.
+    window._pinHadithNotification = function (h) {
+        var body = (typeof _hadithText === 'function') ? _hadithText(h) : '';
+        if (!body || notif.permission !== 'granted') return;
+        N.showNotification({
+            tag: 'azkar-hadith-' + Date.now(), kind: 'hadith',
+            title: (typeof t === 'function') ? t('hadithLabel') : 'Hadith', body: body,
+            source: (typeof _hadithSource === 'function') ? _hadithSource(h) : ''
+        }).catch(function () {});
+    };
+    window._pinNotifNotification = function (n) {
+        if (!n || !n.body || notif.permission !== 'granted') return;
+        N.showNotification({
+            tag: n.tag || ('azkar-notif-' + Date.now()), kind: '',
+            title: n.title || 'Azkar', body: n.body
+        }).catch(function () {});
+    };
+
     function startNotifications() {
         N.getNotifStatus().then(applyNotif).catch(function () {}).then(function () {
             // Уведомления включены, а разрешения ещё не спрашивали (Android 13+)
