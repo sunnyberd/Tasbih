@@ -8608,8 +8608,12 @@
             const now = Date.now();
             let list = [];
             try { list = buildNotifEvents(); } catch (e) { return; }
+            // Уведомления разрешены — пока приложение было свёрнуто, событие уже пришло
+            // в шторку (будильник Android / push / таймер SW). Повторный баннер не нужен.
+            let systemShown = false;
+            try { systemShown = 'Notification' in window && Notification.permission === 'granted'; } catch (e) {}
             list.filter(e => e.ts <= now && e.ts > now - NOTIF_MISSED_WINDOW_MS && !_notifFired.has(e.tag))
-                .forEach(e => { _notifFired.add(e.tag); _notifDeliver(e); });
+                .forEach(e => { _notifFired.add(e.tag); if (!systemShown) _notifDeliver(e); });
         }
 
         function _notifDeliver(ev) {
@@ -9724,7 +9728,6 @@
             renderChecklistFolders();
             updateChecklistUI();
             updateChecklistListUI();
-            openFolderEl(0);
         }
 
         function saveChecklist() {
@@ -9794,7 +9797,6 @@
             renderChecklistFolders();
             updateChecklistUI();
             updateChecklistListUI();
-            openFolderEl(0);
         }
         // Закрытие дропдауна по клику вне
         document.addEventListener('click', function(e) {
@@ -9905,7 +9907,6 @@
             renderChecklistFolders();
             updateChecklistUI();
             updateChecklistListUI();
-            openFolderEl(0);
             showToast(t('toastListDeleted'));
         }
 
@@ -10044,6 +10045,35 @@
                 container.appendChild(folderDiv);
             });
             _initTaskCardDrag();
+            _watchChecklistOpenFolder(container);
+            _restoreChecklistOpenFolder();
+        }
+
+        // ===== Какая папка задач была открыта — помним и после закрытия приложения =====
+        // Для каждого списка задач свой номер открытой папки; -1 — все папки закрыты.
+        var CL_OPEN_FOLDER_KEY = 'azkar_cl_open_folder';
+        function _clOpenFolderMap() {
+            try { return JSON.parse(localStorage.getItem(CL_OPEN_FOLDER_KEY) || '{}') || {}; } catch (e) { return {}; }
+        }
+        function _restoreChecklistOpenFolder() {
+            const saved = _clOpenFolderMap()[activeChecklistListId];
+            // Первый запуск — как раньше, открыта первая папка
+            const idx = (typeof saved === 'number') ? saved : 0;
+            document.querySelectorAll('#checklistFolders .cl-folder.acc-open').forEach(f => f.classList.remove('acc-open'));
+            if (idx >= 0) openFolderEl(idx);
+        }
+        function _watchChecklistOpenFolder(container) {
+            if (container.dataset.openWatch === '1') return;
+            container.dataset.openWatch = '1';
+            new MutationObserver(records => {
+                if (!records.some(r => r.target.classList && r.target.classList.contains('cl-folder'))) return;
+                const open = container.querySelector('.cl-folder.acc-open');
+                const idx = open ? Number(open.id.replace('clFolder', '')) : -1;
+                const map = _clOpenFolderMap();
+                if (map[activeChecklistListId] === idx) return;
+                map[activeChecklistListId] = idx;
+                try { localStorage.setItem(CL_OPEN_FOLDER_KEY, JSON.stringify(map)); } catch (e) {}
+            }).observe(container, { subtree: true, attributes: true, attributeFilter: ['class'] });
         }
 
         // ===== SUBFOLDER RENDER =====
@@ -10768,7 +10798,10 @@
 
         function openFolderEl(idx) {
             const folder = document.getElementById('clFolder' + idx);
-            if (folder) folder.classList.add('acc-open');
+            if (!folder) return;
+            // Как и toggleFolder — открыта только одна папка
+            document.querySelectorAll('#checklistFolders .cl-folder.acc-open').forEach(f => { if (f !== folder) f.classList.remove('acc-open'); });
+            folder.classList.add('acc-open');
         }
 
         function initChecklistFolderOutsideClose() {
