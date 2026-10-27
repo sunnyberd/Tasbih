@@ -27,7 +27,7 @@
     (function () {
         "use strict";
 
-        var SITE_URL = "https://sunnyberd.github.io/Tasbih/reviews.html";
+        var SITE_URL = "https://sunnyberd.github.io/Tasbih/site.html";
         var MAX_TEXT = 1200;
         var MIN_TEXT = 4;
         var NET_TIMEOUT = 15000;
@@ -400,7 +400,7 @@
                 var theme = (JSON.parse(localStorage.getItem("azkar_settings") || "{}") || {}).theme || THEME_DEFAULT;
                 u += "&theme=" + encodeURIComponent(theme);
             } catch (e) {}
-            return u + (msgId ? "#m-" + encodeURIComponent(msgId) : "");
+            return u + (msgId ? "#m-" + encodeURIComponent(msgId) : "#reviews");
         }
         function openSite(msgId) {
             var url = siteUrl(msgId);
