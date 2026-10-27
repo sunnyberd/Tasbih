@@ -45,10 +45,10 @@
 // v117 — тестер категории вибрации и постоянный пузырь в Android-приложении.
 // v125 — APK: уведомления (намаз, Абу Умама, зикр, хадисы) через будильник Android (js/native.js + NotifScheduler.java).
 // v116 — js/native.js: связка с Android-приложением (вибрация, счётчик поверх приложений).
-const CACHE_NAME = 'azkar-v130';
-const I18N_VERSION = '115';
+const CACHE_NAME = 'azkar-v131';
+const I18N_VERSION = '116';
 const DATA_VERSION = '110';
-const APP_VERSION = '128';
+const APP_VERSION = '129';
 
 // Оболочка приложения — кладётся в кэш сразу при установке SW,
 // чтобы второй запуск (и офлайн) был мгновенным.
@@ -353,6 +353,12 @@ self.addEventListener('notificationclick', (event) => {
     const hadith = data.hadithText || null;
     const source = data.hadithSource || '';
 
+    // Реакция на отзыв (лайк, ответ, статус) — открываем сайт отзывов
+    if (data.openUrl) {
+        event.waitUntil(self.clients.openWindow(data.openUrl));
+        return;
+    }
+
     event.waitUntil(
         self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
             // Приложение уже открыто — фокусируемся и просим показать хадис
@@ -434,6 +440,9 @@ function handleNavigation(event) {
 self.addEventListener('fetch', (event) => {
     if (event.request.method !== 'GET') return;
     if (!event.request.url.startsWith(self.registration.scope)) return;
+    // Сайт отзывов — отдельная страница, только из сети (иначе при медленной
+    // сети вместо неё открылось бы приложение из кэша).
+    if (/\/reviews(\.html)?([?#].*)?$/.test(event.request.url)) return;
 
     const isHtml = event.request.mode === 'navigate'
         || (event.request.headers.get('accept') || '').includes('text/html');

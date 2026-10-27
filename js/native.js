@@ -305,8 +305,12 @@
         if (!n || !n.body || notif.permission !== 'granted') return;
         N.showNotification({
             tag: n.tag || ('azkar-notif-' + Date.now()), kind: '',
-            title: n.title || 'Azkar', body: n.body
+            title: n.title || 'Azkar', body: n.body, url: n.url || ''
         }).catch(function () {});
+    };
+    // Ссылки (сайт отзывов) — в браузере телефона, а не внутри приложения
+    window.azkarOpenUrl = function (url) {
+        N.openUrl({ url: url }).catch(function () {});
     };
 
     function startNotifications() {

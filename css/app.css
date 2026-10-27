@@ -861,9 +861,9 @@ body {
 #screen-special-counter .special-counter-name {
     display: none;
 }
-/* Перевёрнутая луна на обоих экранах */
+/* Луна: полумесяц открыт вправо (рисунок уже в нужную сторону, без зеркала) */
 .moon-icon svg {
-    transform: scaleX(-1);
+    transform: none;
 }
 
 @keyframes fadeInScreen {

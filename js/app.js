@@ -8331,7 +8331,7 @@
                 navigator.serviceWorker.ready.then(reg => reg.showNotification(n.title || 'Azkar', {
                     body: n.body, icon: 'icon-192.png', badge: 'badge.png',
                     tag: n.tag || ('azkar-notif-' + Date.now()), renotify: false, requireInteraction: false,
-                    data: { url: reg.scope }
+                    data: { url: reg.scope, openUrl: n.url || '' }
                 })).catch(() => {});
             } catch (e) {}
         }
@@ -8348,9 +8348,20 @@
         function openHadithFromBanner() {
             // hideHadithBanner() очищает _hadithCurrent, поэтому запоминаем заранее
             const h = _hadithCurrent;
+            const n = _notifCurrent;
             hideHadithBanner();
-            if (!h) return;   // баннер намаза/зикра — просто закрываем, без системного уведомления
+            if (!h) {
+                // реакция на отзыв — открываем сайт отзывов; намаз/зикр — просто закрываем
+                if (n && n.url) openExternalUrl(n.url);
+                return;
+            }
             openHadithPopup(h);
+        }
+        // Внешняя ссылка: в APK — браузер телефона, в веб-версии — новая вкладка
+        function openExternalUrl(url) {
+            if (!url) return;
+            if (typeof window.azkarOpenUrl === 'function') { window.azkarOpenUrl(url); return; }
+            try { window.open(url, '_blank', 'noopener'); } catch (e) { location.href = url; }
         }
         // Полноценный попап по центру экрана (как было раньше)
         function openHadithPopup(h) {
@@ -8632,13 +8643,13 @@
         }
 
         // Тот же iOS-style баннер сверху, что и у хадисов, но без попапа по тапу.
-        function showNotifBanner(title, text, icon, tag) {
+        function showNotifBanner(title, text, icon, tag, url) {
             const banner = document.getElementById('hadithBanner');
             if (!banner) return;
             _hadithCurrent = null;
             // Запоминаем событие целиком: если баннер не откроют и он исчезнет,
             // hideHadithBanner({pin:true}) положит его в шторку уведомлений.
-            _notifCurrent = { title: title, body: text, icon: icon, tag: tag };
+            _notifCurrent = { title: title, body: text, icon: icon, tag: tag, url: url || '' };
             const titleEl = document.getElementById('hadithBannerTitle');
             const textEl = document.getElementById('hadithBannerText');
             const icEl = banner.querySelector('.hadith-banner-icon');

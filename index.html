@@ -56,7 +56,7 @@
         @font-face { font-family: 'Scheherazade New'; src: url('fonts/scheherazadenew-bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF; }
     </style>
 
-    <link rel="stylesheet" href="css/app.css?v=128">
+    <link rel="stylesheet" href="css/app.css?v=129">
 </head>
 <body>
 
@@ -165,7 +165,7 @@
             <div class="moon-stars">
                 <div class="moon-icon" aria-hidden="true">
                     <svg viewBox="0 0 32 32" fill="none" width="52" height="52">
-                        <path d="M25 16C25 21 21 25 16 25C11 25 7 21 7 16C7 11 11 7 16 7C16.4 7 16.8 7.04 17.2 7.12C14.6 8.3 13 10.8 13 14C13 17.8 15.8 21 19.6 21C21.3 21 22.8 20.3 23.8 19.1C24.1 18.1 25 17 25 16Z" fill="var(--moon-fill)" opacity="0.95" />
+                        <path d="M12.77 4.3A12.5 12.5 0 1 0 27.35 20.49A11 11 0 1 1 12.77 4.3Z" fill="var(--moon-fill)" opacity="0.95" />
                     </svg>
                 </div>
                 <div class="stars-group" aria-hidden="true">
@@ -253,7 +253,7 @@
             <div class="moon-stars">
                 <div class="moon-icon" aria-hidden="true">
                     <svg viewBox="0 0 32 32" fill="none" width="52" height="52">
-                        <path d="M25 16C25 21 21 25 16 25C11 25 7 21 7 16C7 11 11 7 16 7C16.4 7 16.8 7.04 17.2 7.12C14.6 8.3 13 10.8 13 14C13 17.8 15.8 21 19.6 21C21.3 21 22.8 20.3 23.8 19.1C24.1 18.1 25 17 25 16Z" fill="var(--moon-fill)" opacity="0.95" />
+                        <path d="M12.77 4.3A12.5 12.5 0 1 0 27.35 20.49A11 11 0 1 1 12.77 4.3Z" fill="var(--moon-fill)" opacity="0.95" />
                     </svg>
                 </div>
                 <div class="stars-group" aria-hidden="true">
@@ -745,7 +745,7 @@
             <div class="moon-stars">
                 <div class="moon-icon" aria-hidden="true">
                     <svg viewBox="0 0 32 32" fill="none" width="52" height="52">
-                        <path d="M25 16C25 21 21 25 16 25C11 25 7 21 7 16C7 11 11 7 16 7C16.4 7 16.8 7.04 17.2 7.12C14.6 8.3 13 10.8 13 14C13 17.8 15.8 21 19.6 21C21.3 21 22.8 20.3 23.8 19.1C24.1 18.1 25 17 25 16Z" fill="var(--moon-fill)" opacity="0.95" />
+                        <path d="M12.77 4.3A12.5 12.5 0 1 0 27.35 20.49A11 11 0 1 1 12.77 4.3Z" fill="var(--moon-fill)" opacity="0.95" />
                     </svg>
                 </div>
                 <div class="stars-group" aria-hidden="true">
@@ -2357,19 +2357,52 @@
 .rate-block .stars-row { justify-content: center; gap: 8px; }
 .rate-block .star-btn svg { width: clamp(34px, 11vw, 40px); height: clamp(34px, 11vw, 40px); }
 .rate-block .rating-caption { font-size: 0.82rem; }
-.mine { margin-top: 18px; padding: 16px 16px 12px; animation: cardIn 0.34s cubic-bezier(0.22, 0.9, 0.35, 1) both; }
+.mine { margin-top: 20px; padding: 16px 16px 14px; animation: cardIn 0.34s cubic-bezier(0.22, 0.9, 0.35, 1) both; }
 .mine-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.mine-title { font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; font-weight: 600; background: linear-gradient(135deg, var(--grad-start), var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.mine-stars { display: flex; gap: 2px; }
-.mine-stars svg { width: 15px; height: 15px; fill: color-mix(in srgb, var(--gold) 20%, transparent); }
+.mine-title { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 600; background: linear-gradient(135deg, var(--grad-start), var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.mine-actions { display: flex; gap: 4px; }
+.mine-stars { display: flex; gap: 3px; margin-top: 8px; }
+.mine-stars svg { width: 20px; height: 20px; fill: color-mix(in srgb, var(--gold) 18%, transparent); }
 .mine-stars svg.f { fill: var(--gold); }
-.mine-thanks { margin-top: 4px; font-size: 0.76rem; color: var(--text-dim); }
-.mine-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
-.mine-msg { display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; border-radius: 16px; background: color-mix(in srgb, var(--text) 4%, transparent); border: 1px solid var(--border); }
-.mine-msg-body { flex: 1; min-width: 0; }
-.mine-msg-text { font-size: 0.84rem; line-height: 1.45; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }
-.mine-msg-date { margin-top: 4px; font-size: 0.66rem; color: var(--text-dim); }
-.mine-msg .rv-act { flex-shrink: 0; }
+.mine-stars.editing { gap: 6px; }
+.mine-stars.editing button { padding: 2px; border-radius: 10px; }
+.mine-stars.editing svg { width: 30px; height: 30px; }
+.mine-name { margin-top: 10px; font-size: 0.8rem; font-weight: 700; color: var(--text); }
+.mine-text { margin-top: 4px; font-size: 0.88rem; line-height: 1.5; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }
+.mine-empty { margin-top: 8px; font-size: 0.78rem; color: var(--text-dim); line-height: 1.45; }
+.mine-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-top: 10px; font-size: 0.68rem; color: var(--text-dim); }
+.mine-likes { display: inline-flex; align-items: center; gap: 4px; }
+.mine-likes svg { width: 13px; height: 13px; fill: var(--gold); }
+.fb-status { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 0.64rem; font-weight: 700; border: 1px solid var(--border-hover); color: var(--gold); background: var(--accent-glow); }
+.fb-status.done { color: #2ecc71; border-color: rgba(46, 204, 113, 0.45); background: rgba(46, 204, 113, 0.12); }
+.mine-reply { margin-top: 12px; padding: 10px 12px; border-radius: 14px; border-left: 3px solid var(--gold); background: color-mix(in srgb, var(--gold) 7%, transparent); }
+.mine-reply-label { font-size: 0.66rem; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: 0.5px; }
+.mine-reply-text { margin-top: 3px; font-size: 0.82rem; line-height: 1.45; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }
+.mine-edit { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+.mine-edit .textarea { min-height: 96px; }
+.mine-edit-actions { display: flex; gap: 8px; }
+.mine-edit-actions button { flex: 1; padding: 11px; border-radius: 999px; font-size: 0.84rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.mine-edit-actions button:active { transform: scale(0.96); }
+.success-actions { flex-direction: column; }
+.success-actions .btn-gold svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.fb-loading { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 26px; font-size: 0.8rem; color: var(--text-dim); }
+.fb-spin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border); border-top-color: var(--gold); animation: fbSpin 0.8s linear infinite; }
+@keyframes fbSpin { to { transform: rotate(360deg); } }
+.showcase { margin-top: 18px; padding: 16px; }
+.sc-head { display: flex; align-items: center; gap: 10px; }
+.sc-avg { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 700; line-height: 1; color: var(--gold); }
+.sc-stars { display: flex; gap: 2px; }
+.sc-stars svg { width: 14px; height: 14px; fill: color-mix(in srgb, var(--gold) 18%, transparent); }
+.sc-stars svg.f { fill: var(--gold); }
+.sc-count { font-size: 0.72rem; color: var(--text-dim); margin-top: 3px; }
+.sc-quotes { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.sc-quote { padding: 10px 12px; border-radius: 14px; background: color-mix(in srgb, var(--text) 4%, transparent); border: 1px solid var(--border); }
+.sc-quote-text { font-size: 0.82rem; line-height: 1.45; color: var(--text); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.sc-quote-by { margin-top: 5px; display: flex; align-items: center; gap: 6px; font-size: 0.68rem; color: var(--text-dim); }
+.sc-quote-by .sc-stars svg { width: 11px; height: 11px; }
+.sc-empty { margin-top: 10px; font-size: 0.8rem; color: var(--text-dim); }
+.sc-link { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin-top: 12px; padding: 11px; border-radius: 999px; border: 1px solid var(--border-hover); background: var(--accent-glow); color: var(--gold); font: inherit; font-size: 0.82rem; font-weight: 700; cursor: pointer; }
+.sc-link svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .fb-cancel { display: block; width: 100%; margin-top: 10px; padding: 10px; background: none; border: none; color: var(--text-muted); font: inherit; font-size: 0.85rem; cursor: pointer; }
 .rv-like { display: inline-flex; align-items: center; gap: 6px; padding: 6px 8px; background: none; border: none; border-radius: 999px; color: var(--text-dim); font: inherit; cursor: pointer; }
 .rv-like svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -2430,15 +2463,13 @@
             </button>
         </section>
 
-        <!-- ===== ВАШ ОТЗЫВ: своя оценка и свои сообщения ===== -->
-        <section class="mine card hidden" id="mineBlock">
-            <div class="mine-head">
-                <span class="mine-title" data-i18n="yourReview">Ваш отзыв</span>
-                <span class="mine-stars" id="mineStars" aria-hidden="true"></span>
-            </div>
-            <p class="mine-thanks" data-i18n="thanksInline">Спасибо! Ваш отзыв отправлен</p>
-            <div class="mine-list" id="mineList"></div>
-        </section>
+        <!-- ===== ВАШ ОТЗЫВ (рисует feedback.js): звёзды, текст, ✎ и корзина ===== -->
+        <section class="mine card hidden" id="mineBlock"></section>
+
+        <div class="fb-loading hidden" id="fbLoading"><span class="fb-spin" aria-hidden="true"></span><span data-i18n="loading">Загрузка…</span></div>
+
+        <!-- ===== ВИТРИНА: средняя оценка, 1–2 отзыва и переход на сайт ===== -->
+        <section class="showcase card hidden" id="showcase"></section>
 
         </main>
 
@@ -2474,6 +2505,10 @@
             <h3 class="success-title" id="successTitle" data-i18n="thanksTitle">Спасибо за отзыв!</h3>
             <p class="success-sub" data-i18n="thanksSub">Ваше мнение помогает Azkar становиться лучше</p>
             <div class="success-actions">
+                <button type="button" class="btn-gold" id="successSeeBtn">
+                    <svg viewBox="0 0 24 24"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
+                    <span data-i18n="seeOthers">Посмотреть, что пишут другие</span>
+                </button>
                 <button type="button" class="btn-ghost" id="successDoneBtn" data-i18n="btnDone">Готово</button>
             </div>
         </div>
@@ -2562,7 +2597,7 @@
     // I18N_VERSION менять при КАЖДОМ изменении файлов i18n/ (вместе с CACHE_NAME в sw.js),
     // иначе телефон может взять старую копию из кэша.
     (function () {
-        var I18N_VERSION = '115';
+        var I18N_VERSION = '116';
         var LANGS = ['en', 'de', 'es', 'fr', 'it', 'ja', 'ko', 'ru', 'uz', 'zh', 'tr', 'hi', 'id', 'ms', 'th'];
         var I = window.AZKAR_I18N = window.AZKAR_I18N || {};
         var U = window.AZKAR_UI_TRANSLATIONS = window.AZKAR_UI_TRANSLATIONS || {};
@@ -2622,11 +2657,11 @@
         });
     })();
     </script>
-    <script src="js/feedback.js?v=128"></script>
+    <script src="js/feedback.js?v=129"></script>
     <script src="data/special-dhikrs.js?v=110"></script>
-    <script src="push-config.js?v=128"></script>
-    <script src="js/app.js?v=128"></script>
-    <script src="js/native.js?v=128"></script>
+    <script src="push-config.js?v=129"></script>
+    <script src="js/app.js?v=129"></script>
+    <script src="js/native.js?v=129"></script>
         <script>
         // Реальный свайп — баннер следует за пальцем, при отпускании улетает или возвращается
         window.addEventListener('load', function() {

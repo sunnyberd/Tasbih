@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Azkar — отзывы и пожелания</title>
+    <meta name="description" content="Отзывы и пожелания пользователей Azkar — счётчика зикра и тасбиха.">
+    <meta name="theme-color" content="#0a0a0a">
+    <link rel="icon" href="icon-192.png">
+    <style>
+        /* Сайт отзывов Azkar. Данные — Firebase (ratings, messages), логика — js/reviews.js.
+           После правок повысь версию ?v= у reviews.js ниже. */
+        @font-face { font-family: 'Cormorant Garamond'; src: url(fonts/cormorantgaramond.woff2) format('woff2'); font-weight: 400 700; font-display: swap; }
+        @font-face { font-family: 'Montserrat'; src: url(fonts/montserrat.woff2) format('woff2'); font-weight: 300 800; font-display: swap; }
+        :root {
+            --bg: #0a0a0a; --surface: #141414; --text: #f3efe6; --text-dim: #8d877b;
+            --gold: #d4af37; --border: rgba(212, 175, 55, 0.18); --glow: rgba(212, 175, 55, 0.14);
+            --danger: #e5484d; --ok: #2ecc71;
+        }
+        :root.light { --surface: #ffffff; --text: #22201c; --text-dim: #7a746a; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { -webkit-text-size-adjust: 100%; }
+        body {
+            background: var(--bg); color: var(--text);
+            font-family: 'Montserrat', system-ui, sans-serif; font-size: 15px; line-height: 1.5;
+            min-height: 100vh;
+            background-image: radial-gradient(ellipse at 50% -10%, var(--glow), transparent 60%);
+            background-repeat: no-repeat;
+        }
+        button, select, textarea { font: inherit; color: inherit; }
+        button { cursor: pointer; background: none; border: none; }
+        .wrap { max-width: 640px; margin: 0 auto; padding: calc(env(safe-area-inset-top) + 22px) 16px calc(env(safe-area-inset-bottom) + 40px); }
+        .hidden { display: none !important; }
+
+        .top { text-align: center; }
+        .top img { width: 72px; height: 72px; border-radius: 50%; box-shadow: 0 10px 30px -10px var(--glow); }
+        .top h1 {
+            margin-top: 10px; font-family: 'Cormorant Garamond', serif; font-size: clamp(1.7rem, 7vw, 2.1rem); font-weight: 600; line-height: 1.15;
+            background: linear-gradient(135deg, var(--text), var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        .top p { margin-top: 4px; font-size: 0.85rem; color: var(--text-dim); }
+        .links { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+        .pill-btn {
+            display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; border-radius: 999px;
+            border: 1px solid var(--border); background: var(--surface); color: var(--text);
+            font-size: 0.8rem; font-weight: 600; text-decoration: none;
+        }
+        .pill-btn.gold { border-color: var(--gold); color: var(--gold); background: var(--glow); }
+        .pill-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 22px; }
+        .summary { margin-top: 22px; padding: 18px; display: flex; gap: 18px; align-items: center; }
+        .sum-left { text-align: center; min-width: 96px; }
+        .sum-avg { font-family: 'Cormorant Garamond', serif; font-size: 3rem; font-weight: 700; line-height: 1; color: var(--gold); }
+        .sum-count { margin-top: 5px; font-size: 0.72rem; color: var(--text-dim); }
+        .stars { display: inline-flex; gap: 2px; }
+        .stars svg { width: 14px; height: 14px; fill: color-mix(in srgb, var(--gold) 20%, transparent); }
+        .stars svg.f { fill: var(--gold); }
+        .dist { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+        .dist-row { display: flex; align-items: center; gap: 8px; font-size: 0.72rem; color: var(--text-dim); }
+        .dist-track { flex: 1; height: 7px; border-radius: 99px; background: color-mix(in srgb, var(--text) 8%, transparent); overflow: hidden; }
+        .dist-fill { display: block; height: 100%; border-radius: 99px; background: var(--gold); }
+
+        .account { margin-top: 14px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; font-size: 0.8rem; }
+        .account .grow { flex: 1; min-width: 0; color: var(--text-dim); }
+        .account b { color: var(--text); }
+        .g-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg); font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
+        .g-btn svg { width: 16px; height: 16px; }
+
+        .sort { display: flex; gap: 8px; margin-top: 22px; }
+        .sort button { padding: 7px 15px; border-radius: 999px; border: 1px solid var(--border); font-size: 0.78rem; font-weight: 600; color: var(--text-dim); }
+        .sort button.on { color: var(--gold); border-color: var(--gold); background: var(--glow); }
+
+        .feed { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+        .msg { padding: 15px 16px 12px; scroll-margin-top: 20px; }
+        .msg.flash { animation: flash 2.2s ease 1; }
+        @keyframes flash { 0%, 40% { box-shadow: 0 0 0 3px var(--gold); } 100% { box-shadow: 0 0 0 0 transparent; } }
+        .msg-head { display: flex; align-items: center; gap: 10px; }
+        .avatar { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; font-weight: 700; color: var(--gold); background: var(--glow); border: 1px solid var(--border); }
+        .who { flex: 1; min-width: 0; }
+        .who-name { font-weight: 700; font-size: 0.86rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .who-date { font-size: 0.68rem; color: var(--text-dim); }
+        .you { margin-left: 6px; padding: 1px 7px; border-radius: 99px; font-size: 0.6rem; font-weight: 700; color: var(--gold); border: 1px solid var(--gold); vertical-align: middle; }
+        .msg-text { margin-top: 10px; font-size: 0.9rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+        .msg-foot { display: flex; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        .like { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); font-size: 0.78rem; font-weight: 700; color: var(--text-dim); }
+        .like svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
+        .like.on { color: #f472b6; border-color: rgba(244, 114, 182, 0.5); }
+        .like.on svg { fill: currentColor; }
+        .like:active { transform: scale(0.94); }
+        .status { padding: 3px 10px; border-radius: 999px; font-size: 0.66rem; font-weight: 700; color: var(--gold); border: 1px solid var(--border); background: var(--glow); }
+        .status.done { color: var(--ok); border-color: rgba(46, 204, 113, 0.45); background: rgba(46, 204, 113, 0.12); }
+        .reply { margin-top: 12px; padding: 10px 12px; border-radius: 14px; border-left: 3px solid var(--gold); background: color-mix(in srgb, var(--gold) 7%, transparent); }
+        .reply-label { font-size: 0.64rem; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: 0.5px; }
+        .reply-text { margin-top: 3px; font-size: 0.84rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+        .admin { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); display: flex; flex-direction: column; gap: 8px; }
+        .admin textarea, .admin select { width: 100%; padding: 9px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); font-size: 0.84rem; }
+        .admin textarea { min-height: 70px; resize: vertical; }
+        .admin-row { display: flex; gap: 8px; }
+        .admin-row button { flex: 1; padding: 9px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; border: 1px solid var(--gold); color: var(--gold); }
+        .admin-row button.del { border-color: var(--danger); color: var(--danger); }
+
+        .note { margin-top: 26px; text-align: center; font-size: 0.8rem; color: var(--text-dim); }
+        .state { margin-top: 30px; text-align: center; color: var(--text-dim); font-size: 0.86rem; }
+        .spin { display: inline-block; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border); border-top-color: var(--gold); animation: sp 0.8s linear infinite; vertical-align: middle; margin-right: 8px; }
+        @keyframes sp { to { transform: rotate(360deg); } }
+        .toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 24px); transform: translateX(-50%) translateY(20px); opacity: 0; pointer-events: none; padding: 10px 18px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); font-size: 0.82rem; transition: opacity 0.2s, transform 0.2s; max-width: calc(100% - 32px); text-align: center; }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+<main class="wrap">
+    <header class="top">
+        <img src="icon-192.png" alt="Azkar">
+        <h1 data-t="headerTitle">Отзывы и пожелания</h1>
+        <p data-t="siteSub">Что пишут пользователи Azkar</p>
+        <div class="links">
+            <a class="pill-btn gold hidden" id="apkLink" href="#">
+                <svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+                <span data-t="downloadApk">Скачать для Android</span>
+            </a>
+            <a class="pill-btn" href="./">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18"/></svg>
+                <span data-t="openWeb">Открыть веб-версию</span>
+            </a>
+        </div>
+    </header>
+
+    <section class="summary card hidden" id="summary"></section>
+    <section class="account card" id="account"></section>
+
+    <div class="sort" role="tablist">
+        <button type="button" class="on" data-sort="top" data-t="sortTop">Популярные</button>
+        <button type="button" data-sort="new" data-t="sortNew">Новые</button>
+    </div>
+
+    <div class="state" id="state"><span class="spin"></span><span data-t="loading">Загрузка…</span></div>
+    <div class="feed" id="feed"></div>
+
+    <p class="note" data-t="leaveInApp">Оставить свой отзыв можно в приложении Azkar</p>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="js/reviews.js?v=1"></script>
+</body>
+</html>
