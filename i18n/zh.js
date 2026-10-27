@@ -545,7 +545,7 @@ AZKAR_I18N_REGISTER("zh", {
             "optLabel": "选填",
             "phName": "怎么称呼您？",
             "labelMessage": "留言",
-            "phMessage": "写下您的评价或建议…",
+            "phMessage": "评价、建议或问题…",
             "btnSubmit": "发送反馈",
             "errRating": "请先评分",
             "errMessage": "请多写几个字",
@@ -585,6 +585,9 @@ AZKAR_I18N_REGISTER("zh", {
             "btnCancel": "取消",
             "formTitleEdit": "编辑评价",
             "toastUpdated": "评价已更新",
+            "yourReview": "您的评价",
+            "thanksInline": "谢谢！您的评价已发送",
+            "toastRatingUpdated": "评分已更新",
             "emptyTitleIdea": "暂无建议",
             "emptyTitleBug": "暂无问题反馈"
         }

@@ -548,7 +548,7 @@ AZKAR_I18N_REGISTER("ru", {
             "optLabel": "необязательно",
             "phName": "Как к вам обращаться?",
             "labelMessage": "Сообщение",
-            "phMessage": "Напишите отзыв или пожелание…",
+            "phMessage": "Отзыв, пожелание или проблема…",
             "btnSubmit": "Отправить отзыв",
             "errRating": "Поставьте оценку",
             "errMessage": "Напишите хотя бы несколько слов",
@@ -588,6 +588,9 @@ AZKAR_I18N_REGISTER("ru", {
             "btnCancel": "Отмена",
             "formTitleEdit": "Изменить отзыв",
             "toastUpdated": "Отзыв обновлён",
+            "yourReview": "Ваш отзыв",
+            "thanksInline": "Спасибо! Ваш отзыв отправлен",
+            "toastRatingUpdated": "Оценка обновлена",
             "emptyTitleIdea": "Пока нет пожеланий",
             "emptyTitleBug": "Проблем пока нет"
         }

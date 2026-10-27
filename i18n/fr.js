@@ -545,7 +545,7 @@ AZKAR_I18N_REGISTER("fr", {
             "optLabel": "facultatif",
             "phName": "Comment vous appeler ?",
             "labelMessage": "Message",
-            "phMessage": "Écrivez votre avis ou suggestion…",
+            "phMessage": "Avis, suggestion ou problème…",
             "btnSubmit": "Envoyer l'avis",
             "errRating": "Veuillez donner une note",
             "errMessage": "Écrivez quelques mots",
@@ -585,6 +585,9 @@ AZKAR_I18N_REGISTER("fr", {
             "btnCancel": "Annuler",
             "formTitleEdit": "Modifier l'avis",
             "toastUpdated": "Avis mis à jour",
+            "yourReview": "Votre avis",
+            "thanksInline": "Merci ! Votre avis a été envoyé",
+            "toastRatingUpdated": "Note mise à jour",
             "emptyTitleIdea": "Aucune suggestion pour le moment",
             "emptyTitleBug": "Aucun problème signalé"
         }

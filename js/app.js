@@ -1343,11 +1343,11 @@
             const title = t('completionTitle');
             const body = t('completionSub');
             if (Notification.permission === 'granted') {
-                try { new Notification(title, { body, icon: 'icon-192.png', badge: 'icon-192.png' }); } catch(e) {}
+                try { new Notification(title, { body, icon: 'icon-192.png', badge: 'badge.png' }); } catch(e) {}
             } else if (Notification.permission === 'default') {
                 Notification.requestPermission().then(perm => {
                     if (perm === 'granted') {
-                        try { new Notification(title, { body, icon: 'icon-192.png', badge: 'icon-192.png' }); } catch(e) {}
+                        try { new Notification(title, { body, icon: 'icon-192.png', badge: 'badge.png' }); } catch(e) {}
                     }
                 });
             }
@@ -8147,7 +8147,7 @@
                 if (!body) return false;
                 const source = _hadithSource(list[idx]);
                 navigator.serviceWorker.ready.then(reg => reg.showNotification(t('hadithLabel'), {
-                    body: body, icon: 'icon-192.png', badge: 'icon-192.png',
+                    body: body, icon: 'icon-192.png', badge: 'badge.png',
                     tag: 'azkar-hadith-' + (plannedTs || Date.now()), renotify: false, requireInteraction: false,
                     data: { url: reg.scope, hadithText: body, hadithSource: source }
                 })).catch(() => {});
@@ -8196,7 +8196,7 @@
                         // первый показ SW — ровно в сохранённое время, дальше он сам берёт 3–6 ч
                         firstDelayMs: delayMs || 0,
                         icon: 'icon-192.png',
-                        badge: 'icon-192.png'
+                        badge: 'badge.png'
                     });
                 } else {
                     reg.active.postMessage({ type: 'CANCEL_HADITH' });
@@ -8315,7 +8315,7 @@
                 if (!body) return;
                 const source = _hadithSource(h);
                 navigator.serviceWorker.ready.then(reg => reg.showNotification(t('hadithLabel'), {
-                    body: body, icon: 'icon-192.png', badge: 'icon-192.png',
+                    body: body, icon: 'icon-192.png', badge: 'badge.png',
                     tag: 'azkar-hadith-' + Date.now(), renotify: false, requireInteraction: false,
                     data: { url: reg.scope, hadithText: body, hadithSource: source }
                 })).catch(() => {});
@@ -8329,7 +8329,7 @@
                 if (!n || !n.body) return;
                 if (!('Notification' in window) || Notification.permission !== 'granted' || !('serviceWorker' in navigator)) return;
                 navigator.serviceWorker.ready.then(reg => reg.showNotification(n.title || 'Azkar', {
-                    body: n.body, icon: 'icon-192.png', badge: 'icon-192.png',
+                    body: n.body, icon: 'icon-192.png', badge: 'badge.png',
                     tag: n.tag || ('azkar-notif-' + Date.now()), renotify: false, requireInteraction: false,
                     data: { url: reg.scope }
                 })).catch(() => {});
@@ -8580,7 +8580,7 @@
                     if (!reg || !reg.active) return;
                     // Push-сервер сам пришлёт уведомление — таймер SW не нужен (иначе дубли)
                     if (list.length && !pushActive()) {
-                        reg.active.postMessage({ type: 'SCHEDULE_EVENTS', events: list, icon: 'icon-192.png', badge: 'icon-192.png' });
+                        reg.active.postMessage({ type: 'SCHEDULE_EVENTS', events: list, icon: 'icon-192.png', badge: 'badge.png' });
                     } else {
                         reg.active.postMessage({ type: 'CANCEL_EVENTS' });
                     }
@@ -8621,7 +8621,7 @@
             try {
                 if (document.hidden && 'Notification' in window && Notification.permission === 'granted' && 'serviceWorker' in navigator) {
                     navigator.serviceWorker.ready.then(reg => reg.showNotification(ev.title, {
-                        body: ev.body, icon: 'icon-192.png', badge: 'icon-192.png',
+                        body: ev.body, icon: 'icon-192.png', badge: 'badge.png',
                         tag: ev.tag, renotify: false, requireInteraction: false,
                         data: { url: reg.scope }
                     })).catch(() => {});

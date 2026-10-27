@@ -545,7 +545,7 @@ AZKAR_I18N_REGISTER("id", {
             "optLabel": "opsional",
             "phName": "Siapa nama Anda?",
             "labelMessage": "Pesan",
-            "phMessage": "Tulis ulasan atau saran Anda…",
+            "phMessage": "Ulasan, saran, atau masalah…",
             "btnSubmit": "Kirim",
             "errRating": "Beri penilaian",
             "errMessage": "Tulis beberapa kata",
@@ -585,6 +585,9 @@ AZKAR_I18N_REGISTER("id", {
             "btnCancel": "Batal",
             "formTitleEdit": "Edit ulasan",
             "toastUpdated": "Ulasan diperbarui",
+            "yourReview": "Ulasan Anda",
+            "thanksInline": "Terima kasih! Ulasan Anda telah terkirim",
+            "toastRatingUpdated": "Penilaian diperbarui",
             "emptyTitleIdea": "Belum ada saran",
             "emptyTitleBug": "Belum ada masalah yang dilaporkan"
         }

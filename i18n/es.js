@@ -545,7 +545,7 @@ AZKAR_I18N_REGISTER("es", {
             "optLabel": "opcional",
             "phName": "¿Cómo te llamamos?",
             "labelMessage": "Mensaje",
-            "phMessage": "Escribe tu opinión o sugerencia…",
+            "phMessage": "Opinión, sugerencia o problema…",
             "btnSubmit": "Enviar opinión",
             "errRating": "Pon una valoración",
             "errMessage": "Escribe al menos unas palabras",
@@ -585,6 +585,9 @@ AZKAR_I18N_REGISTER("es", {
             "btnCancel": "Cancelar",
             "formTitleEdit": "Editar opinión",
             "toastUpdated": "Opinión actualizada",
+            "yourReview": "Tu opinión",
+            "thanksInline": "¡Gracias! Tu opinión ha sido enviada",
+            "toastRatingUpdated": "Valoración actualizada",
             "emptyTitleIdea": "Aún no hay sugerencias",
             "emptyTitleBug": "No hay problemas reportados"
         }

@@ -545,7 +545,7 @@ AZKAR_I18N_REGISTER("tr", {
             "optLabel": "isteğe bağlı",
             "phName": "Sana nasıl hitap edelim?",
             "labelMessage": "Mesaj",
-            "phMessage": "Değerlendirmeni veya önerini yaz…",
+            "phMessage": "Değerlendirme, öneri veya sorun…",
             "btnSubmit": "Gönder",
             "errRating": "Lütfen puan ver",
             "errMessage": "Birkaç kelime yaz",
@@ -585,6 +585,9 @@ AZKAR_I18N_REGISTER("tr", {
             "btnCancel": "İptal",
             "formTitleEdit": "Değerlendirmeyi düzenle",
             "toastUpdated": "Değerlendirme güncellendi",
+            "yourReview": "Değerlendirmen",
+            "thanksInline": "Teşekkürler! Değerlendirmen gönderildi",
+            "toastRatingUpdated": "Puan güncellendi",
             "emptyTitleIdea": "Henüz öneri yok",
             "emptyTitleBug": "Henüz bildirilen sorun yok"
         }

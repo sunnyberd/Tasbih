@@ -45,10 +45,10 @@
 // v117 — тестер категории вибрации и постоянный пузырь в Android-приложении.
 // v125 — APK: уведомления (намаз, Абу Умама, зикр, хадисы) через будильник Android (js/native.js + NotifScheduler.java).
 // v116 — js/native.js: связка с Android-приложением (вибрация, счётчик поверх приложений).
-const CACHE_NAME = 'azkar-v129';
-const I18N_VERSION = '114';
+const CACHE_NAME = 'azkar-v130';
+const I18N_VERSION = '115';
 const DATA_VERSION = '110';
-const APP_VERSION = '127';
+const APP_VERSION = '128';
 
 // Оболочка приложения — кладётся в кэш сразу при установке SW,
 // чтобы второй запуск (и офлайн) был мгновенным.
@@ -67,6 +67,7 @@ const PRECACHE_URLS = [
     'push-config.js?v=' + APP_VERSION,
     'manifest.json',
     'icon-192.png',
+    'badge.png',
     'fonts/cormorantgaramond.woff2',
     'fonts/montserrat.woff2',
     'fonts/amiri-bold.woff2'
@@ -206,7 +207,7 @@ self.addEventListener('message', (event) => {
 // Фон «по возможности»: ОС может усыпить SW у полностью закрытого PWA.
 let _evList = [];
 let _evTimer = null;
-let _evCfg = { icon: 'icon-192.png', badge: 'icon-192.png' };
+let _evCfg = { icon: 'icon-192.png', badge: 'badge.png' };
 const _evFiredTags = new Set();
 
 function clearEventTimer() {
@@ -307,7 +308,7 @@ async function showPushNotification(d) {
     await self.registration.showNotification(d.t || 'Azkar', {
         body: d.b || '',
         icon: 'icon-192.png',
-        badge: 'icon-192.png',
+        badge: 'badge.png',
         tag: tag,
         renotify: false,
         requireInteraction: false,

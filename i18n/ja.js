@@ -545,7 +545,7 @@ AZKAR_I18N_REGISTER("ja", {
             "optLabel": "任意",
             "phName": "お名前（ニックネーム可）",
             "labelMessage": "メッセージ",
-            "phMessage": "レビューやご提案を書いてください…",
+            "phMessage": "レビュー、ご要望、不具合など…",
             "btnSubmit": "送信する",
             "errRating": "評価を選んでください",
             "errMessage": "もう少し書いてください",
@@ -585,6 +585,9 @@ AZKAR_I18N_REGISTER("ja", {
             "btnCancel": "キャンセル",
             "formTitleEdit": "レビューを編集",
             "toastUpdated": "レビューを更新しました",
+            "yourReview": "あなたのレビュー",
+            "thanksInline": "ありがとうございます！レビューを送信しました",
+            "toastRatingUpdated": "評価を更新しました",
             "emptyTitleIdea": "まだ提案はありません",
             "emptyTitleBug": "報告された問題はありません"
         }

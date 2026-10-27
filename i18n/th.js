@@ -545,7 +545,7 @@ AZKAR_I18N_REGISTER("th", {
             "optLabel": "ไม่บังคับ",
             "phName": "ให้เราเรียกคุณว่าอะไร?",
             "labelMessage": "ข้อความ",
-            "phMessage": "เขียนรีวิวหรือข้อเสนอแนะของคุณ…",
+            "phMessage": "รีวิว ข้อเสนอแนะ หรือปัญหา…",
             "btnSubmit": "ส่งความคิดเห็น",
             "errRating": "กรุณาให้คะแนน",
             "errMessage": "เขียนสักเล็กน้อย",
@@ -585,6 +585,9 @@ AZKAR_I18N_REGISTER("th", {
             "btnCancel": "ยกเลิก",
             "formTitleEdit": "แก้ไขรีวิว",
             "toastUpdated": "อัปเดตรีวิวแล้ว",
+            "yourReview": "รีวิวของคุณ",
+            "thanksInline": "ขอบคุณ! ส่งรีวิวของคุณแล้ว",
+            "toastRatingUpdated": "อัปเดตคะแนนแล้ว",
             "emptyTitleIdea": "ยังไม่มีข้อเสนอแนะ",
             "emptyTitleBug": "ยังไม่มีปัญหาที่รายงาน"
         }

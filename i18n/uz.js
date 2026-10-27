@@ -545,7 +545,7 @@ AZKAR_I18N_REGISTER("uz", {
             "optLabel": "majburiy emas",
             "phName": "Sizni qanday chaqirishsin?",
             "labelMessage": "Xabar",
-            "phMessage": "Fikr yoki taklifingizni yozing…",
+            "phMessage": "Fikr, taklif yoki muammo…",
             "btnSubmit": "Fikrni yuborish",
             "errRating": "Baho qo'ying",
             "errMessage": "Hech bo'lmaganda bir-ikki so'z yozing",
@@ -585,6 +585,9 @@ AZKAR_I18N_REGISTER("uz", {
             "btnCancel": "Bekor qilish",
             "formTitleEdit": "Sharhni tahrirlash",
             "toastUpdated": "Fikr yangilandi",
+            "yourReview": "Sizning fikringiz",
+            "thanksInline": "Rahmat! Fikringiz yuborildi",
+            "toastRatingUpdated": "Baho yangilandi",
             "emptyTitleIdea": "Hozircha takliflar yo'q",
             "emptyTitleBug": "Hozircha muammolar yo'q"
         }

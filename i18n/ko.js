@@ -545,7 +545,7 @@ AZKAR_I18N_REGISTER("ko", {
             "optLabel": "선택",
             "phName": "어떻게 불러드릴까요?",
             "labelMessage": "메시지",
-            "phMessage": "리뷰나 제안을 적어주세요…",
+            "phMessage": "리뷰, 제안 또는 문제…",
             "btnSubmit": "보내기",
             "errRating": "평점을 선택하세요",
             "errMessage": "몇 글자만 더 적어주세요",
@@ -585,6 +585,9 @@ AZKAR_I18N_REGISTER("ko", {
             "btnCancel": "취소",
             "formTitleEdit": "리뷰 수정",
             "toastUpdated": "리뷰가 수정되었습니다",
+            "yourReview": "내 리뷰",
+            "thanksInline": "감사합니다! 리뷰가 전송되었습니다",
+            "toastRatingUpdated": "평점이 수정되었습니다",
             "emptyTitleIdea": "아직 제안이 없습니다",
             "emptyTitleBug": "접수된 문제가 없습니다"
         }

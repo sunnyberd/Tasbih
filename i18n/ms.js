@@ -545,7 +545,7 @@ AZKAR_I18N_REGISTER("ms", {
             "optLabel": "pilihan",
             "phName": "Siapa nama anda?",
             "labelMessage": "Mesej",
-            "phMessage": "Tulis ulasan atau cadangan anda…",
+            "phMessage": "Ulasan, cadangan atau masalah…",
             "btnSubmit": "Hantar",
             "errRating": "Beri penilaian",
             "errMessage": "Tulis beberapa patah perkataan",
@@ -585,6 +585,9 @@ AZKAR_I18N_REGISTER("ms", {
             "btnCancel": "Batal",
             "formTitleEdit": "Edit ulasan",
             "toastUpdated": "Ulasan dikemas kini",
+            "yourReview": "Ulasan anda",
+            "thanksInline": "Terima kasih! Ulasan anda telah dihantar",
+            "toastRatingUpdated": "Penilaian dikemas kini",
             "emptyTitleIdea": "Belum ada cadangan",
             "emptyTitleBug": "Tiada masalah dilaporkan"
         }

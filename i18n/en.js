@@ -548,7 +548,7 @@ AZKAR_I18N_REGISTER("en", {
             "optLabel": "optional",
             "phName": "What should we call you?",
             "labelMessage": "Message",
-            "phMessage": "Write your review or suggestion…",
+            "phMessage": "Review, suggestion or problem…",
             "btnSubmit": "Send feedback",
             "errRating": "Please rate",
             "errMessage": "Please write a few words",
@@ -588,6 +588,9 @@ AZKAR_I18N_REGISTER("en", {
             "btnCancel": "Cancel",
             "formTitleEdit": "Edit review",
             "toastUpdated": "Review updated",
+            "yourReview": "Your review",
+            "thanksInline": "Thank you! Your review has been sent",
+            "toastRatingUpdated": "Rating updated",
             "emptyTitleIdea": "No suggestions yet",
             "emptyTitleBug": "No problems reported"
         }

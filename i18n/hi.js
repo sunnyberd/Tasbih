@@ -545,7 +545,7 @@ AZKAR_I18N_REGISTER("hi", {
             "optLabel": "वैकल्पिक",
             "phName": "आपको क्या कहकर बुलाएँ?",
             "labelMessage": "संदेश",
-            "phMessage": "अपनी राय या सुझाव लिखें…",
+            "phMessage": "राय, सुझाव या समस्या…",
             "btnSubmit": "भेजें",
             "errRating": "रेटिंग दें",
             "errMessage": "कुछ शब्द लिखें",
@@ -585,6 +585,9 @@ AZKAR_I18N_REGISTER("hi", {
             "btnCancel": "रद्द करें",
             "formTitleEdit": "समीक्षा संपादित करें",
             "toastUpdated": "समीक्षा अपडेट हुई",
+            "yourReview": "आपकी राय",
+            "thanksInline": "धन्यवाद! आपकी राय भेज दी गई",
+            "toastRatingUpdated": "रेटिंग अपडेट हुई",
             "emptyTitleIdea": "अभी कोई सुझाव नहीं है",
             "emptyTitleBug": "अभी तक कोई समस्या रिपोर्ट नहीं हुई"
         }

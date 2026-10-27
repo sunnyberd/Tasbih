@@ -545,7 +545,7 @@ AZKAR_I18N_REGISTER("it", {
             "optLabel": "facoltativo",
             "phName": "Come ti chiamiamo?",
             "labelMessage": "Messaggio",
-            "phMessage": "Scrivi la tua recensione o idea…",
+            "phMessage": "Recensione, suggerimento o problema…",
             "btnSubmit": "Invia feedback",
             "errRating": "Dai un voto",
             "errMessage": "Scrivi qualche parola",
@@ -585,6 +585,9 @@ AZKAR_I18N_REGISTER("it", {
             "btnCancel": "Annulla",
             "formTitleEdit": "Modifica recensione",
             "toastUpdated": "Recensione aggiornata",
+            "yourReview": "La tua recensione",
+            "thanksInline": "Grazie! La tua recensione è stata inviata",
+            "toastRatingUpdated": "Valutazione aggiornata",
             "emptyTitleIdea": "Nessun suggerimento per ora",
             "emptyTitleBug": "Nessun problema segnalato"
         }
