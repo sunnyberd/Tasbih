@@ -1328,8 +1328,15 @@
             return audioCtx;
         }
 
+        // Тёмный режим зикра в APK: звук только в наушники, чтобы окружающие не
+        // слышали. window.azkarHeadphones ставит js/native.js (true/false);
+        // в браузере наушники не определить — там звук как обычно.
+        function _stealthSoundBlocked() {
+            return window.azkarHeadphones === false &&
+                typeof window._stealthIsActive === 'function' && window._stealthIsActive();
+        }
         function playClickSound() {
-            if (!settings.clickSound) return;
+            if (!settings.clickSound || _stealthSoundBlocked()) return;
             try {
                 const v = settings.clickSoundVolume !== undefined ? settings.clickSoundVolume : 5;
                 _playClickSoundById(settings.clickSoundType || 'default', v);
@@ -1337,7 +1344,7 @@
         }
 
         function playGoalSound() {
-            if (!settings.sound) return;
+            if (!settings.sound || _stealthSoundBlocked()) return;
             try {
                 const v = settings.goalSoundVolume !== undefined ? settings.goalSoundVolume : 5;
                 _playGoalSoundById(settings.goalSoundType || 'default', v);
@@ -5261,6 +5268,12 @@
                 navigator.vibrate(pat);
             } catch (e) { /* swallow — vibration is best-effort */ }
         }
+        // Быстрые переключатели на экранах счётчика — то же, что короткий тап
+        // по строке в настройках (громкость и выбор звука — только в настройках).
+        function quickToggle(key) {
+            if (key === 'vibration') toggleVibration();
+            else toggleSetting(key);
+        }
         function toggleVibration() {
             settings.vibration = !settings.vibration;
             if (settings.vibration && !settings.vibrationLevel) settings.vibrationLevel = 3;
@@ -7929,6 +7942,14 @@
             // Vibration icon: 📳 when on, 📱 when off
             const vIcon = document.getElementById('vibrationIcon');
             if (vIcon) vIcon.textContent = settings.vibration ? '📳' : '📱';
+            // Те же иконки на экранах счётчика (быстрые переключатели)
+            document.querySelectorAll('.qt-btn').forEach(b => {
+                const on = !!settings[b.dataset.qt];
+                b.textContent = b.dataset.qt === 'sound' ? (on ? '🎯' : '🔇')
+                              : b.dataset.qt === 'clickSound' ? (on ? '🔈' : '🔇')
+                              : (on ? '📳' : '📱');
+                b.setAttribute('aria-pressed', on ? 'true' : 'false');
+            });
             // Vibration slider (levels 1-3)
             const vSlider = document.getElementById('vibrationSlider');
             if (vSlider) {

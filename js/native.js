@@ -6,8 +6,7 @@
 //      и внутри Azkar, пока настройка включена, в цветах текущей темы.
 //      Тапы по нему засчитываются здесь;
 //   3. в тёмном режиме зикра скрываются строка состояния и кнопки навигации,
-//      а с настройкой «Тишина в тёмном режиме» (stealthDnd) включается
-//      «Не беспокоить» для других приложений (Dnd.java);
+//      и включается «Не беспокоить» для других приложений (Dnd.java);
 //   4. проверка новой версии APK на сайте (version.json).
 // Подключается после js/app.js — использует его глобальные settings, pipTap, togglePipCounter, showToast, t.
 // Тексты — ключи nat* и upd* в i18n/<язык>.js.
@@ -60,10 +59,10 @@
     function applyStatus(s) {
         if (!s) return;
         status = s;
+        if (typeof s.headphones === 'boolean') window.azkarHeadphones = s.headphones;
         // Нативный пузырь заменяет веб-кнопку — две кнопки на экране не нужны.
         document.documentElement.classList.toggle('native-overlay', !!(s.enabled && s.canDraw));
         renderOverlayRow();
-        renderDndRow();
     }
 
     // Любой CSS-цвет (rgb, color-mix, oklch...) → #AARRGGBB через canvas.
@@ -162,6 +161,9 @@
     }
 
     N.addListener('overlayTap', drainTaps);
+    // Наушники: в тёмном режиме зикра щелчок и звук цели звучат только в них (app.js → _stealthSoundBlocked)
+    window.azkarHeadphones = false;
+    N.addListener('headphones', function (d) { window.azkarHeadphones = !!(d && d.on); });
 
     // ---- Строка под настройкой 📌: показывается только если что-то не так ----
     function injectStyles() {
@@ -193,34 +195,20 @@
         return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; });
     }
 
-    // ---- Тишина в тёмном режиме (stealthDnd, по умолчанию включена) ----
-    // Строка-переключатель под «Тёмным режимом зикра». Нужен доступ
-    // «Не беспокоить» — без него строка показывает кнопку «Выдать разрешение».
-    function dndWanted() { return appSettings().stealthDnd !== false; }
+    // ---- Тишина в тёмном режиме зикра ----
+    // Вшита в сам «Тёмный режим зикра»: пока экран чёрный, «Не беспокоить»
+    // глушит другие приложения (Dnd.java). Нужен доступ «Не беспокоить» —
+    // просим его, когда включают тёмный режим, и один раз у тех, у кого он уже включён.
+    var DND_ASKED_KEY = 'azkar_native_dnd_asked';
     function askDndAccess() {
+        try { localStorage.setItem(DND_ASKED_KEY, '1'); } catch (e) {}
         toast('natDndAsk');
         setTimeout(function () { N.openDndSettings().catch(function () {}); }, 700);
     }
-    function toggleStealthDnd() {
-        var s = appSettings();
-        s.stealthDnd = !dndWanted();
-        try { if (typeof saveDataDebounced === 'function') saveDataDebounced(); } catch (e) {}
-        renderDndRow();
-        if (s.stealthDnd && status.dndAccess === false) askDndAccess();
-    }
-    function renderDndRow() {
-        var row = document.getElementById('natDndRow');
-        if (!row) return;
-        row.querySelector('b').textContent = L('natDndLabel');
-        row.querySelector('small').textContent = L('natDndSub');
-        row.querySelector('.toggle-switch').classList.toggle('on', dndWanted());
-        var warn = document.getElementById('natDndWarn');
-        var bad = dndWanted() && status.dndAccess === false;
-        warn.style.display = bad ? '' : 'none';
-        if (bad) {
-            warn.innerHTML = esc(L('natDndNoPerm')) + '<br>' +
-                '<button class="nat-btn" data-act="dnd">' + esc(L('natGrant')) + '</button>';
-        }
+    function askDndOnce() {
+        var asked = false;
+        try { asked = localStorage.getItem(DND_ASKED_KEY) === '1'; } catch (e) {}
+        if (!asked && appSettings().stealthMode && status.dndAccess === false) askDndAccess();
     }
 
     function injectRows() {
@@ -243,24 +231,6 @@
         }
         renderOverlayRow();
 
-        var stealthToggle = document.getElementById('stealthToggle');
-        var stealthRow = stealthToggle && stealthToggle.closest('.set-row');
-        if (stealthRow && !document.getElementById('natDndRow')) {
-            var d = document.createElement('div');
-            d.id = 'natDndRow'; d.className = 'set-row';
-            d.innerHTML = '<span class="set-ic">🔕</span>' +
-                '<div class="set-row-lbl"><b></b><small></small></div>' +
-                '<div class="toggle-switch"></div>';
-            d.addEventListener('click', toggleStealthDnd);
-            var w = document.createElement('div');
-            w.id = 'natDndWarn'; w.className = 'nat-row';
-            w.addEventListener('click', function (e) {
-                if (e.target.closest('[data-act="dnd"]')) askDndAccess();
-            });
-            stealthRow.parentNode.insertBefore(d, stealthRow.nextSibling);
-            d.parentNode.insertBefore(w, d.nextSibling);
-        }
-        renderDndRow();
     }
 
     // Полосы за строкой состояния и навигацией — цвета фона темы (как в PWA);
@@ -285,14 +255,14 @@
 
     // Тёмный режим зикра (#stealthOverlay в app.js): когда экран стал чёрным
     // (класс counting), прячем строку состояния и кнопки навигации,
-    // и с настройкой stealthDnd глушим уведомления других приложений.
+    // и глушим уведомления других приложений.
     var _immersive = false;
     function syncImmersive() {
         var ov = document.getElementById('stealthOverlay');
         var on = !!(ov && ov.classList.contains('counting'));
         if (on === _immersive) return;
         _immersive = on;
-        N.setImmersive({ on: on, dnd: dndWanted() }).catch(function () {});
+        N.setImmersive({ on: on, dnd: true }).catch(function () {});
     }
 
     // Баннеры Azkar (хадис, намаз, зикр) лежат под чёрным экраном тёмного
@@ -428,7 +398,7 @@
     if (typeof _origToggleSetting === 'function') {
         window.toggleSetting = function (key) {
             _origToggleSetting.apply(this, arguments);
-            if (key === 'stealthMode' && appSettings().stealthMode && dndWanted() && status.dndAccess === false) askDndAccess();
+            if (key === 'stealthMode' && appSettings().stealthMode && status.dndAccess === false) askDndAccess();
         };
     }
 
@@ -437,7 +407,7 @@
     if (typeof _origApplyLanguage === 'function') {
         window.applyLanguage = function () {
             var r = _origApplyLanguage.apply(this, arguments);
-            try { renderOverlayRow(); renderDndRow(); pushOverlay(); syncNotifSoon(true); } catch (e) {}
+            try { renderOverlayRow(); pushOverlay(); syncNotifSoon(true); } catch (e) {}
             return r;
         };
     }
@@ -530,7 +500,7 @@
         // Тапы, сделанные пока приложение было выгружено из памяти.
         setTimeout(drainTaps, 800);
         setTimeout(ensurePermission, 1200);
-        setTimeout(function () { N.getStatus().then(applyStatus); }, 2500);
+        setTimeout(function () { N.getStatus().then(function (st) { applyStatus(st); askDndOnce(); }); }, 2500);
         pushOverlay();
     }
     if (document.readyState === 'complete') start();

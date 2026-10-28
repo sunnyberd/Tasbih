@@ -1099,6 +1099,26 @@ body {
     white-space: nowrap;
 }
 
+/* ===== Быстрые переключатели на экранах счётчика =====
+   Иконки как в настройках (.set-ic 34px); шаг между ними 60px — как между
+   строками настроек по вертикали. Пока открыт выбор «Зикры после намаза» — скрыты. */
+.quick-toggles {
+    display: flex; justify-content: center; gap: 26px;
+    /* отступ сверху = расстояние от полоски под девизом до кнопки «Основной зикр» */
+    margin: 12px auto 0;
+    position: relative; z-index: 4;
+    transition: opacity 0.18s ease, visibility 0.18s ease;
+}
+.qt-btn {
+    padding: 0; color: inherit; font-family: inherit; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.1s ease;
+}
+.qt-btn:active { transform: scale(0.92); }
+.post-salah-select-wrap:has(.post-salah-dropdown.open) ~ .quick-toggles {
+    opacity: 0; visibility: hidden; pointer-events: none;
+}
+
 /* ===== COUNTER RING ===== */
 .counter-area {
     width: 100%; max-width: 380px;

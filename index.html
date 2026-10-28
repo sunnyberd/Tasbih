@@ -56,7 +56,7 @@
         @font-face { font-family: 'Scheherazade New'; src: url('fonts/scheherazadenew-bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF; }
     </style>
 
-    <link rel="stylesheet" href="css/app.css?v=136">
+    <link rel="stylesheet" href="css/app.css?v=139">
 </head>
 <body>
 
@@ -191,6 +191,12 @@
                 <div class="post-salah-dropdown" id="postSalahDropdown">
                     <div class="post-salah-option" id="postSalahOption" onclick="onPostSalahOptionClick(event)">Зикры после намаза</div>
                 </div>
+            </div>
+            <!-- Быстрые переключатели: звук при достижении, при нажатии, вибрация (как в настройках, без громкости) -->
+            <div class="quick-toggles">
+                <button type="button" class="set-ic qt-btn" data-qt="sound" onclick="quickToggle('sound')" aria-label="Звук при достижении" data-i18n-aria="labelSound">🎯</button>
+                <button type="button" class="set-ic qt-btn" data-qt="clickSound" onclick="quickToggle('clickSound')" aria-label="Звук при нажатии" data-i18n-aria="labelClickSound">🔇</button>
+                <button type="button" class="set-ic qt-btn" data-qt="vibration" onclick="quickToggle('vibration')" aria-label="Вибрация" data-i18n-aria="labelVibration">📱</button>
             </div>
             <div class="header-clock-corner js-prayer-clock" id="headerClockCorner" aria-live="polite" aria-label="Время намаза" data-i18n-aria="notifPrayerTitle" role="button" tabindex="0" onclick="openPrayerModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openPrayerModal();}" aria-label="Время намаза">
                 <div class="header-clock-prayer js-prayer-name" id="headerClockPrayer">—</div>
@@ -762,6 +768,12 @@
             </div>
             <div class="main-title" id="specialCounterName"></div>
             <div class="header-divider" aria-hidden="true"></div>
+            <!-- Быстрые переключатели: звук при достижении, при нажатии, вибрация (как в настройках, без громкости) -->
+            <div class="quick-toggles">
+                <button type="button" class="set-ic qt-btn" data-qt="sound" onclick="quickToggle('sound')" aria-label="Звук при достижении" data-i18n-aria="labelSound">🎯</button>
+                <button type="button" class="set-ic qt-btn" data-qt="clickSound" onclick="quickToggle('clickSound')" aria-label="Звук при нажатии" data-i18n-aria="labelClickSound">🔇</button>
+                <button type="button" class="set-ic qt-btn" data-qt="vibration" onclick="quickToggle('vibration')" aria-label="Вибрация" data-i18n-aria="labelVibration">📱</button>
+            </div>
             <div class="header-clock-corner js-prayer-clock" aria-live="polite" aria-label="Время намаза" data-i18n-aria="notifPrayerTitle" role="button" tabindex="0" onclick="openPrayerModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openPrayerModal();}" aria-label="Время намаза">
                 <div class="header-clock-prayer js-prayer-name">—</div>
                 <div class="header-clock js-prayer-time">--:--</div>
@@ -2657,11 +2669,11 @@
         });
     })();
     </script>
-    <script src="js/feedback.js?v=136"></script>
+    <script src="js/feedback.js?v=139"></script>
     <script src="data/special-dhikrs.js?v=110"></script>
-    <script src="push-config.js?v=136"></script>
-    <script src="js/app.js?v=136"></script>
-    <script src="js/native.js?v=136"></script>
+    <script src="push-config.js?v=139"></script>
+    <script src="js/app.js?v=139"></script>
+    <script src="js/native.js?v=139"></script>
         <script>
         // Реальный свайп — баннер следует за пальцем, при отпускании улетает или возвращается
         window.addEventListener('load', function() {
