@@ -114,7 +114,7 @@ html.no-transition * {
     --chart-height: 320px;
     /* Responsive sizing */
     --ring-size: min(72vw, 280px);
-    --ring-radius: calc(var(--ring-size) * 0.45);
+    --ring-radius: calc(var(--ring-size) * 135 / 280);
     --nav-h: clamp(68px, 12vw, 86px);
     --safe-b: env(safe-area-inset-bottom, 0px);
     --safe-t: env(safe-area-inset-top, 0px);
@@ -3499,7 +3499,7 @@ input, textarea, [contenteditable="true"] {
 :root {
     /* Кольцо: ширина как % вьюпорта, но не больше абс. максимума */
     --ring-size:   min(68vw, 280px);
-    --ring-radius: calc(var(--ring-size) * 0.4775);
+    --ring-radius: calc(var(--ring-size) * 135 / 280);
 
     /* Навбар */
     --nav-h: 72px;
@@ -3695,7 +3695,7 @@ input, textarea, [contenteditable="true"] {
 @media (min-width: 481px) {
     :root {
         --ring-size:   280px;
-        --ring-radius: 133px;
+        --ring-radius: calc(var(--ring-size) * 135 / 280);
         --nav-h:       80px;
         --header-moon-h: 72px;
         --header-moon-w: 56px;
@@ -3729,7 +3729,7 @@ input, textarea, [contenteditable="true"] {
 @media (max-height: 450px) and (orientation: landscape) {
     :root {
         --ring-size:   min(44vh, 195px);
-        --ring-radius: calc(var(--ring-size) * 0.4775);
+        --ring-radius: calc(var(--ring-size) * 135 / 280);
         --nav-h:       54px;
     }
 

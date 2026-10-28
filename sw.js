@@ -45,10 +45,10 @@
 // v117 — тестер категории вибрации и постоянный пузырь в Android-приложении.
 // v125 — APK: уведомления (намаз, Абу Умама, зикр, хадисы) через будильник Android (js/native.js + NotifScheduler.java).
 // v116 — js/native.js: связка с Android-приложением (вибрация, счётчик поверх приложений).
-const CACHE_NAME = 'azkar-v136';
+const CACHE_NAME = 'azkar-v137';
 const I18N_VERSION = '116';
 const DATA_VERSION = '110';
-const APP_VERSION = '134';
+const APP_VERSION = '135';
 
 // Оболочка приложения — кладётся в кэш сразу при установке SW,
 // чтобы второй запуск (и офлайн) был мгновенным.
