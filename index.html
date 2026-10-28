@@ -56,7 +56,7 @@
         @font-face { font-family: 'Scheherazade New'; src: url('fonts/scheherazadenew-bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF; }
     </style>
 
-    <link rel="stylesheet" href="css/app.css?v=144">
+    <link rel="stylesheet" href="css/app.css?v=145">
 </head>
 <body>
 
@@ -128,7 +128,7 @@
 
     <!-- Подсказка при нажатии на «Своя цель» -->
     <div class="hint-toast" id="hintToast">
-        <span id="hintToastText">Зажмите для задания цели</span>
+        <span id="hintToastText">Удержите для задания цели</span>
     </div>
 
     <div class="modal-overlay center" id="customGoalModal" onclick="closeCustomGoalModal()">
@@ -596,12 +596,12 @@
             <div class="overlay-title" id="idleFadeTitle">Видимость кнопок</div>
             <div class="overlay-sub" id="idleFadeSub">Ниже 25% первое касание только показывает кнопки</div>
             <div class="idle-fade-presets">
-                <button type="button" class="idle-fade-preset" data-level="25" onclick="setIdleFadeLevel(25)">25%</button>
-                <button type="button" class="idle-fade-preset" data-level="50" onclick="setIdleFadeLevel(50)">50%</button>
-                <button type="button" class="idle-fade-preset" data-level="75" onclick="setIdleFadeLevel(75)">75%</button>
+                <button type="button" class="idle-fade-preset" data-level="25" onclick="pickIdleFadePreset(25)">25%</button>
+                <button type="button" class="idle-fade-preset" data-level="50" onclick="pickIdleFadePreset(50)">50%</button>
+                <button type="button" class="idle-fade-preset" data-level="75" onclick="pickIdleFadePreset(75)">75%</button>
             </div>
             <div class="idle-fade-custom">
-                <input type="number" class="form-input" id="idleFadeInput" min="0" max="99" inputmode="numeric" placeholder="Свой %">
+                <input type="number" class="form-input" id="idleFadeInput" min="0" max="99" inputmode="numeric" placeholder="Свой %" oninput="onIdleFadeInput()">
                 <button type="button" class="idle-fade-save" id="idleFadeSaveBtn" onclick="saveIdleFadeCustom()">Сохранить</button>
             </div>
         </div>
@@ -1020,7 +1020,7 @@
             </div>
             <!-- Быстрые иконки на экранах счётчика: показать / убрать -->
             <div class="set-row" onclick="toggleQuickIcons()">
-                <span class="set-ic" id="quickIconsIcon">🔘</span>
+                <span class="set-ic" id="quickIconsIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="var(--gold)" stroke-width="2.2"/><circle cx="12" cy="12" r="5" fill="#8a8a8a"/></svg></span>
                 <div class="set-row-lbl"><b id="labelQuickIcons">Быстрые иконки</b></div>
                 <div class="toggle-switch" id="quickIconsToggle"></div>
             </div>
@@ -2648,7 +2648,7 @@
     // I18N_VERSION менять при КАЖДОМ изменении файлов i18n/ (вместе с CACHE_NAME в sw.js),
     // иначе телефон может взять старую копию из кэша.
     (function () {
-        var I18N_VERSION = '121';
+        var I18N_VERSION = '122';
         var LANGS = ['en', 'de', 'es', 'fr', 'it', 'ja', 'ko', 'ru', 'uz', 'zh', 'tr', 'hi', 'id', 'ms', 'th'];
         var I = window.AZKAR_I18N = window.AZKAR_I18N || {};
         var U = window.AZKAR_UI_TRANSLATIONS = window.AZKAR_UI_TRANSLATIONS || {};
@@ -2708,11 +2708,11 @@
         });
     })();
     </script>
-    <script src="js/feedback.js?v=144"></script>
+    <script src="js/feedback.js?v=145"></script>
     <script src="data/special-dhikrs.js?v=110"></script>
-    <script src="push-config.js?v=144"></script>
-    <script src="js/app.js?v=144"></script>
-    <script src="js/native.js?v=144"></script>
+    <script src="push-config.js?v=145"></script>
+    <script src="js/app.js?v=145"></script>
+    <script src="js/native.js?v=145"></script>
         <script>
         // Реальный свайп — баннер следует за пальцем, при отпускании улетает или возвращается
         window.addEventListener('load', function() {

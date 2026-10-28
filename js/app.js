@@ -5454,18 +5454,35 @@
         function abortIdleFadePress() {             // палец ушёл / начался скролл → без действия
             if (_idleFadePressTimer) { clearTimeout(_idleFadePressTimer); _idleFadePressTimer = null; }
         }
+        // Выбор в окне только запоминается (_idleFadePending); применяется по «Сохранить».
+        let _idleFadePending = null;
+        function _idleFadeHighlight() {
+            const preset = [25, 50, 75].includes(_idleFadePending) && !document.getElementById('idleFadeInput').value.trim();
+            document.querySelectorAll('.idle-fade-preset').forEach(b => b.classList.toggle('active', preset && +b.dataset.level === _idleFadePending));
+        }
         function openIdleFadePicker() {
-            const lvl = idleFadeLevel();
-            const preset = [25, 50, 75].includes(lvl);
+            _idleFadePending = idleFadeLevel();
             document.getElementById('idleFadeTitle').textContent = t('labelIdleFade');
             document.getElementById('idleFadeSub').textContent = t('idleFadeSub');
             document.getElementById('idleFadeSaveBtn').textContent = t('customGoalSaveBtn');
-            document.querySelectorAll('.idle-fade-preset').forEach(b => b.classList.toggle('active', preset && +b.dataset.level === lvl));
             const inp = document.getElementById('idleFadeInput');
             inp.placeholder = t('idleFadeCustom');
-            inp.value = preset ? '' : lvl;
-            inp.classList.toggle('active', !preset);
+            inp.value = '';
+            inp.classList.remove('active');
+            _idleFadeHighlight();
             document.getElementById('idleFadeOverlay').classList.add('show');
+        }
+        function pickIdleFadePreset(v) {
+            _idleFadePending = v;
+            const inp = document.getElementById('idleFadeInput');
+            inp.value = '';
+            inp.classList.remove('active');
+            _idleFadeHighlight();
+        }
+        function onIdleFadeInput() {
+            const inp = document.getElementById('idleFadeInput');
+            inp.classList.toggle('active', inp.value.trim() !== '');
+            _idleFadeHighlight();
         }
         function closeIdleFadePicker() {
             document.getElementById('idleFadeOverlay').classList.remove('show');
@@ -5477,9 +5494,14 @@
             updateSettingsUI();
             closeIdleFadePicker();
         }
+        // «Сохранить»: своё число, если введено; иначе выбранный пресет.
         function saveIdleFadeCustom() {
-            const v = parseInt(document.getElementById('idleFadeInput').value, 10);
-            if (isNaN(v) || v < 0 || v > 99) { showToast(t('idleFadeRange'), 2500); return; }
+            const raw = document.getElementById('idleFadeInput').value.trim();
+            let v = _idleFadePending;
+            if (raw !== '') {
+                v = parseInt(raw, 10);
+                if (isNaN(v) || v < 0 || v > 99) { showToast(t('idleFadeRange'), 2500); return; }
+            }
             setIdleFadeLevel(v);
         }
         (function initIdleFade() {

@@ -946,7 +946,7 @@ html[data-theme] .toggle-switch.on::after {
    13. ОКНА, ЛИСТЫ, ОВЕРЛЕИ
    --------------------------------------------------------------------- */
 .modal-overlay, .overlay, .cl-modal-overlay, #specialModal, .theme-picker-overlay,
-.sound-picker-overlay, .notif-pop-overlay, .about-app-overlay, .acc-overlay,
+.sound-picker-overlay, .about-app-overlay, .acc-overlay,
 #hadithPopupOverlay, .stats-detail-overlay, .special-detail-overlay {
     background: var(--ds-scrim);
 }

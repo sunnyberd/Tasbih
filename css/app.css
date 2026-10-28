@@ -3354,8 +3354,8 @@ input, textarea, [contenteditable="true"] {
     position: fixed; inset: 0; z-index: 4000;
     display: flex; align-items: center; justify-content: center;
     padding: 20px;
-    background: rgba(0,0,0,0.55);
-    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    background: rgba(0,0,0,0.82);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
     visibility: hidden; opacity: 0;
     transition: opacity 0.2s ease, visibility 0.2s ease;
 }
