@@ -348,12 +348,12 @@ AZKAR_I18N_REGISTER("hi", {
     "qtHint": "बदलने के लिए आइकन को दबाकर रखें",
     "qtEmpty": "खाली",
     // Бледнеющие кнопки вокруг счётчика (настройка и окно видимости)
-    "labelIdleFade": "धुंधले होने वाले बटन",
-    "idleFadeHint": "दृश्यता {n}% · बदलने के लिए दबाकर रखें",
-    "idleFadeTitle": "बटनों की दृश्यता",
+    "labelIdleFade": "बटन मंद करें",
     "idleFadeSub": "25% से कम पर पहला टैप सिर्फ बटन दिखाता है",
     "idleFadeCustom": "अपना %",
-    "idleFadeRange": "0 से 99 तक कोई संख्या लिखें"
+    "idleFadeRange": "0 से 99 तक कोई संख्या लिखें",
+    "labelQuickIcons": "त्वरित आइकन",
+    "holdToChoose": "चुनने के लिए दबाकर रखें"
 }, {
     "settingsSections": {
         "appearance": {

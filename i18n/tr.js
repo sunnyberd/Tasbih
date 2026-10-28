@@ -348,12 +348,12 @@ AZKAR_I18N_REGISTER("tr", {
     "qtHint": "Değiştirmek için simgeyi basılı tutun",
     "qtEmpty": "Boş",
     // Бледнеющие кнопки вокруг счётчика (настройка и окно видимости)
-    "labelIdleFade": "Soluklaşan düğmeler",
-    "idleFadeHint": "Görünürlük %{n} · değiştirmek için basılı tutun",
-    "idleFadeTitle": "Düğme görünürlüğü",
+    "labelIdleFade": "Düğmeleri kıs",
     "idleFadeSub": "%25’in altında ilk dokunuş yalnızca düğmeleri gösterir",
     "idleFadeCustom": "Özel %",
-    "idleFadeRange": "0 ile 99 arasında bir sayı girin"
+    "idleFadeRange": "0 ile 99 arasında bir sayı girin",
+    "labelQuickIcons": "Hızlı simgeler",
+    "holdToChoose": "Seçmek için basılı tutun"
 }, {
     "settingsSections": {
         "appearance": {

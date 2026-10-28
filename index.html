@@ -56,7 +56,7 @@
         @font-face { font-family: 'Scheherazade New'; src: url('fonts/scheherazadenew-bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF; }
     </style>
 
-    <link rel="stylesheet" href="css/app.css?v=142">
+    <link rel="stylesheet" href="css/app.css?v=143">
 </head>
 <body>
 
@@ -1007,8 +1007,22 @@
                  onmousedown="startThemePress(event)" onmouseup="cancelThemePress()" onmouseleave="cancelThemePress()"
                  ontouchstart="startThemePress(event)" ontouchend="cancelThemePress()" ontouchcancel="cancelThemePress()">
                 <span class="set-ic" id="themeIcon">🌙</span>
-                <div class="set-row-lbl"><b id="labelTheme">Тема</b><small id="setThemeHint">Удержите для выбора цвета</small></div>
+                <div class="set-row-lbl"><b id="labelTheme">Тема</b><small id="setThemeHint">Удержите для выбора</small></div>
                 <div class="toggle-switch" id="themeToggle"></div>
+            </div>
+            <!-- Приглушать кнопки вокруг счётчика: тап — вкл/выкл, удержание — видимость (0–99%) -->
+            <div class="set-row" id="idleFadeRow" oncontextmenu="return false;"
+                 onpointerdown="startIdleFadePress(event)" onpointerup="cancelIdleFadePress()"
+                 onpointerleave="abortIdleFadePress()" onpointercancel="abortIdleFadePress()">
+                <span class="set-ic" id="idleFadeIcon">🔅</span>
+                <div class="set-row-lbl"><b id="labelIdleFade">Приглушать кнопки</b><small id="idleFadeHint">Удержите для выбора</small></div>
+                <div class="toggle-switch" id="idleFadeToggle"></div>
+            </div>
+            <!-- Быстрые иконки на экранах счётчика: показать / убрать -->
+            <div class="set-row" onclick="toggleQuickIcons()">
+                <span class="set-ic" id="quickIconsIcon">🔘</span>
+                <div class="set-row-lbl"><b id="labelQuickIcons">Быстрые иконки</b></div>
+                <div class="toggle-switch" id="quickIconsToggle"></div>
             </div>
             <!-- Online presence indicator -->
             <div class="set-row" onclick="toggleSetting('onlinePresence')">
@@ -1035,7 +1049,7 @@
                      onmousedown="startGoalSoundPress(event)" onmouseup="cancelGoalSoundPress()" onmouseleave="cancelGoalSoundPress()"
                      ontouchstart="startGoalSoundPress(event)" ontouchend="cancelGoalSoundPress()" ontouchcancel="cancelGoalSoundPress()">
                     <span class="set-ic" id="soundIcon">🎯</span>
-                    <div class="set-row-lbl"><b id="labelSound">Звук при достижении</b><small id="setGoalSoundHint">Удержите для выбора звука</small></div>
+                    <div class="set-row-lbl"><b id="labelSound">Звук при достижении</b><small id="setGoalSoundHint">Удержите для выбора</small></div>
                     <div class="toggle-switch" id="soundToggle"></div>
                 </div>
                 <div id="goalSoundSliderBlock" style="display:none;">
@@ -1054,7 +1068,7 @@
                      onmousedown="startClickSoundPress(event)" onmouseup="cancelClickSoundPress()" onmouseleave="cancelClickSoundPress()"
                      ontouchstart="startClickSoundPress(event)" ontouchend="cancelClickSoundPress()" ontouchcancel="cancelClickSoundPress()">
                     <span class="set-ic" id="clickSoundIcon">🔇</span>
-                    <div class="set-row-lbl"><b id="labelClickSound">Тихий щелчок при нажатии</b><small id="setClickSoundHint">Удержите для выбора звука</small></div>
+                    <div class="set-row-lbl"><b id="labelClickSound">Тихий щелчок при нажатии</b><small id="setClickSoundHint">Удержите для выбора</small></div>
                     <div class="toggle-switch" id="clickSoundToggle"></div>
                 </div>
                 <div id="clickSoundSliderBlock" style="display:none;">
@@ -1115,20 +1129,12 @@
                 <div class="set-row-lbl"><b id="labelStealth">Тёмный режим зикра</b></div>
                 <div class="toggle-switch" id="stealthToggle"></div>
             </div>
-            <!-- Бледнеющие кнопки вокруг счётчика: тап — вкл/выкл, удержание — видимость (0–99%) -->
-            <div class="set-row" id="idleFadeRow" oncontextmenu="return false;"
-                 onpointerdown="startIdleFadePress(event)" onpointerup="cancelIdleFadePress()"
-                 onpointerleave="abortIdleFadePress()" onpointercancel="abortIdleFadePress()">
-                <span class="set-ic" id="idleFadeIcon">👁️</span>
-                <div class="set-row-lbl"><b id="labelIdleFade">Бледнеющие кнопки</b><small id="idleFadeHint">Видимость 30% · удержите, чтобы изменить</small></div>
-                <div class="toggle-switch" id="idleFadeToggle"></div>
-            </div>
             <!-- Уведомления: тап — общий ползунок, удержание 1 с — меню отдельных уведомлений -->
             <div class="set-row" id="notifSettingRow" oncontextmenu="return false;"
                  onpointerdown="startNotifPress(event)" onpointerup="cancelNotifPress()"
                  onpointerleave="abortNotifPress()" onpointercancel="abortNotifPress()">
                 <span class="set-ic" id="hadithIcon">🔔</span>
-                <div class="set-row-lbl"><b id="labelHadith">Уведомления</b></div>
+                <div class="set-row-lbl"><b id="labelHadith">Уведомления</b><small id="notifHint">Удержите для выбора</small></div>
                 <div class="toggle-switch" id="hadithToggle"></div>
             </div>
               </div>
@@ -2642,7 +2648,7 @@
     // I18N_VERSION менять при КАЖДОМ изменении файлов i18n/ (вместе с CACHE_NAME в sw.js),
     // иначе телефон может взять старую копию из кэша.
     (function () {
-        var I18N_VERSION = '119';
+        var I18N_VERSION = '120';
         var LANGS = ['en', 'de', 'es', 'fr', 'it', 'ja', 'ko', 'ru', 'uz', 'zh', 'tr', 'hi', 'id', 'ms', 'th'];
         var I = window.AZKAR_I18N = window.AZKAR_I18N || {};
         var U = window.AZKAR_UI_TRANSLATIONS = window.AZKAR_UI_TRANSLATIONS || {};
@@ -2702,11 +2708,11 @@
         });
     })();
     </script>
-    <script src="js/feedback.js?v=142"></script>
+    <script src="js/feedback.js?v=143"></script>
     <script src="data/special-dhikrs.js?v=110"></script>
-    <script src="push-config.js?v=142"></script>
-    <script src="js/app.js?v=142"></script>
-    <script src="js/native.js?v=142"></script>
+    <script src="push-config.js?v=143"></script>
+    <script src="js/app.js?v=143"></script>
+    <script src="js/native.js?v=143"></script>
         <script>
         // Реальный свайп — баннер следует за пальцем, при отпускании улетает или возвращается
         window.addEventListener('load', function() {

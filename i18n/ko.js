@@ -348,12 +348,12 @@ AZKAR_I18N_REGISTER("ko", {
     "qtHint": "아이콘을 길게 눌러 바꿀 수 있어요",
     "qtEmpty": "비어 있음",
     // Бледнеющие кнопки вокруг счётчика (настройка и окно видимости)
-    "labelIdleFade": "흐려지는 버튼",
-    "idleFadeHint": "표시 {n}% · 길게 눌러 변경",
-    "idleFadeTitle": "버튼 표시",
+    "labelIdleFade": "버튼 흐리게",
     "idleFadeSub": "25% 미만이면 첫 번째 탭은 버튼만 보여 줍니다",
     "idleFadeCustom": "직접 입력 %",
-    "idleFadeRange": "0~99 사이의 숫자를 입력하세요"
+    "idleFadeRange": "0~99 사이의 숫자를 입력하세요",
+    "labelQuickIcons": "빠른 아이콘",
+    "holdToChoose": "길게 눌러 선택"
 }, {
     "settingsSections": {
         "appearance": {

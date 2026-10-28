@@ -348,12 +348,12 @@ AZKAR_I18N_REGISTER("fr", {
     "qtHint": "Maintenez une icône pour la remplacer",
     "qtEmpty": "Vide",
     // Бледнеющие кнопки вокруг счётчика (настройка и окно видимости)
-    "labelIdleFade": "Boutons qui s’estompent",
-    "idleFadeHint": "Visibilité {n}% · maintenez pour changer",
-    "idleFadeTitle": "Visibilité des boutons",
+    "labelIdleFade": "Atténuer les boutons",
     "idleFadeSub": "En dessous de 25 %, le premier toucher affiche seulement les boutons",
     "idleFadeCustom": "% perso",
-    "idleFadeRange": "Entrez un nombre de 0 à 99"
+    "idleFadeRange": "Entrez un nombre de 0 à 99",
+    "labelQuickIcons": "Icônes rapides",
+    "holdToChoose": "Maintenez pour choisir"
 }, {
     "settingsSections": {
         "appearance": {

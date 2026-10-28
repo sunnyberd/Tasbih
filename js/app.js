@@ -621,7 +621,8 @@
             set('setSecSound', pick(S.sound));
             set('setSecZikr', pick(S.zikr));
             set('setSecData', pick(S.data));
-            set('setThemeHint', pick(S.themeHint));
+            // «Удержите для выбора» — один текст у всех строк, где удержание открывает выбор
+            set('setThemeHint', t('holdToChoose'));
         }
 
         function applyLanguage(lang) {
@@ -657,7 +658,8 @@
                 labelLang: 'labelLang', labelTheme: 'labelTheme', labelOnlinePresence: 'labelOnlinePresence', labelLiteMode: 'labelLiteMode',
                 aeOpt0: 'autoExtendOff', labelSound: 'labelSound',
                 labelClickSound: 'labelClickSound',
-                setClickSoundHint: 'soundHint', setGoalSoundHint: 'soundHint',
+                setClickSoundHint: 'holdToChoose', setGoalSoundHint: 'holdToChoose',
+                idleFadeHint: 'holdToChoose', notifHint: 'holdToChoose', labelQuickIcons: 'labelQuickIcons',
                 soundPickerTap: 'clickSoundPickerTitle', soundPickerGoal: 'goalSoundPickerTitle',
                 labelVibration: 'labelVibration', labelData: 'labelData',
                 btnExport: 'btnExport', btnImport: 'btnImport',
@@ -5277,20 +5279,21 @@
         // данных, аккаунта, отзывов и «О приложении»). Одинаковые иконки управляют
         // одной настройкой — нажал одну, поменялись все. '' — пустое место.
         // icon — id иконки этой строки в настройках: берём её как есть (вкл/выкл).
-        // dim — иконка в настройках не меняется, выключенное состояние показываем бледностью.
+        // dim — выключенное состояние на экране счётчика показываем серой бледной иконкой.
+        // «Быстрые иконки» (settings.quickIcons) сюда не входит: ею нельзя убрать саму себя.
         var QUICK_ACTIONS = [
             { id: 'theme',          icon: 'themeIcon',          label: 'labelTheme',          on: () => true,                            run: () => toggleTheme() },
+            { id: 'idleFade',       icon: 'idleFadeIcon',       label: 'labelIdleFade',       on: () => idleFadeOn(),                    run: () => toggleIdleFade(), dim: true },
             { id: 'onlinePresence', icon: 'onlinePresenceIcon', label: 'labelOnlinePresence', on: () => settings.onlinePresence !== false, run: () => toggleSetting('onlinePresence'), dim: true },
             { id: 'liteMode',       icon: 'liteModeIcon',       label: 'labelLiteMode',       on: () => isLiteModeOn(),                  run: () => toggleLiteMode(), dim: true },
-            { id: 'sound',          icon: 'soundIcon',          label: 'labelSound',          on: () => !!settings.sound,                run: () => toggleSetting('sound') },
-            { id: 'clickSound',     icon: 'clickSoundIcon',     label: 'labelClickSound',     on: () => !!settings.clickSound,           run: () => toggleSetting('clickSound') },
-            { id: 'vibration',      icon: 'vibrationIcon',      label: 'labelVibration',      on: () => !!settings.vibration,            run: () => toggleVibration() },
+            { id: 'sound',          icon: 'soundIcon',          label: 'labelSound',          on: () => !!settings.sound,                run: () => toggleSetting('sound'), dim: true },
+            { id: 'clickSound',     icon: 'clickSoundIcon',     label: 'labelClickSound',     on: () => !!settings.clickSound,           run: () => toggleSetting('clickSound'), dim: true },
+            { id: 'vibration',      icon: 'vibrationIcon',      label: 'labelVibration',      on: () => !!settings.vibration,            run: () => toggleVibration(), dim: true },
             { id: 'timerEnabled',   icon: 'timerIcon',          label: 'labelTimer',          on: () => settings.timerEnabled !== false, run: () => toggleSetting('timerEnabled'), dim: true },
             { id: 'autoAdvance',    icon: 'autoAdvanceIcon',    label: 'labelAutoAdvance',    on: () => !!settings.autoAdvance,          run: () => toggleSetting('autoAdvance'), dim: true },
             { id: 'pipCounter',     icon: 'pipIcon',            label: 'labelPip',            on: () => !!settings.pipCounter,           run: () => togglePipCounter(), dim: true },
-            { id: 'stealthMode',    icon: 'stealthIcon',        label: 'labelStealth',        on: () => !!settings.stealthMode,          run: btn => _quickStealth(btn) },
-            { id: 'idleFade',       icon: 'idleFadeIcon',       label: 'labelIdleFade',       on: () => idleFadeOn(),                    run: () => toggleIdleFade(), dim: true },
-            { id: 'notifMaster',    icon: 'hadithIcon',         label: 'labelNotifications',  on: () => notifMasterOn(),                 run: () => toggleNotifMaster() }
+            { id: 'stealthMode',    icon: 'stealthIcon',        label: 'labelStealth',        on: () => !!settings.stealthMode,          run: btn => _quickStealth(btn), dim: true },
+            { id: 'notifMaster',    icon: 'hadithIcon',         label: 'labelNotifications',  on: () => notifMasterOn(),                 run: () => toggleNotifMaster(), dim: true }
         ];
         var QUICK_DEFAULT = ['sound', 'clickSound', 'vibration'];
         const QUICK_HINT_KEY = 'azkar_quick_hint_shown';
@@ -5416,11 +5419,16 @@
             if (!idleFadeOn()) document.documentElement.classList.remove('ui-idle');
             const tg = document.getElementById('idleFadeToggle');
             if (tg) tg.classList.toggle('on', idleFadeOn());
-            const hint = document.getElementById('idleFadeHint');
-            if (hint) {
-                hint.textContent = t('idleFadeHint').replace('{n}', idleFadeLevel());
-                hint.style.display = idleFadeOn() ? '' : 'none';
-            }
+            // Быстрые иконки на экранах счётчика: показать / убрать
+            document.documentElement.classList.toggle('no-quick-icons', !quickIconsOn());
+            const qt = document.getElementById('quickIconsToggle');
+            if (qt) qt.classList.toggle('on', quickIconsOn());
+        }
+        function quickIconsOn() { return settings.quickIcons !== false; }
+        function toggleQuickIcons() {
+            settings.quickIcons = !quickIconsOn();
+            saveDataDebounced();
+            updateSettingsUI();
         }
         function toggleIdleFade() {
             settings.idleFade = !idleFadeOn();
@@ -5449,7 +5457,7 @@
         function openIdleFadePicker() {
             const lvl = idleFadeLevel();
             const preset = [25, 50, 75].includes(lvl);
-            document.getElementById('idleFadeTitle').textContent = t('idleFadeTitle');
+            document.getElementById('idleFadeTitle').textContent = t('labelIdleFade');
             document.getElementById('idleFadeSub').textContent = t('idleFadeSub');
             document.getElementById('idleFadeSaveBtn').textContent = t('customGoalSaveBtn');
             document.querySelectorAll('.idle-fade-preset').forEach(b => b.classList.toggle('active', preset && +b.dataset.level === lvl));
@@ -8136,8 +8144,6 @@
             // Click sound volume slider
             const csSliderBlock = document.getElementById('clickSoundSliderBlock');
             if (csSliderBlock) csSliderBlock.style.display = settings.clickSound ? '' : 'none';
-            const csHint = document.getElementById('setClickSoundHint');
-            if (csHint) csHint.style.display = settings.clickSound ? '' : 'none';
             const csSlider = document.getElementById('clickSoundSlider');
             if (csSlider) {
                 const vol = settings.clickSoundVolume !== undefined ? settings.clickSoundVolume : 5;
@@ -8152,8 +8158,6 @@
             // Goal sound volume slider
             const gsSliderBlock = document.getElementById('goalSoundSliderBlock');
             if (gsSliderBlock) gsSliderBlock.style.display = settings.sound ? '' : 'none';
-            const gsHint = document.getElementById('setGoalSoundHint');
-            if (gsHint) gsHint.style.display = settings.sound ? '' : 'none';
             const gsSlider = document.getElementById('goalSoundSlider');
             if (gsSlider) {
                 const vol = settings.goalSoundVolume !== undefined ? settings.goalSoundVolume : 5;

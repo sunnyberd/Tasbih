@@ -348,12 +348,12 @@ AZKAR_I18N_REGISTER("uz", {
     "qtHint": "Almashtirish uchun belgini bosib turing",
     "qtEmpty": "Bo‘sh",
     // Бледнеющие кнопки вокруг счётчика (настройка и окно видимости)
-    "labelIdleFade": "Xiralashuvchi tugmalar",
-    "idleFadeHint": "Ko‘rinish {n}% · o‘zgartirish uchun bosib turing",
-    "idleFadeTitle": "Tugmalar ko‘rinishi",
+    "labelIdleFade": "Tugmalarni xiralashtirish",
     "idleFadeSub": "25% dan past bo‘lsa, birinchi teginish faqat tugmalarni ko‘rsatadi",
     "idleFadeCustom": "O‘z %",
-    "idleFadeRange": "0 dan 99 gacha son kiriting"
+    "idleFadeRange": "0 dan 99 gacha son kiriting",
+    "labelQuickIcons": "Tezkor belgilar",
+    "holdToChoose": "Tanlash uchun bosib turing"
 }, {
     "settingsSections": {
         "appearance": {

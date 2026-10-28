@@ -348,12 +348,12 @@ AZKAR_I18N_REGISTER("de", {
     "qtHint": "Symbol gedrückt halten, um es zu ersetzen",
     "qtEmpty": "Leer",
     // Бледнеющие кнопки вокруг счётчика (настройка и окно видимости)
-    "labelIdleFade": "Verblassende Tasten",
-    "idleFadeHint": "Sichtbarkeit {n}% · gedrückt halten zum Ändern",
-    "idleFadeTitle": "Sichtbarkeit der Tasten",
+    "labelIdleFade": "Tasten abdunkeln",
     "idleFadeSub": "Unter 25 % zeigt der erste Tipp nur die Tasten",
     "idleFadeCustom": "Eigene %",
-    "idleFadeRange": "Gib eine Zahl von 0 bis 99 ein"
+    "idleFadeRange": "Gib eine Zahl von 0 bis 99 ein",
+    "labelQuickIcons": "Schnellsymbole",
+    "holdToChoose": "Zum Auswählen gedrückt halten"
 }, {
     "settingsSections": {
         "appearance": {

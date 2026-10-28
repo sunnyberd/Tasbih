@@ -348,12 +348,12 @@ AZKAR_I18N_REGISTER("ms", {
     "qtHint": "Tekan lama ikon untuk menggantikannya",
     "qtEmpty": "Kosong",
     // Бледнеющие кнопки вокруг счётчика (настройка и окно видимости)
-    "labelIdleFade": "Butang yang pudar",
-    "idleFadeHint": "Keterlihatan {n}% · tekan lama untuk tukar",
-    "idleFadeTitle": "Keterlihatan butang",
+    "labelIdleFade": "Malapkan butang",
     "idleFadeSub": "Di bawah 25%, ketikan pertama hanya menunjukkan butang",
     "idleFadeCustom": "% sendiri",
-    "idleFadeRange": "Masukkan nombor 0 hingga 99"
+    "idleFadeRange": "Masukkan nombor 0 hingga 99",
+    "labelQuickIcons": "Ikon pantas",
+    "holdToChoose": "Tekan lama untuk memilih"
 }, {
     "settingsSections": {
         "appearance": {
