@@ -342,7 +342,11 @@ AZKAR_I18N_REGISTER("tr", {
     "updTitle": "Güncelleme var",
     "updText": "Azkar {v} çıktı. Mevcut sürümün üzerine yükleyin — verileriniz korunur.",
     "updDownload": "İndir",
-    "updLater": "Sonra"
+    "updLater": "Sonra",
+    // Быстрые иконки на экранах счётчика
+    "qtPickTitle": "Simge seçin",
+    "qtHint": "Değiştirmek için simgeyi basılı tutun",
+    "qtEmpty": "Boş"
 }, {
     "settingsSections": {
         "appearance": {

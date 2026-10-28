@@ -5268,12 +5268,157 @@
                 navigator.vibrate(pat);
             } catch (e) { /* swallow — vibration is best-effort */ }
         }
-        // Быстрые переключатели на экранах счётчика — то же, что короткий тап
-        // по строке в настройках (громкость и выбор звука — только в настройках).
-        function quickToggle(key) {
-            if (key === 'vibration') toggleVibration();
-            else toggleSetting(key);
+        // ===== Быстрые иконки на экранах счётчика =====
+        // Три места (settings.quickSlots) под кнопкой «Основной зикр» и на экране
+        // особого зикра. Тап — то же, что короткий тап по строке в настройках;
+        // удержание — карточка выбора: действия в порядке настроек (без языка,
+        // данных, аккаунта, отзывов и «О приложении»). Одинаковые иконки управляют
+        // одной настройкой — нажал одну, поменялись все. '' — пустое место.
+        // icon — id иконки этой строки в настройках: берём её как есть (вкл/выкл).
+        // dim — иконка в настройках не меняется, выключенное состояние показываем бледностью.
+        var QUICK_ACTIONS = [
+            { id: 'theme',          icon: 'themeIcon',          label: 'labelTheme',          on: () => true,                            run: () => toggleTheme() },
+            { id: 'onlinePresence', icon: 'onlinePresenceIcon', label: 'labelOnlinePresence', on: () => settings.onlinePresence !== false, run: () => toggleSetting('onlinePresence'), dim: true },
+            { id: 'liteMode',       icon: 'liteModeIcon',       label: 'labelLiteMode',       on: () => isLiteModeOn(),                  run: () => toggleLiteMode(), dim: true },
+            { id: 'sound',          icon: 'soundIcon',          label: 'labelSound',          on: () => !!settings.sound,                run: () => toggleSetting('sound') },
+            { id: 'clickSound',     icon: 'clickSoundIcon',     label: 'labelClickSound',     on: () => !!settings.clickSound,           run: () => toggleSetting('clickSound') },
+            { id: 'vibration',      icon: 'vibrationIcon',      label: 'labelVibration',      on: () => !!settings.vibration,            run: () => toggleVibration() },
+            { id: 'timerEnabled',   icon: 'timerIcon',          label: 'labelTimer',          on: () => settings.timerEnabled !== false, run: () => toggleSetting('timerEnabled'), dim: true },
+            { id: 'autoAdvance',    icon: 'autoAdvanceIcon',    label: 'labelAutoAdvance',    on: () => !!settings.autoAdvance,          run: () => toggleSetting('autoAdvance'), dim: true },
+            { id: 'pipCounter',     icon: 'pipIcon',            label: 'labelPip',            on: () => !!settings.pipCounter,           run: () => togglePipCounter(), dim: true },
+            { id: 'stealthMode',    icon: 'stealthIcon',        label: 'labelStealth',        on: () => !!settings.stealthMode,          run: btn => _quickStealth(btn) },
+            { id: 'notifMaster',    icon: 'hadithIcon',         label: 'labelNotifications',  on: () => notifMasterOn(),                 run: () => toggleNotifMaster() }
+        ];
+        var QUICK_DEFAULT = ['sound', 'clickSound', 'vibration'];
+        const QUICK_HINT_KEY = 'azkar_quick_hint_shown';
+        const QUICK_HOLD_MS = 600;
+        let _quickPickSlot = -1;
+
+        function _quickAction(id) { return QUICK_ACTIONS.find(a => a.id === id) || null; }
+        function quickSlots() {
+            const v = Array.isArray(settings.quickSlots) ? settings.quickSlots : QUICK_DEFAULT;
+            return [0, 1, 2].map(i => (v[i] === '' || _quickAction(v[i])) ? v[i] : QUICK_DEFAULT[i]);
         }
+        function _quickIconText(a) {
+            const el = document.getElementById(a.icon);
+            return el ? el.textContent.trim() : '';
+        }
+        // Тёмный режим с экрана счётчика: включили — сразу уходим в чёрный экран (с отсчётом)
+        function _quickStealth(btn) {
+            toggleSetting('stealthMode');
+            const screen = btn && btn.closest('.screen');
+            if (settings.stealthMode && screen && typeof window._stealthTryActivate === 'function') {
+                window._stealthTryActivate(screen.id);
+            }
+        }
+        function renderQuickToggles() {
+            if (!QUICK_ACTIONS) return;   // вызвали раньше, чем дошли до объявления (var, без TDZ)
+            const slots = quickSlots();
+            document.querySelectorAll('.qt-btn').forEach(b => {
+                const a = _quickAction(slots[+b.dataset.slot]);
+                b.classList.toggle('qt-empty', !a);
+                b.classList.toggle('qt-off', !!(a && a.dim && !a.on()));
+                b.textContent = a ? _quickIconText(a) : '';
+                b.setAttribute('aria-label', a ? t(a.label) : t('qtPickTitle'));
+                if (a && a.id !== 'theme') b.setAttribute('aria-pressed', a.on() ? 'true' : 'false');
+                else b.removeAttribute('aria-pressed');
+            });
+        }
+        function _quickTap(btn) {
+            const a = _quickAction(quickSlots()[+btn.dataset.slot]);
+            if (!a) { openQuickPicker(+btn.dataset.slot); return; }
+            a.run(btn);
+            // Иконки в настройках обновляются внутри действия — переносим их сюда
+            renderQuickToggles();
+            requestAnimationFrame(renderQuickToggles);
+            let shown = false;
+            try { shown = localStorage.getItem(QUICK_HINT_KEY) === '1'; } catch (e) {}
+            if (!shown) {
+                try { localStorage.setItem(QUICK_HINT_KEY, '1'); } catch (e) {}
+                setTimeout(() => showToast(t('qtHint'), 3000), 400);
+            }
+        }
+        function openQuickPicker(slot) {
+            _quickPickSlot = slot;
+            const cur = quickSlots()[slot];
+            const grid = document.getElementById('quickPickGrid');
+            document.getElementById('quickPickTitle').textContent = t('qtPickTitle');
+            grid.innerHTML = '';
+            QUICK_ACTIONS.concat([{ id: '' }]).forEach(a => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'set-ic qt-pick' + (a.id ? '' : ' qt-empty') + (a.id === cur ? ' active' : '');
+                b.textContent = a.id ? _quickIconText(a) : '';
+                b.setAttribute('aria-label', a.id ? t(a.label) : t('qtEmpty'));
+                b.onclick = () => pickQuickAction(a.id);
+                grid.appendChild(b);
+            });
+            document.getElementById('quickPickOverlay').classList.add('show');
+        }
+        function closeQuickPicker() {
+            document.getElementById('quickPickOverlay').classList.remove('show');
+            _quickPickSlot = -1;
+        }
+        function pickQuickAction(id) {
+            if (_quickPickSlot < 0) return;
+            const slots = quickSlots();
+            slots[_quickPickSlot] = id;
+            settings.quickSlots = slots;
+            saveDataDebounced();
+            renderQuickToggles();
+            closeQuickPicker();
+        }
+        // Тап и удержание (без системного меню и без двойного срабатывания)
+        (function initQuickToggles() {
+            document.querySelectorAll('.qt-btn').forEach(b => {
+                let timer = null, held = false;
+                b.addEventListener('pointerdown', e => {
+                    if (e.pointerType === 'mouse' && e.button !== 0) return;
+                    held = false;
+                    clearTimeout(timer);
+                    timer = setTimeout(() => {
+                        timer = null; held = true;
+                        openQuickPicker(+b.dataset.slot);
+                    }, QUICK_HOLD_MS);
+                });
+                const cancel = () => { clearTimeout(timer); timer = null; };
+                b.addEventListener('pointerup', cancel);
+                b.addEventListener('pointerleave', cancel);
+                b.addEventListener('pointercancel', cancel);
+                b.addEventListener('contextmenu', e => e.preventDefault());
+                b.addEventListener('click', e => {
+                    if (held) { held = false; e.preventDefault(); return; }
+                    _quickTap(b);
+                });
+            });
+        })();
+
+        // ===== Кнопки вокруг счётчика бледнеют, пока их не трогают =====
+        // Через IDLE_MS без касаний кнопка «Основной зикр», быстрые иконки и цели
+        // уходят до 30% (css: html.ui-idle). Нажатия на круг счётчика не будят —
+        // пока считаешь, кнопки остаются в тени. Любое другое касание будит,
+        // а нажатая бледная кнопка срабатывает сразу, без второго нажатия.
+        (function initIdleFade() {
+            const IDLE_MS = 4500;   // столько же живёт исчезающая подсказка сверху (initManualAddHint)
+            const root = document.documentElement;
+            let timer = null;
+            function arm() { clearTimeout(timer); timer = setTimeout(sleep, IDLE_MS); }
+            function sleep() {
+                const dd = document.getElementById('postSalahDropdown');
+                if (dd && dd.classList.contains('open')) { arm(); return; }
+                root.classList.add('ui-idle');
+            }
+            function wake(e) {
+                const el = e && e.target;
+                if (el && el.closest && el.closest('.counter-ring-wrap, #stealthOverlay')) return;
+                root.classList.remove('ui-idle');
+                arm();
+            }
+            document.addEventListener('pointerdown', wake, true);
+            document.addEventListener('keydown', wake, true);
+            arm();
+        })();
+
         function toggleVibration() {
             settings.vibration = !settings.vibration;
             if (settings.vibration && !settings.vibrationLevel) settings.vibrationLevel = 3;
@@ -7942,14 +8087,7 @@
             // Vibration icon: 📳 when on, 📱 when off
             const vIcon = document.getElementById('vibrationIcon');
             if (vIcon) vIcon.textContent = settings.vibration ? '📳' : '📱';
-            // Те же иконки на экранах счётчика (быстрые переключатели)
-            document.querySelectorAll('.qt-btn').forEach(b => {
-                const on = !!settings[b.dataset.qt];
-                b.textContent = b.dataset.qt === 'sound' ? (on ? '🎯' : '🔇')
-                              : b.dataset.qt === 'clickSound' ? (on ? '🔈' : '🔇')
-                              : (on ? '📳' : '📱');
-                b.setAttribute('aria-pressed', on ? 'true' : 'false');
-            });
+            renderQuickToggles();
             // Vibration slider (levels 1-3)
             const vSlider = document.getElementById('vibrationSlider');
             if (vSlider) {
@@ -8452,6 +8590,7 @@
             if (tg) tg.classList.toggle('on', master);
             const ic = document.getElementById('hadithIcon');
             if (ic) ic.textContent = master ? '🔔' : '🔕';
+            if (typeof renderQuickToggles === 'function') renderQuickToggles();
             // Мини-меню отдельных уведомлений
             const set = (id, on) => { const el = document.getElementById(id); if (el) el.classList.toggle('on', !!on); };
             set('notifTgHadith', settings.hadithEnabled);

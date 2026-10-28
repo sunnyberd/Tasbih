@@ -342,7 +342,11 @@ AZKAR_I18N_REGISTER("hi", {
     "updTitle": "अपडेट उपलब्ध है",
     "updText": "Azkar {v} आ गया है। इसे मौजूदा वर्ज़न के ऊपर इंस्टॉल करें — आपका डेटा बना रहेगा।",
     "updDownload": "डाउनलोड करें",
-    "updLater": "बाद में"
+    "updLater": "बाद में",
+    // Быстрые иконки на экранах счётчика
+    "qtPickTitle": "आइकन चुनें",
+    "qtHint": "बदलने के लिए आइकन को दबाकर रखें",
+    "qtEmpty": "खाली"
 }, {
     "settingsSections": {
         "appearance": {

@@ -342,7 +342,11 @@ AZKAR_I18N_REGISTER("ms", {
     "updTitle": "Kemas kini tersedia",
     "updText": "Azkar {v} telah keluar. Pasang di atas versi semasa — data anda akan kekal.",
     "updDownload": "Muat turun",
-    "updLater": "Nanti"
+    "updLater": "Nanti",
+    // Быстрые иконки на экранах счётчика
+    "qtPickTitle": "Pilih ikon",
+    "qtHint": "Tekan lama ikon untuk menggantikannya",
+    "qtEmpty": "Kosong"
 }, {
     "settingsSections": {
         "appearance": {

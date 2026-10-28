@@ -342,7 +342,11 @@ AZKAR_I18N_REGISTER("ja", {
     "updTitle": "アップデートがあります",
     "updText": "Azkar {v} が公開されました。今のバージョンの上からインストールしてください。データはそのまま残ります。",
     "updDownload": "ダウンロード",
-    "updLater": "あとで"
+    "updLater": "あとで",
+    // Быстрые иконки на экранах счётчика
+    "qtPickTitle": "アイコンを選択",
+    "qtHint": "アイコンを長押しすると変更できます",
+    "qtEmpty": "空き"
 }, {
     "settingsSections": {
         "appearance": {

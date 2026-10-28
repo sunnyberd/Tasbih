@@ -342,7 +342,11 @@ AZKAR_I18N_REGISTER("zh", {
     "updTitle": "有可用更新",
     "updText": "Azkar {v} 已发布。请直接覆盖安装当前版本——你的数据会保留。",
     "updDownload": "下载",
-    "updLater": "稍后"
+    "updLater": "稍后",
+    // Быстрые иконки на экранах счётчика
+    "qtPickTitle": "选择图标",
+    "qtHint": "长按图标即可更换",
+    "qtEmpty": "空"
 }, {
     "settingsSections": {
         "appearance": {

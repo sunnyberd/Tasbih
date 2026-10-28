@@ -342,7 +342,11 @@ AZKAR_I18N_REGISTER("de", {
     "updTitle": "Update verfügbar",
     "updText": "Azkar {v} ist erschienen. Installiere es über die aktuelle Version — deine Daten bleiben erhalten.",
     "updDownload": "Herunterladen",
-    "updLater": "Später"
+    "updLater": "Später",
+    // Быстрые иконки на экранах счётчика
+    "qtPickTitle": "Symbol wählen",
+    "qtHint": "Symbol gedrückt halten, um es zu ersetzen",
+    "qtEmpty": "Leer"
 }, {
     "settingsSections": {
         "appearance": {

@@ -342,7 +342,11 @@ AZKAR_I18N_REGISTER("uz", {
     "updTitle": "Yangilanish mavjud",
     "updText": "Azkar {v} chiqdi. Uni joriy versiya ustidan o‘rnating — ma’lumotlaringiz saqlanadi.",
     "updDownload": "Yuklab olish",
-    "updLater": "Keyinroq"
+    "updLater": "Keyinroq",
+    // Быстрые иконки на экранах счётчика
+    "qtPickTitle": "Belgini tanlang",
+    "qtHint": "Almashtirish uchun belgini bosib turing",
+    "qtEmpty": "Bo‘sh"
 }, {
     "settingsSections": {
         "appearance": {

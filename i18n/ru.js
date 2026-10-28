@@ -342,7 +342,11 @@ AZKAR_I18N_REGISTER("ru", {
     "updTitle": "Доступно обновление",
     "updText": "Вышла версия Azkar {v}. Установите её поверх текущей — ваши данные сохранятся.",
     "updDownload": "Скачать",
-    "updLater": "Позже"
+    "updLater": "Позже",
+    // Быстрые иконки на экранах счётчика
+    "qtPickTitle": "Выберите иконку",
+    "qtHint": "Удержите иконку, чтобы заменить её",
+    "qtEmpty": "Пусто"
 }, {
     "settingsSections": {
         "appearance": {

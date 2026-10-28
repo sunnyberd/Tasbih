@@ -342,7 +342,11 @@ AZKAR_I18N_REGISTER("ko", {
     "updTitle": "업데이트 가능",
     "updText": "Azkar {v}이(가) 나왔습니다. 현재 버전 위에 설치하세요. 데이터는 그대로 유지됩니다.",
     "updDownload": "다운로드",
-    "updLater": "나중에"
+    "updLater": "나중에",
+    // Быстрые иконки на экранах счётчика
+    "qtPickTitle": "아이콘 선택",
+    "qtHint": "아이콘을 길게 눌러 바꿀 수 있어요",
+    "qtEmpty": "비어 있음"
 }, {
     "settingsSections": {
         "appearance": {

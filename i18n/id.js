@@ -342,7 +342,11 @@ AZKAR_I18N_REGISTER("id", {
     "updTitle": "Pembaruan tersedia",
     "updText": "Azkar {v} sudah rilis. Pasang di atas versi sekarang — data Anda tetap aman.",
     "updDownload": "Unduh",
-    "updLater": "Nanti"
+    "updLater": "Nanti",
+    // Быстрые иконки на экранах счётчика
+    "qtPickTitle": "Pilih ikon",
+    "qtHint": "Tahan ikon untuk menggantinya",
+    "qtEmpty": "Kosong"
 }, {
     "settingsSections": {
         "appearance": {
