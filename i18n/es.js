@@ -349,7 +349,7 @@ AZKAR_I18N_REGISTER("es", {
     "qtEmpty": "Vacío",
     // Бледнеющие кнопки вокруг счётчика (настройка и окно видимости)
     "labelIdleFade": "Atenuar botones",
-    "idleFadeSub": "Por debajo del 25 %, el primer toque solo muestra los botones",
+    "idleFadeSub": "Por debajo del 15 %, el primer toque solo muestra los botones",
     "idleFadeCustom": "% propio",
     "idleFadeRange": "Introduce un número del 0 al 99",
     "labelQuickIcons": "Iconos rápidos",

@@ -349,7 +349,7 @@ AZKAR_I18N_REGISTER("ko", {
     "qtEmpty": "비어 있음",
     // Бледнеющие кнопки вокруг счётчика (настройка и окно видимости)
     "labelIdleFade": "버튼 흐리게",
-    "idleFadeSub": "25% 미만이면 첫 번째 탭은 버튼만 보여 줍니다",
+    "idleFadeSub": "15% 미만이면 첫 번째 탭은 버튼만 보여 줍니다",
     "idleFadeCustom": "직접 입력 %",
     "idleFadeRange": "0~99 사이의 숫자를 입력하세요",
     "labelQuickIcons": "빠른 아이콘",

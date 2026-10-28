@@ -349,7 +349,7 @@ AZKAR_I18N_REGISTER("zh", {
     "qtEmpty": "空",
     // Бледнеющие кнопки вокруг счётчика (настройка и окно видимости)
     "labelIdleFade": "弱化按钮",
-    "idleFadeSub": "低于 25% 时，第一次点按只显示按钮",
+    "idleFadeSub": "低于 15% 时，第一次点按只显示按钮",
     "idleFadeCustom": "自定义 %",
     "idleFadeRange": "请输入 0 到 99 的数字",
     "labelQuickIcons": "快捷图标",

@@ -349,7 +349,7 @@ AZKAR_I18N_REGISTER("ms", {
     "qtEmpty": "Kosong",
     // Бледнеющие кнопки вокруг счётчика (настройка и окно видимости)
     "labelIdleFade": "Malapkan butang",
-    "idleFadeSub": "Di bawah 25%, ketikan pertama hanya menunjukkan butang",
+    "idleFadeSub": "Di bawah 15%, ketikan pertama hanya menunjukkan butang",
     "idleFadeCustom": "% sendiri",
     "idleFadeRange": "Masukkan nombor 0 hingga 99",
     "labelQuickIcons": "Ikon pantas",

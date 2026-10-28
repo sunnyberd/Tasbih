@@ -349,7 +349,7 @@ AZKAR_I18N_REGISTER("uz", {
     "qtEmpty": "Bo‘sh",
     // Бледнеющие кнопки вокруг счётчика (настройка и окно видимости)
     "labelIdleFade": "Tugmalarni xiralashtirish",
-    "idleFadeSub": "25% dan past bo‘lsa, birinchi teginish faqat tugmalarni ko‘rsatadi",
+    "idleFadeSub": "15% dan past bo‘lsa, birinchi teginish faqat tugmalarni ko‘rsatadi",
     "idleFadeCustom": "O‘z %",
     "idleFadeRange": "0 dan 99 gacha son kiriting",
     "labelQuickIcons": "Tezkor belgilar",

@@ -5405,10 +5405,10 @@
         // без касаний кнопка «Основной зикр», быстрые иконки и цели уходят до этой
         // видимости (css: html.ui-idle, --idle-opacity). Нажатия на круг счётчика
         // не будят — пока считаешь, кнопки остаются в тени. Любое другое касание будит.
-        // Видимость 25% и выше — бледная кнопка срабатывает сразу. Ниже 25% кнопки
+        // Видимость 15% и выше — бледная кнопка срабатывает сразу. Ниже 15% кнопки
         // почти не видно, поэтому первое касание только показывает их, второе нажимает.
         const IDLE_FADE_DEFAULT = 30;
-        const IDLE_FADE_REVEAL_BELOW = 25;
+        const IDLE_FADE_REVEAL_BELOW = 15;
         function idleFadeOn() { return settings.idleFade !== false; }
         function idleFadeLevel() {
             const v = parseInt(settings.idleFadeLevel, 10);
@@ -5495,11 +5495,12 @@
                 if (dd && dd.classList.contains('open')) { arm(); return; }
                 root.classList.add('ui-idle');
             }
+            // Будят только касания самих кнопок (FADED). Навбар, время намаза, свайп,
+            // круг счётчика и всё остальное — не будят и не продлевают таймер.
             function wake(e) {
                 const el = e && e.target;
-                if (el && el.closest && el.closest('.counter-ring-wrap, #stealthOverlay')) return;
-                if (root.classList.contains('ui-idle') && idleFadeLevel() < IDLE_FADE_REVEAL_BELOW &&
-                    el && el.closest && el.closest(FADED)) {
+                if (!el || !el.closest || !el.closest(FADED)) return;
+                if (root.classList.contains('ui-idle') && idleFadeLevel() < IDLE_FADE_REVEAL_BELOW) {
                     swallowUntil = Date.now() + 800;
                     e.stopPropagation();
                     if (e.cancelable) e.preventDefault();
@@ -5516,7 +5517,6 @@
             document.addEventListener('pointerdown', wake, true);
             ['touchstart', 'mousedown', 'touchend', 'mouseup', 'click'].forEach(type =>
                 document.addEventListener(type, swallow, { capture: true, passive: false }));
-            document.addEventListener('keydown', wake, true);
             arm();
         })();
 

@@ -349,7 +349,7 @@ AZKAR_I18N_REGISTER("ja", {
     "qtEmpty": "空き",
     // Бледнеющие кнопки вокруг счётчика (настройка и окно видимости)
     "labelIdleFade": "ボタンを控えめに",
-    "idleFadeSub": "25%未満では、最初のタップでボタンを表示するだけです",
+    "idleFadeSub": "15%未満では、最初のタップでボタンを表示するだけです",
     "idleFadeCustom": "カスタム %",
     "idleFadeRange": "0〜99の数字を入力してください",
     "labelQuickIcons": "クイックアイコン",
