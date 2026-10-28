@@ -1499,7 +1499,13 @@
                     dashOffset = -(cycleFraction * CIRCUMFERENCE);
                 }
             } else {
-                const progress = Math.min(newCount / goal, 1);
+                // «Своя цель»: один полный круг = путь от точки старта (goalBaseline,
+                // ставится при выборе цели и при каждом авто-продлении) до цели —
+                // при любом числе (500, 1000, 10000…) это всегда ровно 100%.
+                const span = goal - goalBaseline;
+                const progress = span > 0
+                    ? Math.min(Math.max((newCount - goalBaseline) / span, 0), 1)
+                    : 1;
                 dashOffset = CIRCUMFERENCE - (progress * CIRCUMFERENCE);
                 ballAngle = progress * 360;
             }
@@ -1592,11 +1598,16 @@
                 document.getElementById('customGoalNum').innerText = formatGoalShort(1000);
                 localStorage.setItem('azkar_custom_goal', 1000);
             }
+            // Если «своя цель» ещё не была выбрана — шарик начинает круг со старта.
+            // Повторное нажатие (например, долгое — чтобы открыть настройки)
+            // не сбрасывает уже пройденную часть круга.
+            const wasActive = chip.classList.contains('active') && !isUnlimited && goal === customGoal;
             document.querySelectorAll('.goal-chip').forEach(ch => ch.classList.remove('active'));
             chip.classList.add('active');
             isUnlimited = false;
             goal = customGoal;
             goalTriggered = false;
+            if (!wasActive) { goalBaseline = count; _snapRingToStart = true; }
             updateDisplay();
             saveDataDebounced();
 
@@ -1623,11 +1634,14 @@
         function confirmCustomGoal() {
             const val = parseInt(document.getElementById('customGoalInput').value, 10);
             if (isNaN(val) || val <= 0) { showToast(t('customGoalError')); return; }
+            // Новое число цели → новый круг со старта (то же число — круг не трогаем).
+            const changed = val !== goal || isUnlimited;
             customGoal = val;
             document.getElementById('customGoalNum').innerText = formatGoalShort(customGoal);
             document.querySelectorAll('.goal-chip').forEach(ch => ch.classList.remove('active'));
             document.getElementById('customGoalChip').classList.add('active');
             isUnlimited = false; goal = customGoal; goalTriggered = false;
+            if (changed) { goalBaseline = count; _snapRingToStart = true; }
             updateDisplay();
             closeCustomGoalModal();
             // toast removed
@@ -2018,6 +2032,10 @@
                 const isCustomGoalActive = document.getElementById('customGoalChip').classList.contains('active');
                 const _aeStep2 = settings.autoExtendStep || 0;
                 if (_aeStep2 > 0 && !isUnlimited && isCustomGoalActive) {
+                    // Каждое продление (+100, +500…) — новый полный круг:
+                    // старт = достигнутая цель, финиш = цель + шаг.
+                    goalBaseline = goal;
+                    _snapRingToStart = true;
                     goal += _aeStep2;
                     customGoal = goal;
                     goalTriggered = false;
