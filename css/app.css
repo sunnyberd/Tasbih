@@ -861,9 +861,11 @@ body {
 #screen-special-counter .special-counter-name {
     display: none;
 }
-/* Луна: полумесяц открыт вправо (рисунок уже в нужную сторону, без зеркала) */
+/* Луна: полумесяц открыт вправо (рисунок уже в нужную сторону, без зеркала),
+   на 10% меньше места под неё — на всех экранах и размерах */
 .moon-icon svg {
-    transform: none;
+    transform: scale(0.9);
+    transform-origin: center;
 }
 
 @keyframes fadeInScreen {

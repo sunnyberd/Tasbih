@@ -602,10 +602,13 @@
     function adminDelete(m) {
         askConfirm(t("confirmDelMsg"), "").then(function (yes) {
             if (!yes) return;
-            F.deleteDoc(F.doc(db, "messages", m.id)).then(function () {
-                messages = messages.filter(function (x) { return x.id !== m.id; });
-                renderFeed();
-                toast(t("toastDeleted"));
+            // Удаляем отзыв целиком — текст и оценку автора: у него в приложении
+            // и на сайте отзыв исчезает, звёзды снова пустые, можно написать заново.
+            var batch = F.writeBatch(db);
+            batch.delete(F.doc(db, "messages", m.id));
+            if (m.uid) batch.delete(F.doc(db, "ratings", m.uid));
+            batch.commit().then(function () {
+                return afterWrite(t("toastDeleted"));
             }).catch(function () { toast(t("errNetwork")); });
         });
     }
