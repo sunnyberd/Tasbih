@@ -984,8 +984,14 @@
         // При каждом выборе стандартной цели ставится = count, поэтому шарик
         // визуально всегда начинается со старта, тогда как общий счётчик (count)
         // и статистика продолжают идти как обычно.
-        // Для «своей цели» НЕ применяется — там прогресс абсолютный (продолжается с места).
+        // Для «своей цели» — своя, отдельная точка старта (customBaseline).
         let goalBaseline = 0;
+        // «Своя цель»: точка старта текущего круга. Запоминается навсегда —
+        // переключения 33/66/100 ⇄ «своя цель» её не трогают, поэтому круг
+        // продолжается с того места, где остановился. Сдвигается только когда
+        // пользователь вводит НОВОЕ число цели или срабатывает авто-продление
+        // (+100/+500…) — тогда начинается новый круг.
+        let customBaseline = 0;
         // Одноразовый флаг: мгновенно (без анимации) поставить шарик/кольцо на старт.
         let _snapRingToStart = false;
         let specialCount = 0, specialGoal = 100, currentSpecialId = null, isSpecialActive = false;
@@ -1231,6 +1237,7 @@
             localStorage.setItem('azkar_count', count);
             localStorage.setItem('azkar_goal', isUnlimited ? UNLIMITED_GOAL : goal);
             localStorage.setItem('azkar_goal_baseline', goalBaseline);
+            localStorage.setItem('azkar_custom_baseline', customBaseline);
             localStorage.setItem('azkar_duas', JSON.stringify(duas));
             saveDuaFolders();
             localStorage.setItem('azkar_custom_goal', customGoal);
@@ -1499,12 +1506,12 @@
                     dashOffset = -(cycleFraction * CIRCUMFERENCE);
                 }
             } else {
-                // «Своя цель»: один полный круг = путь от точки старта (goalBaseline,
-                // ставится при выборе цели и при каждом авто-продлении) до цели —
-                // при любом числе (500, 1000, 10000…) это всегда ровно 100%.
-                const span = goal - goalBaseline;
+                // «Своя цель»: один полный круг = путь от точки старта (customBaseline,
+                // ставится при вводе нового числа цели и при каждом авто-продлении)
+                // до цели — при любом числе (500, 1000, 10000…) это всегда ровно 100%.
+                const span = goal - customBaseline;
                 const progress = span > 0
-                    ? Math.min(Math.max((newCount - goalBaseline) / span, 0), 1)
+                    ? Math.min(Math.max((newCount - customBaseline) / span, 0), 1)
                     : 1;
                 dashOffset = CIRCUMFERENCE - (progress * CIRCUMFERENCE);
                 ballAngle = progress * 360;
@@ -1561,6 +1568,15 @@
             saveDataDebounced();
         }
 
+        // Точка старта круга «своей цели» из хранилища. Если её ещё нет
+        // (данные до этого обновления) — берём общую точку отсчёта.
+        function _readCustomBaseline() {
+            const raw = localStorage.getItem('azkar_custom_baseline');
+            let v = raw === null ? goalBaseline : parseInt(raw, 10);
+            if (isNaN(v) || v < 0 || v > count) v = 0;
+            return v;
+        }
+
         function setGoal(g) {
             // Стандартная цель (33/66/100): шарик ВСЕГДА начинается со старта.
             // Фиксируем точку отсчёта = текущий count, чтобы кольцо/шарик пошли с нуля.
@@ -1594,20 +1610,20 @@
             // Сразу выбираем чип и устанавливаем цель (1000 по умолчанию если не задана)
             const activeGoal = customGoal || 1000;
             if (!customGoal) {
+                // Первая «своя цель» — круг начинается отсюда.
                 customGoal = 1000;
+                customBaseline = count;
                 document.getElementById('customGoalNum').innerText = formatGoalShort(1000);
                 localStorage.setItem('azkar_custom_goal', 1000);
             }
-            // Если «своя цель» ещё не была выбрана — шарик начинает круг со старта.
-            // Повторное нажатие (например, долгое — чтобы открыть настройки)
-            // не сбрасывает уже пройденную часть круга.
-            const wasActive = chip.classList.contains('active') && !isUnlimited && goal === customGoal;
+            // Возврат к «своей цели» НЕ сбрасывает круг — шарик продолжает
+            // с того места, где остановился (customBaseline не меняется).
+            if (customBaseline > count) customBaseline = 0;
             document.querySelectorAll('.goal-chip').forEach(ch => ch.classList.remove('active'));
             chip.classList.add('active');
             isUnlimited = false;
             goal = customGoal;
             goalTriggered = false;
-            if (!wasActive) { goalBaseline = count; _snapRingToStart = true; }
             updateDisplay();
             saveDataDebounced();
 
@@ -1634,14 +1650,14 @@
         function confirmCustomGoal() {
             const val = parseInt(document.getElementById('customGoalInput').value, 10);
             if (isNaN(val) || val <= 0) { showToast(t('customGoalError')); return; }
-            // Новое число цели → новый круг со старта (то же число — круг не трогаем).
-            const changed = val !== goal || isUnlimited;
+            // Новое число цели → новый круг со старта (то же число — круг продолжается).
+            const changed = val !== customGoal;
             customGoal = val;
             document.getElementById('customGoalNum').innerText = formatGoalShort(customGoal);
             document.querySelectorAll('.goal-chip').forEach(ch => ch.classList.remove('active'));
             document.getElementById('customGoalChip').classList.add('active');
             isUnlimited = false; goal = customGoal; goalTriggered = false;
-            if (changed) { goalBaseline = count; _snapRingToStart = true; }
+            if (changed) { customBaseline = count; _snapRingToStart = true; }
             updateDisplay();
             closeCustomGoalModal();
             // toast removed
@@ -1774,6 +1790,8 @@
                 customGoal > 0 && count >= customGoal) {
                 // Поднимаем порог своей цели выше текущего счёта выбранным шагом.
                 do { customGoal += _aeStep; } while (customGoal <= count);
+                // Новый круг своей цели начинается с последнего взятого порога.
+                customBaseline = customGoal - _aeStep;
                 localStorage.setItem('azkar_custom_goal', customGoal);
                 const _cgNum = document.getElementById('customGoalNum');
                 if (_cgNum) _cgNum.innerText = formatGoalShort(customGoal);
@@ -1995,6 +2013,8 @@
             if (_aeStep > 0 && !isUnlimited && !isCustomGoalActive &&
                 customGoal > 0 && count >= customGoal && !crossedGoal) {
                 do { customGoal += _aeStep; } while (customGoal <= count);
+                // Новый круг своей цели начинается с последнего взятого порога.
+                customBaseline = customGoal - _aeStep;
                 localStorage.setItem('azkar_custom_goal', customGoal);
                 const _cgNum = document.getElementById('customGoalNum');
                 if (_cgNum) _cgNum.innerText = formatGoalShort(customGoal);
@@ -2007,7 +2027,7 @@
 
         function promptResetCounter() { document.getElementById('resetCounterOverlay').classList.add('show'); }
         function confirmResetCounter() {
-            count = 0; goalTriggered = false; _prevLap = 0; goalBaseline = 0;
+            count = 0; goalTriggered = false; _prevLap = 0; goalBaseline = 0; customBaseline = 0;
             updateDisplay(); saveDataDebounced(); flushSave();
             replaceFirebaseDhikrState(['azkar_count']);
             showToast(t('toastReset'));
@@ -2034,7 +2054,7 @@
                 if (_aeStep2 > 0 && !isUnlimited && isCustomGoalActive) {
                     // Каждое продление (+100, +500…) — новый полный круг:
                     // старт = достигнутая цель, финиш = цель + шаг.
-                    goalBaseline = goal;
+                    customBaseline = goal;
                     _snapRingToStart = true;
                     goal += _aeStep2;
                     customGoal = goal;
@@ -3564,7 +3584,7 @@
         function promptClearAll() { document.getElementById('clearStatsOverlay').classList.add('show'); }
         function confirmClearStats() {
             // Сброс основного счётчика зикра
-            count = 0; goalTriggered = false; _prevLap = 0; goalBaseline = 0;
+            count = 0; goalTriggered = false; _prevLap = 0; goalBaseline = 0; customBaseline = 0;
             // Сброс цели на 100 по умолчанию
             goal = 100; isUnlimited = false;
             localStorage.setItem('azkar_goal', 100);
@@ -5374,7 +5394,7 @@
                             const gg = localStorage.getItem('azkar_goal');
                             if (gg) { const pg = parseInt(gg); isUnlimited = (pg === UNLIMITED_GOAL); goal = isUnlimited ? 33 : pg; }
                             goalBaseline = parseInt(localStorage.getItem('azkar_goal_baseline') || '0');
-                            if (isNaN(goalBaseline) || goalBaseline < 0 || goalBaseline > count) goalBaseline = 0;
+                            if (isNaN(goalBaseline) || goalBaseline < 0 || goalBaseline > count) goalBaseline = 0; customBaseline = _readCustomBaseline();
                             customGoal = parseInt(localStorage.getItem('azkar_custom_goal') || '0');
                             duas = JSON.parse(localStorage.getItem('azkar_duas') || '[]');
                             loadDuaFolders();
@@ -5422,7 +5442,7 @@
                         else { isUnlimited = false; goal = data.goal; }
                     }
                     // Старые бэкапы не содержат точку отсчёта кольца — начинаем с 0.
-                    goalBaseline = 0;
+                    goalBaseline = 0; customBaseline = 0;
                     // Restore duas
                     if (Array.isArray(data.duas)) duas = data.duas;
                     // Restore stats
@@ -7070,7 +7090,7 @@
 
         function reloadDhikrStateFromStorage() {
             count = parseInt(localStorage.getItem('azkar_count') || '0', 10) || 0;
-            if (isNaN(goalBaseline) || goalBaseline < 0 || goalBaseline > count) goalBaseline = 0;
+            if (isNaN(goalBaseline) || goalBaseline < 0 || goalBaseline > count) goalBaseline = 0; if (customBaseline > count) customBaseline = 0;
             _statsCache = _parseSyncJsonObject(localStorage.getItem('azkar_stats_v2'));
             pendingStatsSave = false;
             loadDhikrTotals();
@@ -8873,7 +8893,7 @@
             // Точка отсчёта кольца для стандартных целей. Зажимаем в [0, count],
             // чтобы устаревшее/битое значение не сломало позицию шарика.
             goalBaseline = parseInt(localStorage.getItem('azkar_goal_baseline') || '0');
-            if (isNaN(goalBaseline) || goalBaseline < 0 || goalBaseline > count) goalBaseline = 0;
+            if (isNaN(goalBaseline) || goalBaseline < 0 || goalBaseline > count) goalBaseline = 0; customBaseline = _readCustomBaseline();
             customGoal = parseInt(localStorage.getItem('azkar_custom_goal') || '0');
             duas = JSON.parse(localStorage.getItem('azkar_duas') || '[]');
             loadDuaFolders();
@@ -9292,7 +9312,7 @@
         // the full local snapshot ready to upload — so moving from "local only" to
         // "local + database" is a small, contained change with no data loss.
         const APP_DATA_KEYS = [
-            'azkar_count', 'azkar_goal', 'azkar_goal_baseline', 'azkar_custom_goal',
+            'azkar_count', 'azkar_goal', 'azkar_goal_baseline', 'azkar_custom_goal', 'azkar_custom_baseline',
             'azkar_duas', 'azkar_dua_folders', 'azkar_names99_dua_deleted', 'azkar_checklist_lists_v5', 'azkar_checklist_v4', 'azkar_stats_v2',
             'azkar_special_completed', 'azkar_special_progress', 'azkar_custom_special_dhikrs',
             'azkar_special_resume_sessions',
@@ -9372,6 +9392,7 @@
                 azkar_goal: '100',
                 azkar_goal_baseline: '0',
                 azkar_custom_goal: '0',
+                azkar_custom_baseline: '0',
                 azkar_duas: '[]',
                 azkar_dua_folders: '[]',
                 azkar_checklist_lists_v5: JSON.stringify({ activeId: null, lists: [] }),
@@ -9398,7 +9419,7 @@
                     goal = isUnlimited ? 33 : pg;
                 }
                 goalBaseline = parseInt(localStorage.getItem('azkar_goal_baseline') || '0');
-                if (isNaN(goalBaseline) || goalBaseline < 0 || goalBaseline > count) goalBaseline = 0;
+                if (isNaN(goalBaseline) || goalBaseline < 0 || goalBaseline > count) goalBaseline = 0; customBaseline = _readCustomBaseline();
                 customGoal = parseInt(localStorage.getItem('azkar_custom_goal') || '0');
                 duas = JSON.parse(localStorage.getItem('azkar_duas') || '[]');
                 loadDuaFolders();
@@ -12708,7 +12729,7 @@
                             const gg = localStorage.getItem('azkar_goal');
                             if (gg) { const pg = parseInt(gg); isUnlimited = (pg === UNLIMITED_GOAL); goal = isUnlimited ? 33 : pg; }
                             goalBaseline = parseInt(localStorage.getItem('azkar_goal_baseline') || '0');
-                            if (isNaN(goalBaseline) || goalBaseline < 0 || goalBaseline > count) goalBaseline = 0;
+                            if (isNaN(goalBaseline) || goalBaseline < 0 || goalBaseline > count) goalBaseline = 0; customBaseline = _readCustomBaseline();
                             customGoal = parseInt(localStorage.getItem('azkar_custom_goal') || '0');
                             duas = JSON.parse(localStorage.getItem('azkar_duas') || '[]');
                             if (typeof loadDuaFolders === 'function') loadDuaFolders();
@@ -12742,6 +12763,7 @@
                     if (data.count !== undefined) { count = data.count; localStorage.setItem('azkar_count', String(count)); }
                     if (data.goal !== undefined) { goal = data.goal; isUnlimited = (goal >= 999999999); localStorage.setItem('azkar_goal', String(data.goal)); }
                     goalBaseline = 0; localStorage.setItem('azkar_goal_baseline', '0');
+                    customBaseline = 0; localStorage.setItem('azkar_custom_baseline', '0');
                     if (data.customGoal !== undefined) { customGoal = data.customGoal; localStorage.setItem('azkar_custom_goal', String(customGoal)); }
                     if (data.duas) { duas = data.duas; localStorage.setItem('azkar_duas', JSON.stringify(duas)); }
                     if (data.completedSpecial) { completedSpecial = data.completedSpecial; localStorage.setItem('azkar_special_completed', JSON.stringify(completedSpecial)); }
