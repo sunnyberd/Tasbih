@@ -4,9 +4,6 @@
 // Новый ключ добавляй во ВСЕ файлы папки i18n/, иначе будет показан английский текст.
 AZKAR_I18N_REGISTER("ru", {
     "headerTitle": "Воистину, поминанием Аллаха\nутешаются сердца",
-    "pushTestScheduled": "Закройте приложение — примерно через минуту придёт тестовое уведомление",
-    "pushTestFail": "Push не удалось подключить",
-    "pushTestBody": "Push-уведомления работают ✓",
     "postSalahHeaderTitle": "Тасбих после намаза",
     "postSalahOptionLabel": "Зикры после намаза",
     "postSalahExitLabel": "Тасбих",
@@ -324,7 +321,31 @@ AZKAR_I18N_REGISTER("ru", {
     "ariaAddDua": "Добавить новое дуа или папку",
     "ariaAddDhikr": "Добавить зикр",
     "ariaAddFolder": "Добавить папку",
-    "ariaAllah": "Аллах"
+    "ariaAllah": "Аллах",
+    // Android-приложение (js/native.js) и окно обновления APK
+    "natOverlayAsk": "Разрешите «Поверх других приложений» для Azkar",
+    "natOverlayNoPerm": "❌ Нет разрешения «Поверх других приложений».",
+    "natGrant": "Выдать разрешение",
+    "natOverlayNotStarted": "⚠️ Разрешение есть, но кнопка не запустилась.",
+    "natXiaomiHint": "На Xiaomi включите «Всплывающие окна в фоне» и «Автозапуск» в разрешениях приложения.",
+    "natCheckPerms": "Проверьте разрешения приложения.",
+    "natAppSettings": "Настройки приложения",
+    "natRetry": "Попробовать снова",
+    "natExactAsk": "Разрешите «Будильники и напоминания», чтобы намаз приходил вовремя",
+    "natOverlayNotifTitle": "Тасбих поверх экрана",
+    "natOverlayNotifText": "Нажмите, чтобы открыть приложение",
+    "natHide": "Скрыть",
+    "natOverlayChannel": "Плавающий счётчик",
+    "natNotifChannel": "Намаз, зикр и хадисы",
+    "natNotifChannelDesc": "Время намаза, дуа Абу Умамы, напоминания о зикре и хадисы",
+    "natDndLabel": "Тишина в тёмном режиме",
+    "natDndSub": "Уведомления других приложений не придут, от Azkar — придут",
+    "natDndAsk": "Разрешите Azkar доступ к режиму «Не беспокоить»",
+    "natDndNoPerm": "❌ Нет доступа к режиму «Не беспокоить».",
+    "updTitle": "Доступно обновление",
+    "updText": "Вышла версия Azkar {v}. Установите её поверх текущей — ваши данные сохранятся.",
+    "updDownload": "Скачать",
+    "updLater": "Позже"
 }, {
     "settingsSections": {
         "appearance": {

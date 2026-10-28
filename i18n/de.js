@@ -321,7 +321,31 @@ AZKAR_I18N_REGISTER("de", {
     "ariaAddDua": "Neues Dua oder neuen Ordner hinzufügen",
     "ariaAddDhikr": "Dhikr hinzufügen",
     "ariaAddFolder": "Ordner hinzufügen",
-    "ariaAllah": "Allah"
+    "ariaAllah": "Allah",
+    // Android-приложение (js/native.js) и окно обновления APK
+    "natOverlayAsk": "Erlaube „Über anderen Apps einblenden“ für Azkar",
+    "natOverlayNoPerm": "❌ Keine Berechtigung „Über anderen Apps einblenden“.",
+    "natGrant": "Berechtigung erteilen",
+    "natOverlayNotStarted": "⚠️ Berechtigung erteilt, aber der Button ist nicht gestartet.",
+    "natXiaomiHint": "Auf Xiaomi in den App-Berechtigungen „Pop-up-Fenster im Hintergrund anzeigen“ und „Autostart“ aktivieren.",
+    "natCheckPerms": "Prüfe die App-Berechtigungen.",
+    "natAppSettings": "App-Einstellungen",
+    "natRetry": "Erneut versuchen",
+    "natExactAsk": "Erlaube „Wecker & Erinnerungen“, damit Gebetsbenachrichtigungen pünktlich kommen",
+    "natOverlayNotifTitle": "Tasbih über dem Bildschirm",
+    "natOverlayNotifText": "Tippen, um die App zu öffnen",
+    "natHide": "Ausblenden",
+    "natOverlayChannel": "Schwebender Zähler",
+    "natNotifChannel": "Gebet, Dhikr und Hadithe",
+    "natNotifChannelDesc": "Gebetszeiten, Dua von Abu Umama, Dhikr-Erinnerungen und Hadithe",
+    "natDndLabel": "Stille im dunklen Modus",
+    "natDndSub": "Benachrichtigungen anderer Apps kommen nicht, die von Azkar schon",
+    "natDndAsk": "Erlaube Azkar den Zugriff auf „Bitte nicht stören“",
+    "natDndNoPerm": "❌ Kein Zugriff auf „Bitte nicht stören“.",
+    "updTitle": "Update verfügbar",
+    "updText": "Azkar {v} ist erschienen. Installiere es über die aktuelle Version — deine Daten bleiben erhalten.",
+    "updDownload": "Herunterladen",
+    "updLater": "Später"
 }, {
     "settingsSections": {
         "appearance": {

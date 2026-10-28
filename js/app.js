@@ -8858,31 +8858,6 @@
             clearTimeout(_pushSyncTimer);
             _pushSyncTimer = setTimeout(() => { syncPush(!!force); }, force ? 300 : 3000);
         }
-        // Проверка: открыть приложение с ?pushtest=1 → через ~1 минуту придёт
-        // тестовое уведомление (приложение нужно закрыть).
-        (function initPushTest() {
-            let wanted = false;
-            try { wanted = new URLSearchParams(location.search).get('pushtest') === '1'; } catch (e) {}
-            if (!wanted) return;
-            try { history.replaceState(null, '', location.pathname); } catch (e) {}
-            setTimeout(async () => {
-                if (!pushSupported()) { showToast('Push: server is not set in push-config.js', 4000); return; }
-                if ('Notification' in window && Notification.permission !== 'granted') await requestNotifPermission();
-                const ok = await syncPush(true);
-                const st = _pushReadState();
-                if (!ok || !st.endpoint) { showToast(tn('pushTestFail', 'Push: subscription failed'), 4000); return; }
-                try {
-                    const res = await fetch(String(_pushCfg().server).replace(/\/+$/, '') + '/test', {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ endpoint: st.endpoint, delaySec: 60,
-                            title: t('notifPrayerTitle'), body: tn('pushTestBody', 'Push works ✓') })
-                    });
-                    showToast(res.ok ? tn('pushTestScheduled', 'Close the app — a test notification will arrive in about a minute')
-                                     : tn('pushTestFail', 'Push: subscription failed'), 6000);
-                } catch (e) { showToast(tn('pushTestFail', 'Push: subscription failed'), 4000); }
-            }, 2500);
-        })();
-
         function loadData() {
             const s = localStorage.getItem('azkar_settings');
             if (s) Object.assign(settings, JSON.parse(s));

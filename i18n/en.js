@@ -4,9 +4,6 @@
 // Новый ключ добавляй во ВСЕ файлы папки i18n/, иначе будет показан английский текст.
 AZKAR_I18N_REGISTER("en", {
     "headerTitle": "Verily, in the remembrance of Allah\ndo hearts find rest",
-    "pushTestScheduled": "Close the app — a test notification will arrive in about a minute",
-    "pushTestFail": "Push: subscription failed",
-    "pushTestBody": "Push notifications work ✓",
     "postSalahHeaderTitle": "Tasbih after prayer",
     "postSalahOptionLabel": "Dhikrs after prayer",
     "postSalahExitLabel": "Tasbih",
@@ -324,7 +321,31 @@ AZKAR_I18N_REGISTER("en", {
     "ariaAddDua": "Add a new dua or folder",
     "ariaAddDhikr": "Add dhikr",
     "ariaAddFolder": "Add folder",
-    "ariaAllah": "Allah"
+    "ariaAllah": "Allah",
+    // Android-приложение (js/native.js) и окно обновления APK
+    "natOverlayAsk": "Allow “Display over other apps” for Azkar",
+    "natOverlayNoPerm": "❌ No “Display over other apps” permission.",
+    "natGrant": "Grant permission",
+    "natOverlayNotStarted": "⚠️ Permission granted, but the button didn't start.",
+    "natXiaomiHint": "On Xiaomi, turn on “Display pop-up windows while running in the background” and “Autostart” in the app permissions.",
+    "natCheckPerms": "Check the app permissions.",
+    "natAppSettings": "App settings",
+    "natRetry": "Try again",
+    "natExactAsk": "Allow “Alarms & reminders” so prayer notifications arrive on time",
+    "natOverlayNotifTitle": "Tasbih on top of the screen",
+    "natOverlayNotifText": "Tap to open the app",
+    "natHide": "Hide",
+    "natOverlayChannel": "Floating counter",
+    "natNotifChannel": "Prayer, dhikr and hadiths",
+    "natNotifChannelDesc": "Prayer times, Abu Umamah's dua, dhikr reminders and hadiths",
+    "natDndLabel": "Silence in dark mode",
+    "natDndSub": "Other apps' notifications won't come, Azkar's will",
+    "natDndAsk": "Allow Azkar “Do Not Disturb” access",
+    "natDndNoPerm": "❌ No “Do Not Disturb” access.",
+    "updTitle": "Update available",
+    "updText": "Azkar {v} is out. Install it over the current version — your data will stay.",
+    "updDownload": "Download",
+    "updLater": "Later"
 }, {
     "settingsSections": {
         "appearance": {

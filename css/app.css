@@ -344,7 +344,7 @@ html.no-transition * {
     font-family: 'Cormorant Garamond', serif;
     font-size: 2rem;
     font-weight: 600;
-    color: rgba(255,255,255,0.045);
+    color: rgba(255,255,255,0.029); /* на 35% тусклее, чтобы со стороны не было видно */
     line-height: 1;
     pointer-events: none;
     transition: color 0.2s;
@@ -372,7 +372,7 @@ html.no-transition * {
     animation: stealth-plus-fade 0.5s ease forwards;
 }
 @keyframes stealth-plus-fade {
-    0%   { opacity: 0.21; transform: translate(-50%, -50%) translateY(0); }
+    0%   { opacity: 0.137; transform: translate(-50%, -50%) translateY(0); }
     100% { opacity: 0;    transform: translate(-50%, -50%) translateY(-22px); }
 }
 #stealthAchievement {
@@ -428,7 +428,7 @@ html.no-transition * {
     left: 50%;
     transform: translateX(-50%);
     font-size: 0.7rem;
-    color: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.033);
     letter-spacing: 0.08em;
     pointer-events: none;
     white-space: nowrap;

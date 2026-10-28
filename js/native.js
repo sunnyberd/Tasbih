@@ -5,8 +5,12 @@
 //   2. плавающий счётчик (настройка pipCounter) висит поверх всех приложений
 //      и внутри Azkar, пока настройка включена, в цветах текущей темы.
 //      Тапы по нему засчитываются здесь;
-//   3. в тёмном режиме зикра скрываются строка состояния и кнопки навигации.
-// Подключается после js/app.js — использует его глобальные settings, pipTap, togglePipCounter, showToast.
+//   3. в тёмном режиме зикра скрываются строка состояния и кнопки навигации,
+//      а с настройкой «Тишина в тёмном режиме» (stealthDnd) включается
+//      «Не беспокоить» для других приложений (Dnd.java);
+//   4. проверка новой версии APK на сайте (version.json).
+// Подключается после js/app.js — использует его глобальные settings, pipTap, togglePipCounter, showToast, t.
+// Тексты — ключи nat* и upd* в i18n/<язык>.js.
 
 (function () {
     var C = window.Capacitor;
@@ -23,6 +27,13 @@
     });
 
     var status = {};
+
+    // Текст на языке приложения (i18n/<язык>.js, запасной — английский)
+    function L(key) {
+        try { var v = t(key); if (v && v !== key) return v; } catch (e) {}
+        return key;
+    }
+    function toast(key) { if (typeof showToast === 'function') showToast(L(key), 3500); }
 
     // Web Client ID из Firebase: Authentication → Sign-in method → Google →
     // «Конфигурация Web SDK» → Web client ID. Без него вход через Google в APK не работает.
@@ -52,6 +63,7 @@
         // Нативный пузырь заменяет веб-кнопку — две кнопки на экране не нужны.
         document.documentElement.classList.toggle('native-overlay', !!(s.enabled && s.canDraw));
         renderOverlayRow();
+        renderDndRow();
     }
 
     // Любой CSS-цвет (rgb, color-mix, oklch...) → #AARRGGBB через canvas.
@@ -102,6 +114,10 @@
             opts.label = (label && label.textContent) || '';
             opts.vibration = !!s.vibration;
             opts.vibrationLevel = s.vibrationLevel || 3;
+            opts.notifTitle = L('natOverlayNotifTitle');
+            opts.notifText = L('natOverlayNotifText');
+            opts.hideLabel = L('natHide');
+            opts.channelName = L('natOverlayChannel');
             N.setOverlay(opts).then(applyStatus).catch(function () {});
         });
     }
@@ -122,7 +138,7 @@
     }
 
     function askOverlayPermission() {
-        if (typeof showToast === 'function') showToast('Разрешите «Поверх других приложений» для Azkar', 3500);
+        toast('natOverlayAsk');
         setTimeout(function () {
             N.requestOverlayPermission().catch(function () {}).then(pushOverlay);
         }, 700);
@@ -164,15 +180,46 @@
         var ok = status.canDraw && status.running;
         row.style.display = (!appSettings().pipCounter || ok) ? 'none' : '';
         if (!status.canDraw) {
-            row.innerHTML = '❌ Нет разрешения «Поверх других приложений».<br>' +
-                '<button class="nat-btn" data-act="perm">Выдать разрешение</button>';
+            row.innerHTML = esc(L('natOverlayNoPerm')) + '<br>' +
+                '<button class="nat-btn" data-act="perm">' + esc(L('natGrant')) + '</button>';
         } else if (!status.running) {
-            row.innerHTML = '⚠️ Разрешение есть, но кнопка не запустилась. ' +
-                (String(status.manufacturer).toLowerCase().match(/xiaomi|redmi|poco/)
-                    ? 'На Xiaomi включите «Всплывающие окна в фоне» и «Автозапуск» в разрешениях приложения.<br>'
-                    : 'Проверьте разрешения приложения.<br>') +
-                '<button class="nat-btn" data-act="settings">Настройки приложения</button>' +
-                '<button class="nat-btn" data-act="retry">Попробовать снова</button>';
+            row.innerHTML = esc(L('natOverlayNotStarted')) + ' ' +
+                esc(String(status.manufacturer).toLowerCase().match(/xiaomi|redmi|poco/) ? L('natXiaomiHint') : L('natCheckPerms')) + '<br>' +
+                '<button class="nat-btn" data-act="settings">' + esc(L('natAppSettings')) + '</button>' +
+                '<button class="nat-btn" data-act="retry">' + esc(L('natRetry')) + '</button>';
+        }
+    }
+    function esc(s) {
+        return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; });
+    }
+
+    // ---- Тишина в тёмном режиме (stealthDnd, по умолчанию включена) ----
+    // Строка-переключатель под «Тёмным режимом зикра». Нужен доступ
+    // «Не беспокоить» — без него строка показывает кнопку «Выдать разрешение».
+    function dndWanted() { return appSettings().stealthDnd !== false; }
+    function askDndAccess() {
+        toast('natDndAsk');
+        setTimeout(function () { N.openDndSettings().catch(function () {}); }, 700);
+    }
+    function toggleStealthDnd() {
+        var s = appSettings();
+        s.stealthDnd = !dndWanted();
+        try { if (typeof saveDataDebounced === 'function') saveDataDebounced(); } catch (e) {}
+        renderDndRow();
+        if (s.stealthDnd && status.dndAccess === false) askDndAccess();
+    }
+    function renderDndRow() {
+        var row = document.getElementById('natDndRow');
+        if (!row) return;
+        row.querySelector('b').textContent = L('natDndLabel');
+        row.querySelector('small').textContent = L('natDndSub');
+        row.querySelector('.toggle-switch').classList.toggle('on', dndWanted());
+        var warn = document.getElementById('natDndWarn');
+        var bad = dndWanted() && status.dndAccess === false;
+        warn.style.display = bad ? '' : 'none';
+        if (bad) {
+            warn.innerHTML = esc(L('natDndNoPerm')) + '<br>' +
+                '<button class="nat-btn" data-act="dnd">' + esc(L('natGrant')) + '</button>';
         }
     }
 
@@ -195,6 +242,25 @@
             });
         }
         renderOverlayRow();
+
+        var stealthToggle = document.getElementById('stealthToggle');
+        var stealthRow = stealthToggle && stealthToggle.closest('.set-row');
+        if (stealthRow && !document.getElementById('natDndRow')) {
+            var d = document.createElement('div');
+            d.id = 'natDndRow'; d.className = 'set-row';
+            d.innerHTML = '<span class="set-ic">🔕</span>' +
+                '<div class="set-row-lbl"><b></b><small></small></div>' +
+                '<div class="toggle-switch"></div>';
+            d.addEventListener('click', toggleStealthDnd);
+            var w = document.createElement('div');
+            w.id = 'natDndWarn'; w.className = 'nat-row';
+            w.addEventListener('click', function (e) {
+                if (e.target.closest('[data-act="dnd"]')) askDndAccess();
+            });
+            stealthRow.parentNode.insertBefore(d, stealthRow.nextSibling);
+            d.parentNode.insertBefore(w, d.nextSibling);
+        }
+        renderDndRow();
     }
 
     // Полосы за строкой состояния и навигацией — цвета фона темы (как в PWA);
@@ -218,15 +284,45 @@
     }
 
     // Тёмный режим зикра (#stealthOverlay в app.js): когда экран стал чёрным
-    // (класс counting), прячем строку состояния и кнопки навигации.
+    // (класс counting), прячем строку состояния и кнопки навигации,
+    // и с настройкой stealthDnd глушим уведомления других приложений.
     var _immersive = false;
     function syncImmersive() {
         var ov = document.getElementById('stealthOverlay');
         var on = !!(ov && ov.classList.contains('counting'));
         if (on === _immersive) return;
         _immersive = on;
-        N.setImmersive({ on: on }).catch(function () {});
+        N.setImmersive({ on: on, dnd: dndWanted() }).catch(function () {});
     }
+
+    // Баннеры Azkar (хадис, намаз, зикр) лежат под чёрным экраном тёмного
+    // режима и не видны — пока он открыт, показываем их системным уведомлением
+    // со звуком (оно проходит и сквозь «Не беспокоить»).
+    function wrapBanner(name, toNotif) {
+        var orig = window[name];
+        if (typeof orig !== 'function') return;
+        window[name] = function () {
+            if (_immersive && notif.permission === 'granted') {
+                var n = toNotif.apply(null, arguments);
+                if (n && n.body) {
+                    n.sound = true;
+                    N.showNotification(n).catch(function () {});
+                    return;
+                }
+            }
+            return orig.apply(this, arguments);
+        };
+    }
+    wrapBanner('showHadithBanner', function (h) {
+        return h && {
+            tag: 'azkar-hadith-' + Date.now(), kind: 'hadith', title: L('hadithLabel'),
+            body: (typeof _hadithText === 'function') ? _hadithText(h) : '',
+            source: (typeof _hadithSource === 'function') ? _hadithSource(h) : ''
+        };
+    });
+    wrapBanner('showNotifBanner', function (title, text, icon, tag, url) {
+        return { tag: tag || ('azkar-notif-' + Date.now()), kind: '', title: title || 'Azkar', body: text, url: url || '' };
+    });
 
     // ---- Уведомления: время намаза, дуа Абу Умамы, зикр, хадисы ----
     // В WebView нет веб-уведомлений и push, поэтому расписание на 7 дней —
@@ -256,7 +352,7 @@
             try { asked = localStorage.getItem(EXACT_ASKED_KEY) === '1'; } catch (e) {}
             if (notif.permission === 'granted' && !notif.exact && !asked) {
                 try { localStorage.setItem(EXACT_ASKED_KEY, '1'); } catch (e) {}
-                if (typeof showToast === 'function') showToast('Разрешите «Будильники и напоминания», чтобы намаз приходил вовремя', 3500);
+                toast('natExactAsk');
                 setTimeout(function () { N.openExactAlarmSettings().then(applyNotif).catch(function () {}); }, 900);
             }
             return window.Notification.permission;
@@ -267,10 +363,10 @@
     function syncNotif(force) {
         var events = [];
         try { if (typeof _buildPushEvents === 'function') events = _buildPushEvents(); } catch (e) {}
-        var json = JSON.stringify(events);
+        var json = JSON.stringify(events) + L('natNotifChannel');
         if (!force && json === _notifSent) return;
         _notifSent = json;
-        N.setNotifications({ events: events }).then(applyNotif).catch(function () { _notifSent = ''; });
+        N.setNotifications({ events: events, channelName: L('natNotifChannel'), channelDesc: L('natNotifChannelDesc') }).then(applyNotif).catch(function () { _notifSent = ''; });
     }
     function syncNotifSoon(force) {
         clearTimeout(_notifTimer);
@@ -327,6 +423,80 @@
         openNotificationTap();
     }
 
+    // Включили тёмный режим, а доступа «Не беспокоить» нет — сразу предлагаем выдать
+    var _origToggleSetting = window.toggleSetting;
+    if (typeof _origToggleSetting === 'function') {
+        window.toggleSetting = function (key) {
+            _origToggleSetting.apply(this, arguments);
+            if (key === 'stealthMode' && appSettings().stealthMode && dndWanted() && status.dndAccess === false) askDndAccess();
+        };
+    }
+
+    // Смена языка — перерисовать наши строки и названия каналов уведомлений
+    var _origApplyLanguage = window.applyLanguage;
+    if (typeof _origApplyLanguage === 'function') {
+        window.applyLanguage = function () {
+            var r = _origApplyLanguage.apply(this, arguments);
+            try { renderOverlayRow(); renderDndRow(); pushOverlay(); syncNotifSoon(true); } catch (e) {}
+            return r;
+        };
+    }
+
+    // ---- Новая версия APK ----
+    // Веб-код зашит в APK, поэтому обновления приходят только новым APK.
+    // На сайте лежит version.json { versionCode, versionName, apk } — если там
+    // versionCode больше нашего, предлагаем скачать. «Позже» — спросим через сутки.
+    var UPDATE_URL = 'https://sunnyberd.github.io/Tasbih/version.json';
+    var UPDATE_APK = 'https://sunnyberd.github.io/Tasbih/Azkar.apk';
+    var UPDATE_LATER_KEY = 'azkar_update_later';
+    var UPDATE_CHECK_MS = 6 * 60 * 60 * 1000;
+    var _updateCheckedAt = 0;
+    function checkUpdate() {
+        if (navigator.onLine === false || Date.now() - _updateCheckedAt < UPDATE_CHECK_MS) return;
+        _updateCheckedAt = Date.now();
+        N.getStatus().then(function (s) {
+            var mine = Number(s && s.versionCode) || 0;
+            if (!mine) return;
+            return fetch(UPDATE_URL + '?t=' + Date.now(), { cache: 'no-store' })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (v) {
+                    var code = Number(v && v.versionCode) || 0;
+                    if (code <= mine) return;
+                    var later = null;
+                    try { later = JSON.parse(localStorage.getItem(UPDATE_LATER_KEY) || 'null'); } catch (e) {}
+                    if (later && later.code === code && Date.now() < later.until) return;
+                    showUpdate(v, code);
+                });
+        }).catch(function () { _updateCheckedAt = 0; });
+    }
+    function showUpdate(v, code) {
+        var o = document.getElementById('natUpdateOverlay');
+        if (!o) {
+            o = document.createElement('div');
+            o.id = 'natUpdateOverlay'; o.className = 'overlay';
+            o.innerHTML = '<div class="overlay-card"><div class="overlay-title"></div><div class="overlay-sub"></div>' +
+                '<div class="overlay-btns"><button class="overlay-btn-cancel" data-act="later"></button>' +
+                '<button class="overlay-btn-confirm" data-act="get"></button></div></div>';
+            document.body.appendChild(o);
+        }
+        o.querySelector('.overlay-title').textContent = L('updTitle');
+        o.querySelector('.overlay-sub').textContent = L('updText').replace('{v}', String(v.versionName || code));
+        o.querySelector('[data-act="later"]').textContent = L('updLater');
+        o.querySelector('[data-act="get"]').textContent = L('updDownload');
+        o.onclick = function (e) {
+            var b = e.target.closest('[data-act]');
+            if (!b && e.target !== o) return;
+            if (b && b.getAttribute('data-act') === 'get') {
+                var url = String(v.apk || '');
+                N.openUrl({ url: url.indexOf('https://') === 0 ? url : UPDATE_APK }).catch(function () {});
+            } else {
+                try { localStorage.setItem(UPDATE_LATER_KEY, JSON.stringify({ code: code, until: Date.now() + 24 * 60 * 60 * 1000 })); } catch (e) {}
+            }
+            o.classList.remove('show');
+        };
+        o.classList.add('show');
+    }
+
     function start() {
         injectStyles();
         injectRows();
@@ -353,7 +523,9 @@
             drainTaps();
             // Пользователь мог только что выдать разрешение в настройках Android.
             setTimeout(function () { N.getStatus().then(applyStatus); }, 600);
+            checkUpdate();
         });
+        setTimeout(checkUpdate, 4000);
         N.getStatus().then(applyStatus);
         // Тапы, сделанные пока приложение было выгружено из памяти.
         setTimeout(drainTaps, 800);

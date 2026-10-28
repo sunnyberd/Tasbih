@@ -321,7 +321,31 @@ AZKAR_I18N_REGISTER("ms", {
     "ariaAddDua": "Tambah doa atau folder baharu",
     "ariaAddDhikr": "Tambah zikir",
     "ariaAddFolder": "Tambah folder",
-    "ariaAllah": "Allah"
+    "ariaAllah": "Allah",
+    // Android-приложение (js/native.js) и окно обновления APK
+    "natOverlayAsk": "Benarkan “Papar di atas apl lain” untuk Azkar",
+    "natOverlayNoPerm": "❌ Tiada kebenaran “Papar di atas apl lain”.",
+    "natGrant": "Beri kebenaran",
+    "natOverlayNotStarted": "⚠️ Kebenaran ada, tetapi butang tidak bermula.",
+    "natXiaomiHint": "Pada Xiaomi, hidupkan “Papar tetingkap timbul semasa berjalan di latar belakang” dan “Mula automatik” dalam kebenaran apl.",
+    "natCheckPerms": "Semak kebenaran apl.",
+    "natAppSettings": "Tetapan apl",
+    "natRetry": "Cuba lagi",
+    "natExactAsk": "Benarkan “Penggera & peringatan” supaya pemberitahuan solat tiba tepat pada masanya",
+    "natOverlayNotifTitle": "Tasbih di atas skrin",
+    "natOverlayNotifText": "Ketik untuk membuka apl",
+    "natHide": "Sembunyikan",
+    "natOverlayChannel": "Pembilang terapung",
+    "natNotifChannel": "Solat, zikir dan hadis",
+    "natNotifChannelDesc": "Waktu solat, doa Abu Umamah, peringatan zikir dan hadis",
+    "natDndLabel": "Senyap dalam mod gelap",
+    "natDndSub": "Pemberitahuan apl lain tidak akan tiba, pemberitahuan Azkar akan tiba",
+    "natDndAsk": "Benarkan Azkar mengakses “Jangan Ganggu”",
+    "natDndNoPerm": "❌ Tiada akses “Jangan Ganggu”.",
+    "updTitle": "Kemas kini tersedia",
+    "updText": "Azkar {v} telah keluar. Pasang di atas versi semasa — data anda akan kekal.",
+    "updDownload": "Muat turun",
+    "updLater": "Nanti"
 }, {
     "settingsSections": {
         "appearance": {

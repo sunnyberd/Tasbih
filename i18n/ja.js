@@ -321,7 +321,31 @@ AZKAR_I18N_REGISTER("ja", {
     "ariaAddDua": "新しいドゥアまたはフォルダを追加",
     "ariaAddDhikr": "ズィクルを追加",
     "ariaAddFolder": "フォルダを追加",
-    "ariaAllah": "アッラー"
+    "ariaAllah": "アッラー",
+    // Android-приложение (js/native.js) и окно обновления APK
+    "natOverlayAsk": "Azkar に「他のアプリの上に重ねて表示」を許可してください",
+    "natOverlayNoPerm": "❌ 「他のアプリの上に重ねて表示」の許可がありません。",
+    "natGrant": "許可する",
+    "natOverlayNotStarted": "⚠️ 許可はありますが、ボタンが起動しませんでした。",
+    "natXiaomiHint": "Xiaomi ではアプリの権限で「バックグラウンドでポップアップを表示」と「自動起動」をオンにしてください。",
+    "natCheckPerms": "アプリの権限を確認してください。",
+    "natAppSettings": "アプリの設定",
+    "natRetry": "再試行",
+    "natExactAsk": "礼拝の通知が時間どおりに届くよう「アラームとリマインダー」を許可してください",
+    "natOverlayNotifTitle": "画面の上にタスビーフ",
+    "natOverlayNotifText": "タップしてアプリを開く",
+    "natHide": "隠す",
+    "natOverlayChannel": "フローティングカウンター",
+    "natNotifChannel": "礼拝・ズィクル・ハディース",
+    "natNotifChannelDesc": "礼拝時刻、アブー・ウマーマのドゥアー、ズィクルのリマインダー、ハディース",
+    "natDndLabel": "ダークモード中はサイレント",
+    "natDndSub": "他のアプリの通知は届かず、Azkar の通知は届きます",
+    "natDndAsk": "Azkar に「サイレントモード」へのアクセスを許可してください",
+    "natDndNoPerm": "❌ 「サイレントモード」へのアクセスがありません。",
+    "updTitle": "アップデートがあります",
+    "updText": "Azkar {v} が公開されました。今のバージョンの上からインストールしてください。データはそのまま残ります。",
+    "updDownload": "ダウンロード",
+    "updLater": "あとで"
 }, {
     "settingsSections": {
         "appearance": {

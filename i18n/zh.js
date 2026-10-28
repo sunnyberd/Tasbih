@@ -321,7 +321,31 @@ AZKAR_I18N_REGISTER("zh", {
     "ariaAddDua": "添加新的杜阿或文件夹",
     "ariaAddDhikr": "添加迪克尔",
     "ariaAddFolder": "添加文件夹",
-    "ariaAllah": "真主"
+    "ariaAllah": "真主",
+    // Android-приложение (js/native.js) и окно обновления APK
+    "natOverlayAsk": "请允许 Azkar “显示在其他应用上层”",
+    "natOverlayNoPerm": "❌ 没有“显示在其他应用上层”权限。",
+    "natGrant": "授予权限",
+    "natOverlayNotStarted": "⚠️ 已有权限，但按钮未能启动。",
+    "natXiaomiHint": "在小米手机上，请在应用权限中开启“后台弹出界面”和“自启动”。",
+    "natCheckPerms": "请检查应用权限。",
+    "natAppSettings": "应用设置",
+    "natRetry": "重试",
+    "natExactAsk": "请允许“闹钟和提醒”，以便礼拜通知准时到达",
+    "natOverlayNotifTitle": "屏幕上的念珠",
+    "natOverlayNotifText": "点按打开应用",
+    "natHide": "隐藏",
+    "natOverlayChannel": "悬浮计数器",
+    "natNotifChannel": "礼拜、赞念和圣训",
+    "natNotifChannelDesc": "礼拜时间、阿布·乌玛玛的祈祷、赞念提醒和圣训",
+    "natDndLabel": "暗黑模式下静音",
+    "natDndSub": "其他应用的通知不会到达，Azkar 的通知会到达",
+    "natDndAsk": "请允许 Azkar 访问“勿扰模式”",
+    "natDndNoPerm": "❌ 没有“勿扰模式”访问权限。",
+    "updTitle": "有可用更新",
+    "updText": "Azkar {v} 已发布。请直接覆盖安装当前版本——你的数据会保留。",
+    "updDownload": "下载",
+    "updLater": "稍后"
 }, {
     "settingsSections": {
         "appearance": {

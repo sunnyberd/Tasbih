@@ -321,7 +321,31 @@ AZKAR_I18N_REGISTER("th", {
     "ariaAddDua": "เพิ่มดุอาอ์หรือโฟลเดอร์ใหม่",
     "ariaAddDhikr": "เพิ่มซิกร์",
     "ariaAddFolder": "เพิ่มโฟลเดอร์",
-    "ariaAllah": "อัลลอฮ์"
+    "ariaAllah": "อัลลอฮ์",
+    // Android-приложение (js/native.js) и окно обновления APK
+    "natOverlayAsk": "โปรดอนุญาต “แสดงทับแอปอื่น” ให้ Azkar",
+    "natOverlayNoPerm": "❌ ไม่มีสิทธิ์ “แสดงทับแอปอื่น”",
+    "natGrant": "ให้สิทธิ์",
+    "natOverlayNotStarted": "⚠️ มีสิทธิ์แล้ว แต่ปุ่มไม่เริ่มทำงาน",
+    "natXiaomiHint": "บน Xiaomi ให้เปิด “แสดงหน้าต่างป๊อปอัปขณะทำงานในเบื้องหลัง” และ “เริ่มอัตโนมัติ” ในสิทธิ์ของแอป",
+    "natCheckPerms": "ตรวจสอบสิทธิ์ของแอป",
+    "natAppSettings": "การตั้งค่าแอป",
+    "natRetry": "ลองอีกครั้ง",
+    "natExactAsk": "โปรดอนุญาต “การปลุกและการช่วยเตือน” เพื่อให้การแจ้งเตือนละหมาดมาตรงเวลา",
+    "natOverlayNotifTitle": "ตัสบีห์บนหน้าจอ",
+    "natOverlayNotifText": "แตะเพื่อเปิดแอป",
+    "natHide": "ซ่อน",
+    "natOverlayChannel": "ตัวนับลอย",
+    "natNotifChannel": "ละหมาด ซิกร์ และหะดีษ",
+    "natNotifChannelDesc": "เวลาละหมาด ดุอาอ์ของอบูอุมามะฮ์ การเตือนซิกร์ และหะดีษ",
+    "natDndLabel": "เงียบในโหมดมืด",
+    "natDndSub": "การแจ้งเตือนจากแอปอื่นจะไม่มา แต่ของ Azkar จะมา",
+    "natDndAsk": "โปรดอนุญาตให้ Azkar เข้าถึง “ห้ามรบกวน”",
+    "natDndNoPerm": "❌ ไม่มีสิทธิ์เข้าถึง “ห้ามรบกวน”",
+    "updTitle": "มีอัปเดตใหม่",
+    "updText": "Azkar {v} ออกแล้ว ติดตั้งทับเวอร์ชันปัจจุบันได้เลย — ข้อมูลของคุณจะยังอยู่",
+    "updDownload": "ดาวน์โหลด",
+    "updLater": "ภายหลัง"
 }, {
     "settingsSections": {
         "appearance": {

@@ -321,7 +321,31 @@ AZKAR_I18N_REGISTER("es", {
     "ariaAddDua": "Añadir una nueva dua o carpeta",
     "ariaAddDhikr": "Añadir dhikr",
     "ariaAddFolder": "Añadir carpeta",
-    "ariaAllah": "Allah"
+    "ariaAllah": "Allah",
+    // Android-приложение (js/native.js) и окно обновления APK
+    "natOverlayAsk": "Permite «Mostrar sobre otras apps» para Azkar",
+    "natOverlayNoPerm": "❌ Sin permiso «Mostrar sobre otras apps».",
+    "natGrant": "Dar permiso",
+    "natOverlayNotStarted": "⚠️ Hay permiso, pero el botón no se inició.",
+    "natXiaomiHint": "En Xiaomi activa «Mostrar ventanas emergentes en segundo plano» e «Inicio automático» en los permisos de la app.",
+    "natCheckPerms": "Revisa los permisos de la app.",
+    "natAppSettings": "Ajustes de la app",
+    "natRetry": "Reintentar",
+    "natExactAsk": "Permite «Alarmas y recordatorios» para que los avisos de oración lleguen a tiempo",
+    "natOverlayNotifTitle": "Tasbih sobre la pantalla",
+    "natOverlayNotifText": "Toca para abrir la app",
+    "natHide": "Ocultar",
+    "natOverlayChannel": "Contador flotante",
+    "natNotifChannel": "Oración, dhikr y hadices",
+    "natNotifChannelDesc": "Horarios de oración, dua de Abu Umama, recordatorios de dhikr y hadices",
+    "natDndLabel": "Silencio en modo oscuro",
+    "natDndSub": "No llegarán avisos de otras apps; los de Azkar, sí",
+    "natDndAsk": "Permite a Azkar acceder a «No molestar»",
+    "natDndNoPerm": "❌ Sin acceso a «No molestar».",
+    "updTitle": "Actualización disponible",
+    "updText": "Ya salió Azkar {v}. Instálala sobre la versión actual: tus datos se conservarán.",
+    "updDownload": "Descargar",
+    "updLater": "Más tarde"
 }, {
     "settingsSections": {
         "appearance": {

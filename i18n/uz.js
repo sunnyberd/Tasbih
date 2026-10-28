@@ -321,7 +321,31 @@ AZKAR_I18N_REGISTER("uz", {
     "ariaAddDua": "Yangi duo yoki papka qo‘shish",
     "ariaAddDhikr": "Zikr qo‘shish",
     "ariaAddFolder": "Papka qo‘shish",
-    "ariaAllah": "Alloh"
+    "ariaAllah": "Alloh",
+    // Android-приложение (js/native.js) и окно обновления APK
+    "natOverlayAsk": "Azkar uchun «Boshqa ilovalar ustidan» ruxsatini bering",
+    "natOverlayNoPerm": "❌ «Boshqa ilovalar ustidan» ruxsati yo‘q.",
+    "natGrant": "Ruxsat berish",
+    "natOverlayNotStarted": "⚠️ Ruxsat bor, lekin tugma ishga tushmadi.",
+    "natXiaomiHint": "Xiaomi’da ilova ruxsatlarida «Fonda qalqib chiquvchi oynalar» va «Avtoishga tushirish»ni yoqing.",
+    "natCheckPerms": "Ilova ruxsatlarini tekshiring.",
+    "natAppSettings": "Ilova sozlamalari",
+    "natRetry": "Qayta urinish",
+    "natExactAsk": "Namoz bildirishnomasi o‘z vaqtida kelishi uchun «Signallar va eslatmalar»ga ruxsat bering",
+    "natOverlayNotifTitle": "Tasbeh ekran ustida",
+    "natOverlayNotifText": "Ilovani ochish uchun bosing",
+    "natHide": "Yashirish",
+    "natOverlayChannel": "Suzuvchi hisoblagich",
+    "natNotifChannel": "Namoz, zikr va hadislar",
+    "natNotifChannelDesc": "Namoz vaqtlari, Abu Umoma duosi, zikr eslatmalari va hadislar",
+    "natDndLabel": "Qorong‘i rejimda sukunat",
+    "natDndSub": "Boshqa ilovalar bildirishnomalari kelmaydi, Azkar’niki keladi",
+    "natDndAsk": "Azkar’ga «Bezovta qilinmasin» rejimiga kirish ruxsatini bering",
+    "natDndNoPerm": "❌ «Bezovta qilinmasin» rejimiga ruxsat yo‘q.",
+    "updTitle": "Yangilanish mavjud",
+    "updText": "Azkar {v} chiqdi. Uni joriy versiya ustidan o‘rnating — ma’lumotlaringiz saqlanadi.",
+    "updDownload": "Yuklab olish",
+    "updLater": "Keyinroq"
 }, {
     "settingsSections": {
         "appearance": {

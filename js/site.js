@@ -247,13 +247,15 @@
     }
 
     /* ===================== ОКНО ПОДТВЕРЖДЕНИЯ ===================== */
-    function askConfirm(title, sub, yes, no) {
+    // Как в приложении: «Нет» слева, «Да» справа; danger — красная «Да» (удаление).
+    function askConfirm(title, sub, danger) {
         return new Promise(function (resolve) {
             var m = $("modal");
             $("mTitle").textContent = title;
             $("mSub").textContent = sub || "";
-            $("mYes").textContent = yes || t("btnYes");
-            $("mNo").textContent = no || t("btnNo");
+            $("mYes").textContent = t("btnYes");
+            $("mNo").textContent = t("btnNo");
+            $("mYes").className = "btn " + (danger ? "btn-danger" : "btn-gold");
             m.classList.remove("hidden");
             $("mNo").focus();
             function done(v) {
@@ -541,7 +543,7 @@
     }
     function deleteMine() {
         if (busy || !mine) return;
-        askConfirm(t("confirmDeleteTitle"), t("confirmDeleteSub")).then(function (yes) {
+        askConfirm(t("confirmDeleteTitle"), t("confirmDeleteSub"), true).then(function (yes) {
             if (!yes) return;
             busy = true;
             var batch = F.writeBatch(db);
@@ -566,7 +568,7 @@
         });
     }
     function signOut() {
-        askConfirm(t("signOutQ"), "", t("signOut"), t("btnCancel")).then(function (yes) {
+        askConfirm(t("signOutQ"), t("signOutSub")).then(function (yes) {
             if (yes) A.signOut(auth);
         });
     }
@@ -600,7 +602,7 @@
         }).catch(function () { toast(t("errNetwork")); });
     }
     function adminDelete(m) {
-        askConfirm(t("confirmDelMsg"), "").then(function (yes) {
+        askConfirm(t("confirmDelMsg"), t("confirmDeleteSub"), true).then(function (yes) {
             if (!yes) return;
             // Удаляем отзыв целиком — текст и оценку автора: у него в приложении
             // и на сайте отзыв исчезает, звёзды снова пустые, можно написать заново.

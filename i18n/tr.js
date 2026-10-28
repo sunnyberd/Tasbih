@@ -321,7 +321,31 @@ AZKAR_I18N_REGISTER("tr", {
     "ariaAddDua": "Yeni dua veya klasör ekle",
     "ariaAddDhikr": "Zikir ekle",
     "ariaAddFolder": "Klasör ekle",
-    "ariaAllah": "Allah"
+    "ariaAllah": "Allah",
+    // Android-приложение (js/native.js) и окно обновления APK
+    "natOverlayAsk": "Azkar için “Diğer uygulamaların üzerinde göster” izni verin",
+    "natOverlayNoPerm": "❌ “Diğer uygulamaların üzerinde göster” izni yok.",
+    "natGrant": "İzin ver",
+    "natOverlayNotStarted": "⚠️ İzin var ama düğme başlamadı.",
+    "natXiaomiHint": "Xiaomi’de uygulama izinlerinden “Arka planda açılır pencereler göster” ve “Otomatik başlat”ı açın.",
+    "natCheckPerms": "Uygulama izinlerini kontrol edin.",
+    "natAppSettings": "Uygulama ayarları",
+    "natRetry": "Tekrar dene",
+    "natExactAsk": "Namaz bildirimleri zamanında gelsin diye “Alarmlar ve hatırlatıcılar” izni verin",
+    "natOverlayNotifTitle": "Ekranın üstünde tesbih",
+    "natOverlayNotifText": "Uygulamayı açmak için dokunun",
+    "natHide": "Gizle",
+    "natOverlayChannel": "Kayan sayaç",
+    "natNotifChannel": "Namaz, zikir ve hadisler",
+    "natNotifChannelDesc": "Namaz vakitleri, Ebu Ümame duası, zikir hatırlatmaları ve hadisler",
+    "natDndLabel": "Karanlık modda sessizlik",
+    "natDndSub": "Diğer uygulamaların bildirimleri gelmez, Azkar’ınkiler gelir",
+    "natDndAsk": "Azkar’a “Rahatsız Etmeyin” erişimi verin",
+    "natDndNoPerm": "❌ “Rahatsız Etmeyin” erişimi yok.",
+    "updTitle": "Güncelleme var",
+    "updText": "Azkar {v} çıktı. Mevcut sürümün üzerine yükleyin — verileriniz korunur.",
+    "updDownload": "İndir",
+    "updLater": "Sonra"
 }, {
     "settingsSections": {
         "appearance": {

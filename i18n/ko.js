@@ -321,7 +321,31 @@ AZKAR_I18N_REGISTER("ko", {
     "ariaAddDua": "새 두아 또는 폴더 추가",
     "ariaAddDhikr": "지크르 추가",
     "ariaAddFolder": "폴더 추가",
-    "ariaAllah": "알라"
+    "ariaAllah": "알라",
+    // Android-приложение (js/native.js) и окно обновления APK
+    "natOverlayAsk": "Azkar에 ‘다른 앱 위에 표시’를 허용해 주세요",
+    "natOverlayNoPerm": "❌ ‘다른 앱 위에 표시’ 권한이 없습니다.",
+    "natGrant": "권한 허용",
+    "natOverlayNotStarted": "⚠️ 권한은 있지만 버튼이 시작되지 않았습니다.",
+    "natXiaomiHint": "Xiaomi에서는 앱 권한에서 ‘백그라운드에서 팝업 창 표시’와 ‘자동 시작’을 켜 주세요.",
+    "natCheckPerms": "앱 권한을 확인해 주세요.",
+    "natAppSettings": "앱 설정",
+    "natRetry": "다시 시도",
+    "natExactAsk": "기도 알림이 제시간에 오도록 ‘알람 및 리마인더’를 허용해 주세요",
+    "natOverlayNotifTitle": "화면 위의 타스비",
+    "natOverlayNotifText": "탭하여 앱 열기",
+    "natHide": "숨기기",
+    "natOverlayChannel": "플로팅 카운터",
+    "natNotifChannel": "기도, 디크르, 하디스",
+    "natNotifChannelDesc": "기도 시간, 아부 우마마의 두아, 디크르 알림과 하디스",
+    "natDndLabel": "다크 모드에서 무음",
+    "natDndSub": "다른 앱 알림은 오지 않고 Azkar 알림은 옵니다",
+    "natDndAsk": "Azkar에 ‘방해 금지’ 접근을 허용해 주세요",
+    "natDndNoPerm": "❌ ‘방해 금지’ 접근 권한이 없습니다.",
+    "updTitle": "업데이트 가능",
+    "updText": "Azkar {v}이(가) 나왔습니다. 현재 버전 위에 설치하세요. 데이터는 그대로 유지됩니다.",
+    "updDownload": "다운로드",
+    "updLater": "나중에"
 }, {
     "settingsSections": {
         "appearance": {

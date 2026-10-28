@@ -321,7 +321,31 @@ AZKAR_I18N_REGISTER("fr", {
     "ariaAddDua": "Ajouter une nouvelle dua ou un dossier",
     "ariaAddDhikr": "Ajouter un dhikr",
     "ariaAddFolder": "Ajouter un dossier",
-    "ariaAllah": "Allah"
+    "ariaAllah": "Allah",
+    // Android-приложение (js/native.js) и окно обновления APK
+    "natOverlayAsk": "Autorisez « Superposition sur d’autres applis » pour Azkar",
+    "natOverlayNoPerm": "❌ Pas d’autorisation « Superposition sur d’autres applis ».",
+    "natGrant": "Autoriser",
+    "natOverlayNotStarted": "⚠️ Autorisation accordée, mais le bouton n’a pas démarré.",
+    "natXiaomiHint": "Sur Xiaomi, activez « Afficher les fenêtres pop-up en arrière-plan » et « Démarrage automatique » dans les autorisations de l’appli.",
+    "natCheckPerms": "Vérifiez les autorisations de l’appli.",
+    "natAppSettings": "Paramètres de l’appli",
+    "natRetry": "Réessayer",
+    "natExactAsk": "Autorisez « Alarmes et rappels » pour que les notifications de prière arrivent à l’heure",
+    "natOverlayNotifTitle": "Tasbih par-dessus l’écran",
+    "natOverlayNotifText": "Touchez pour ouvrir l’appli",
+    "natHide": "Masquer",
+    "natOverlayChannel": "Compteur flottant",
+    "natNotifChannel": "Prière, dhikr et hadiths",
+    "natNotifChannelDesc": "Heures de prière, dua d’Abou Oumama, rappels de dhikr et hadiths",
+    "natDndLabel": "Silence en mode sombre",
+    "natDndSub": "Les notifications des autres applis ne viendront pas, celles d’Azkar oui",
+    "natDndAsk": "Autorisez l’accès d’Azkar à « Ne pas déranger »",
+    "natDndNoPerm": "❌ Pas d’accès à « Ne pas déranger ».",
+    "updTitle": "Mise à jour disponible",
+    "updText": "Azkar {v} est sorti. Installez-le par-dessus la version actuelle — vos données seront conservées.",
+    "updDownload": "Télécharger",
+    "updLater": "Plus tard"
 }, {
     "settingsSections": {
         "appearance": {

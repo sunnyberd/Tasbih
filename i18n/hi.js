@@ -321,7 +321,31 @@ AZKAR_I18N_REGISTER("hi", {
     "ariaAddDua": "नई दुआ या फ़ोल्डर जोड़ें",
     "ariaAddDhikr": "ज़िक्र जोड़ें",
     "ariaAddFolder": "फ़ोल्डर जोड़ें",
-    "ariaAllah": "अल्लाह"
+    "ariaAllah": "अल्लाह",
+    // Android-приложение (js/native.js) и окно обновления APK
+    "natOverlayAsk": "Azkar के लिए “दूसरे ऐप्स के ऊपर दिखाएं” की अनुमति दें",
+    "natOverlayNoPerm": "❌ “दूसरे ऐप्स के ऊपर दिखाएं” की अनुमति नहीं है।",
+    "natGrant": "अनुमति दें",
+    "natOverlayNotStarted": "⚠️ अनुमति है, लेकिन बटन शुरू नहीं हुआ।",
+    "natXiaomiHint": "Xiaomi पर ऐप अनुमतियों में “बैकग्राउंड में पॉप-अप विंडो दिखाएं” और “ऑटोस्टार्ट” चालू करें।",
+    "natCheckPerms": "ऐप की अनुमतियाँ जाँचें।",
+    "natAppSettings": "ऐप सेटिंग्स",
+    "natRetry": "फिर से कोशिश करें",
+    "natExactAsk": "नमाज़ की सूचनाएँ समय पर आएँ, इसके लिए “अलार्म और रिमाइंडर” की अनुमति दें",
+    "natOverlayNotifTitle": "स्क्रीन के ऊपर तस्बीह",
+    "natOverlayNotifText": "ऐप खोलने के लिए टैप करें",
+    "natHide": "छिपाएं",
+    "natOverlayChannel": "फ़्लोटिंग काउंटर",
+    "natNotifChannel": "नमाज़, ज़िक्र और हदीसें",
+    "natNotifChannelDesc": "नमाज़ के समय, अबू उमामा की दुआ, ज़िक्र रिमाइंडर और हदीसें",
+    "natDndLabel": "डार्क मोड में साइलेंस",
+    "natDndSub": "दूसरे ऐप्स की सूचनाएँ नहीं आएँगी, Azkar की आएँगी",
+    "natDndAsk": "Azkar को “परेशान न करें” की एक्सेस दें",
+    "natDndNoPerm": "❌ “परेशान न करें” की एक्सेस नहीं है।",
+    "updTitle": "अपडेट उपलब्ध है",
+    "updText": "Azkar {v} आ गया है। इसे मौजूदा वर्ज़न के ऊपर इंस्टॉल करें — आपका डेटा बना रहेगा।",
+    "updDownload": "डाउनलोड करें",
+    "updLater": "बाद में"
 }, {
     "settingsSections": {
         "appearance": {
