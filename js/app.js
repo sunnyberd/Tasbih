@@ -647,6 +647,7 @@
             });
             document.querySelectorAll('.lang-chip').forEach(chip => chip.classList.toggle('active', chip.dataset.lang === lang));
             if (typeof updateLangDropdownUI === 'function') updateLangDropdownUI(lang);
+            if (typeof updateIdleFadeUI === 'function') updateIdleFadeUI();
             const els = {
                 headerTitle: 'headerTitle', labelGoal: 'labelGoal', labelGoal2: 'labelGoal', labelGoal3: 'labelGoal',
                 labelCustom: 'labelCustom', btnReset: 'btnReset', titleDua: 'titleDua', subtitleDua: 'subtitleDua',
@@ -692,6 +693,7 @@
                 dhikrStatsCloseBtn: 'clStatsClose',
                 labelTimer: 'labelTimer',
                 labelStealth: 'labelStealth',
+                labelIdleFade: 'labelIdleFade',
                 labelAutoAdvance: 'labelAutoAdvance',
                 // Hadith UI
                 labelHadith: 'labelNotifications',
@@ -5287,6 +5289,7 @@
             { id: 'autoAdvance',    icon: 'autoAdvanceIcon',    label: 'labelAutoAdvance',    on: () => !!settings.autoAdvance,          run: () => toggleSetting('autoAdvance'), dim: true },
             { id: 'pipCounter',     icon: 'pipIcon',            label: 'labelPip',            on: () => !!settings.pipCounter,           run: () => togglePipCounter(), dim: true },
             { id: 'stealthMode',    icon: 'stealthIcon',        label: 'labelStealth',        on: () => !!settings.stealthMode,          run: btn => _quickStealth(btn) },
+            { id: 'idleFade',       icon: 'idleFadeIcon',       label: 'labelIdleFade',       on: () => idleFadeOn(),                    run: () => toggleIdleFade(), dim: true },
             { id: 'notifMaster',    icon: 'hadithIcon',         label: 'labelNotifications',  on: () => notifMasterOn(),                 run: () => toggleNotifMaster() }
         ];
         var QUICK_DEFAULT = ['sound', 'clickSound', 'vibration'];
@@ -5394,16 +5397,92 @@
         })();
 
         // ===== Кнопки вокруг счётчика бледнеют, пока их не трогают =====
-        // Через IDLE_MS без касаний кнопка «Основной зикр», быстрые иконки и цели
-        // уходят до 30% (css: html.ui-idle). Нажатия на круг счётчика не будят —
-        // пока считаешь, кнопки остаются в тени. Любое другое касание будит,
-        // а нажатая бледная кнопка срабатывает сразу, без второго нажатия.
+        // Настройка «Бледнеющие кнопки»: settings.idleFade (вкл/выкл) и
+        // settings.idleFadeLevel — видимость 0–99% (по умолчанию 30). Через IDLE_MS
+        // без касаний кнопка «Основной зикр», быстрые иконки и цели уходят до этой
+        // видимости (css: html.ui-idle, --idle-opacity). Нажатия на круг счётчика
+        // не будят — пока считаешь, кнопки остаются в тени. Любое другое касание будит.
+        // Видимость 25% и выше — бледная кнопка срабатывает сразу. Ниже 25% кнопки
+        // почти не видно, поэтому первое касание только показывает их, второе нажимает.
+        const IDLE_FADE_DEFAULT = 30;
+        const IDLE_FADE_REVEAL_BELOW = 25;
+        function idleFadeOn() { return settings.idleFade !== false; }
+        function idleFadeLevel() {
+            const v = parseInt(settings.idleFadeLevel, 10);
+            return isNaN(v) ? IDLE_FADE_DEFAULT : Math.max(0, Math.min(99, v));
+        }
+        function updateIdleFadeUI() {
+            document.documentElement.style.setProperty('--idle-opacity', String(idleFadeLevel() / 100));
+            if (!idleFadeOn()) document.documentElement.classList.remove('ui-idle');
+            const tg = document.getElementById('idleFadeToggle');
+            if (tg) tg.classList.toggle('on', idleFadeOn());
+            const hint = document.getElementById('idleFadeHint');
+            if (hint) {
+                hint.textContent = t('idleFadeHint').replace('{n}', idleFadeLevel());
+                hint.style.display = idleFadeOn() ? '' : 'none';
+            }
+        }
+        function toggleIdleFade() {
+            settings.idleFade = !idleFadeOn();
+            saveDataDebounced();
+            updateSettingsUI();
+        }
+        let _idleFadePressTimer = null;
+        function startIdleFadePress(e) {
+            if (e && e.pointerType === 'mouse' && e.button !== 0) return;
+            clearTimeout(_idleFadePressTimer);
+            _idleFadePressTimer = setTimeout(() => {
+                _idleFadePressTimer = null;
+                openIdleFadePicker();
+            }, 1000);
+        }
+        function cancelIdleFadePress() {            // отпустили раньше секунды → короткий тап
+            if (_idleFadePressTimer) {
+                clearTimeout(_idleFadePressTimer);
+                _idleFadePressTimer = null;
+                toggleIdleFade();
+            }
+        }
+        function abortIdleFadePress() {             // палец ушёл / начался скролл → без действия
+            if (_idleFadePressTimer) { clearTimeout(_idleFadePressTimer); _idleFadePressTimer = null; }
+        }
+        function openIdleFadePicker() {
+            const lvl = idleFadeLevel();
+            const preset = [25, 50, 75].includes(lvl);
+            document.getElementById('idleFadeTitle').textContent = t('idleFadeTitle');
+            document.getElementById('idleFadeSub').textContent = t('idleFadeSub');
+            document.getElementById('idleFadeSaveBtn').textContent = t('customGoalSaveBtn');
+            document.querySelectorAll('.idle-fade-preset').forEach(b => b.classList.toggle('active', preset && +b.dataset.level === lvl));
+            const inp = document.getElementById('idleFadeInput');
+            inp.placeholder = t('idleFadeCustom');
+            inp.value = preset ? '' : lvl;
+            inp.classList.toggle('active', !preset);
+            document.getElementById('idleFadeOverlay').classList.add('show');
+        }
+        function closeIdleFadePicker() {
+            document.getElementById('idleFadeOverlay').classList.remove('show');
+        }
+        function setIdleFadeLevel(v) {
+            settings.idleFadeLevel = Math.max(0, Math.min(99, v));
+            settings.idleFade = true;
+            saveDataDebounced();
+            updateSettingsUI();
+            closeIdleFadePicker();
+        }
+        function saveIdleFadeCustom() {
+            const v = parseInt(document.getElementById('idleFadeInput').value, 10);
+            if (isNaN(v) || v < 0 || v > 99) { showToast(t('idleFadeRange'), 2500); return; }
+            setIdleFadeLevel(v);
+        }
         (function initIdleFade() {
             const IDLE_MS = 4500;   // столько же живёт исчезающая подсказка сверху (initManualAddHint)
+            const FADED = '.post-salah-select-wrap, .quick-toggles, #mainGoalsArea';
             const root = document.documentElement;
             let timer = null;
+            let swallowUntil = 0;   // касание, которое только показало кнопки, не должно их нажать
             function arm() { clearTimeout(timer); timer = setTimeout(sleep, IDLE_MS); }
             function sleep() {
+                if (!idleFadeOn()) return;
                 const dd = document.getElementById('postSalahDropdown');
                 if (dd && dd.classList.contains('open')) { arm(); return; }
                 root.classList.add('ui-idle');
@@ -5411,10 +5490,24 @@
             function wake(e) {
                 const el = e && e.target;
                 if (el && el.closest && el.closest('.counter-ring-wrap, #stealthOverlay')) return;
+                if (root.classList.contains('ui-idle') && idleFadeLevel() < IDLE_FADE_REVEAL_BELOW &&
+                    el && el.closest && el.closest(FADED)) {
+                    swallowUntil = Date.now() + 800;
+                    e.stopPropagation();
+                    if (e.cancelable) e.preventDefault();
+                }
                 root.classList.remove('ui-idle');
                 arm();
             }
+            function swallow(e) {
+                if (Date.now() > swallowUntil) return;
+                e.stopPropagation();
+                if (e.cancelable) e.preventDefault();
+                if (e.type === 'click') swallowUntil = 0;
+            }
             document.addEventListener('pointerdown', wake, true);
+            ['touchstart', 'mousedown', 'touchend', 'mouseup', 'click'].forEach(type =>
+                document.addEventListener(type, swallow, { capture: true, passive: false }));
             document.addEventListener('keydown', wake, true);
             arm();
         })();
@@ -8087,6 +8180,7 @@
             // Vibration icon: 📳 when on, 📱 when off
             const vIcon = document.getElementById('vibrationIcon');
             if (vIcon) vIcon.textContent = settings.vibration ? '📳' : '📱';
+            updateIdleFadeUI();
             renderQuickToggles();
             // Vibration slider (levels 1-3)
             const vSlider = document.getElementById('vibrationSlider');

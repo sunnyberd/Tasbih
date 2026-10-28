@@ -346,7 +346,14 @@ AZKAR_I18N_REGISTER("tr", {
     // Быстрые иконки на экранах счётчика
     "qtPickTitle": "Simge seçin",
     "qtHint": "Değiştirmek için simgeyi basılı tutun",
-    "qtEmpty": "Boş"
+    "qtEmpty": "Boş",
+    // Бледнеющие кнопки вокруг счётчика (настройка и окно видимости)
+    "labelIdleFade": "Soluklaşan düğmeler",
+    "idleFadeHint": "Görünürlük %{n} · değiştirmek için basılı tutun",
+    "idleFadeTitle": "Düğme görünürlüğü",
+    "idleFadeSub": "%25’in altında ilk dokunuş yalnızca düğmeleri gösterir",
+    "idleFadeCustom": "Özel %",
+    "idleFadeRange": "0 ile 99 arasında bir sayı girin"
 }, {
     "settingsSections": {
         "appearance": {

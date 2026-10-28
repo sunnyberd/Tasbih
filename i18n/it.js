@@ -346,7 +346,14 @@ AZKAR_I18N_REGISTER("it", {
     // Быстрые иконки на экранах счётчика
     "qtPickTitle": "Scegli un’icona",
     "qtHint": "Tieni premuta un’icona per sostituirla",
-    "qtEmpty": "Vuoto"
+    "qtEmpty": "Vuoto",
+    // Бледнеющие кнопки вокруг счётчика (настройка и окно видимости)
+    "labelIdleFade": "Pulsanti che sbiadiscono",
+    "idleFadeHint": "Visibilità {n}% · tieni premuto per cambiare",
+    "idleFadeTitle": "Visibilità dei pulsanti",
+    "idleFadeSub": "Sotto il 25%, il primo tocco mostra solo i pulsanti",
+    "idleFadeCustom": "% personale",
+    "idleFadeRange": "Inserisci un numero da 0 a 99"
 }, {
     "settingsSections": {
         "appearance": {

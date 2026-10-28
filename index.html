@@ -56,7 +56,7 @@
         @font-face { font-family: 'Scheherazade New'; src: url('fonts/scheherazadenew-bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF; }
     </style>
 
-    <link rel="stylesheet" href="css/app.css?v=141">
+    <link rel="stylesheet" href="css/app.css?v=142">
 </head>
 <body>
 
@@ -590,6 +590,23 @@
         </div>
     </div>
 
+    <!-- Видимость бледнеющих кнопок (удержание строки в настройках): 25/50/75 или свой % -->
+    <div class="overlay" id="idleFadeOverlay" onclick="if(event.target===this)closeIdleFadePicker()">
+        <div class="overlay-card idle-fade-card">
+            <div class="overlay-title" id="idleFadeTitle">Видимость кнопок</div>
+            <div class="overlay-sub" id="idleFadeSub">Ниже 25% первое касание только показывает кнопки</div>
+            <div class="idle-fade-presets">
+                <button type="button" class="idle-fade-preset" data-level="25" onclick="setIdleFadeLevel(25)">25%</button>
+                <button type="button" class="idle-fade-preset" data-level="50" onclick="setIdleFadeLevel(50)">50%</button>
+                <button type="button" class="idle-fade-preset" data-level="75" onclick="setIdleFadeLevel(75)">75%</button>
+            </div>
+            <div class="idle-fade-custom">
+                <input type="number" class="form-input" id="idleFadeInput" min="0" max="99" inputmode="numeric" placeholder="Свой %">
+                <button type="button" class="idle-fade-save" id="idleFadeSaveBtn" onclick="saveIdleFadeCustom()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Выбор быстрой иконки (удержание иконки на экране счётчика): только иконки, без названий -->
     <div class="overlay" id="quickPickOverlay" onclick="if(event.target===this)closeQuickPicker()">
         <div class="overlay-card quick-pick-card">
@@ -1097,6 +1114,14 @@
                 <span class="set-ic" id="stealthIcon">🌑</span>
                 <div class="set-row-lbl"><b id="labelStealth">Тёмный режим зикра</b></div>
                 <div class="toggle-switch" id="stealthToggle"></div>
+            </div>
+            <!-- Бледнеющие кнопки вокруг счётчика: тап — вкл/выкл, удержание — видимость (0–99%) -->
+            <div class="set-row" id="idleFadeRow" oncontextmenu="return false;"
+                 onpointerdown="startIdleFadePress(event)" onpointerup="cancelIdleFadePress()"
+                 onpointerleave="abortIdleFadePress()" onpointercancel="abortIdleFadePress()">
+                <span class="set-ic" id="idleFadeIcon">👁️</span>
+                <div class="set-row-lbl"><b id="labelIdleFade">Бледнеющие кнопки</b><small id="idleFadeHint">Видимость 30% · удержите, чтобы изменить</small></div>
+                <div class="toggle-switch" id="idleFadeToggle"></div>
             </div>
             <!-- Уведомления: тап — общий ползунок, удержание 1 с — меню отдельных уведомлений -->
             <div class="set-row" id="notifSettingRow" oncontextmenu="return false;"
@@ -2617,7 +2642,7 @@
     // I18N_VERSION менять при КАЖДОМ изменении файлов i18n/ (вместе с CACHE_NAME в sw.js),
     // иначе телефон может взять старую копию из кэша.
     (function () {
-        var I18N_VERSION = '118';
+        var I18N_VERSION = '119';
         var LANGS = ['en', 'de', 'es', 'fr', 'it', 'ja', 'ko', 'ru', 'uz', 'zh', 'tr', 'hi', 'id', 'ms', 'th'];
         var I = window.AZKAR_I18N = window.AZKAR_I18N || {};
         var U = window.AZKAR_UI_TRANSLATIONS = window.AZKAR_UI_TRANSLATIONS || {};
@@ -2677,11 +2702,11 @@
         });
     })();
     </script>
-    <script src="js/feedback.js?v=141"></script>
+    <script src="js/feedback.js?v=142"></script>
     <script src="data/special-dhikrs.js?v=110"></script>
-    <script src="push-config.js?v=141"></script>
-    <script src="js/app.js?v=141"></script>
-    <script src="js/native.js?v=141"></script>
+    <script src="push-config.js?v=142"></script>
+    <script src="js/app.js?v=142"></script>
+    <script src="js/native.js?v=142"></script>
         <script>
         // Реальный свайп — баннер следует за пальцем, при отпускании улетает или возвращается
         window.addEventListener('load', function() {

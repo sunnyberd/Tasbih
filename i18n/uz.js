@@ -346,7 +346,14 @@ AZKAR_I18N_REGISTER("uz", {
     // Быстрые иконки на экранах счётчика
     "qtPickTitle": "Belgini tanlang",
     "qtHint": "Almashtirish uchun belgini bosib turing",
-    "qtEmpty": "Bo‘sh"
+    "qtEmpty": "Bo‘sh",
+    // Бледнеющие кнопки вокруг счётчика (настройка и окно видимости)
+    "labelIdleFade": "Xiralashuvchi tugmalar",
+    "idleFadeHint": "Ko‘rinish {n}% · o‘zgartirish uchun bosib turing",
+    "idleFadeTitle": "Tugmalar ko‘rinishi",
+    "idleFadeSub": "25% dan past bo‘lsa, birinchi teginish faqat tugmalarni ko‘rsatadi",
+    "idleFadeCustom": "O‘z %",
+    "idleFadeRange": "0 dan 99 gacha son kiriting"
 }, {
     "settingsSections": {
         "appearance": {

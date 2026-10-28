@@ -346,7 +346,14 @@ AZKAR_I18N_REGISTER("zh", {
     // Быстрые иконки на экранах счётчика
     "qtPickTitle": "选择图标",
     "qtHint": "长按图标即可更换",
-    "qtEmpty": "空"
+    "qtEmpty": "空",
+    // Бледнеющие кнопки вокруг счётчика (настройка и окно видимости)
+    "labelIdleFade": "按钮自动变淡",
+    "idleFadeHint": "可见度 {n}% · 长按更改",
+    "idleFadeTitle": "按钮可见度",
+    "idleFadeSub": "低于 25% 时，第一次点按只显示按钮",
+    "idleFadeCustom": "自定义 %",
+    "idleFadeRange": "请输入 0 到 99 的数字"
 }, {
     "settingsSections": {
         "appearance": {

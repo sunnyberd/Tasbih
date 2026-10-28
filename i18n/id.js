@@ -346,7 +346,14 @@ AZKAR_I18N_REGISTER("id", {
     // Быстрые иконки на экранах счётчика
     "qtPickTitle": "Pilih ikon",
     "qtHint": "Tahan ikon untuk menggantinya",
-    "qtEmpty": "Kosong"
+    "qtEmpty": "Kosong",
+    // Бледнеющие кнопки вокруг счётчика (настройка и окно видимости)
+    "labelIdleFade": "Tombol memudar",
+    "idleFadeHint": "Visibilitas {n}% · tahan untuk mengubah",
+    "idleFadeTitle": "Visibilitas tombol",
+    "idleFadeSub": "Di bawah 25%, ketukan pertama hanya menampilkan tombol",
+    "idleFadeCustom": "% sendiri",
+    "idleFadeRange": "Masukkan angka 0 sampai 99"
 }, {
     "settingsSections": {
         "appearance": {

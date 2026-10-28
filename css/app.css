@@ -1137,12 +1137,28 @@ body {
 .qt-pick.active { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 18%, transparent); }
 
 /* Пока их не трогают (initIdleFade в app.js), кнопка «Основной зикр», быстрые
-   иконки и цели бледнеют до 30%. Девиз, луна со звёздами, время намаза,
-   онлайн и навбар остаются яркими. */
+   иконки и цели бледнеют до видимости из настроек (--idle-opacity, по умолчанию 30%).
+   Девиз, луна со звёздами, время намаза, онлайн и навбар остаются яркими. */
 .post-salah-select-wrap, .quick-toggles, #mainGoalsArea { transition: opacity 0.5s ease, visibility 0.5s ease; }
 html.ui-idle .post-salah-select-wrap,
 html.ui-idle .quick-toggles,
-html.ui-idle #mainGoalsArea { opacity: 0.3; }
+html.ui-idle #mainGoalsArea { opacity: var(--idle-opacity, 0.3); }
+
+/* Окно «Видимость кнопок» */
+.idle-fade-card { max-width: 320px; gap: 14px; }
+.idle-fade-presets { display: flex; gap: 10px; width: 100%; }
+.idle-fade-preset, .idle-fade-save {
+    flex: 1; min-height: 44px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--text-muted); font-family: inherit; font-size: 0.9rem; font-weight: 600;
+    transition: transform 0.1s ease;
+}
+.idle-fade-preset:active, .idle-fade-save:active { transform: scale(0.95); }
+.idle-fade-preset.active { border-color: var(--gold); color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, transparent); }
+.idle-fade-custom { display: flex; gap: 10px; width: 100%; }
+.idle-fade-custom .form-input { flex: 1; min-width: 0; text-align: center; }
+.idle-fade-custom .form-input.active { border-color: var(--gold); }
+.idle-fade-save { flex: 0 0 auto; padding: 0 18px; border-color: var(--gold); color: var(--gold); }
 .post-salah-select-wrap:has(.post-salah-dropdown.open) ~ .quick-toggles {
     opacity: 0; visibility: hidden; pointer-events: none;
     transition: opacity 0.18s ease, visibility 0.18s ease;
