@@ -104,6 +104,9 @@
         _pushQueued = true;
         Promise.resolve().then(function () {
             _pushQueued = false;
+            // Пока засчитываем нажатия пузыря, число не отправляем: Android ещё
+            // держит их в «ожидающих» и показал бы дважды. drainTaps отправит сам.
+            if (_draining) return;
             var s = appSettings();
             var num = document.getElementById('pipCountNum');
             var label = document.getElementById('pipCountLabel');
@@ -121,18 +124,26 @@
         });
     }
 
-    var _draining = false;
+    // Нажатия пузыря: берём, сколько накопилось (peekPending), засчитываем все
+    // разом (pipTapMany в app.js — с сохранением) и только потом говорим Android
+    // убрать их из «ожидающих» (ackPending). Закроют приложение посередине —
+    // нажатия не пропадут, засчитаются при следующем запуске. Нажатия, пришедшие
+    // во время подсчёта, не теряются: после него забираем ещё раз (_drainAgain).
+    var _draining = false, _drainAgain = false;
     function drainTaps() {
-        if (_draining) return;
+        if (_draining) { _drainAgain = true; return; }
         _draining = true;
-        N.consumePending().then(function (r) {
+        _drainAgain = false;
+        N.peekPending().then(function (r) {
             var n = (r && r.count) || 0;
-            for (var i = 0; i < n; i++) {
-                try { pipTap(); } catch (e) { console.warn('[native] pipTap', e); }
-            }
+            if (n <= 0) return;
+            try { pipTapMany(n); } catch (e) { console.warn('[native] pipTapMany', e); }
+            var num = document.getElementById('pipCountNum');
+            return N.ackPending({ count: n, total: parseInt(num && num.textContent, 10) || 0 });
         }).catch(function () {}).then(function () {
             _draining = false;
             pushOverlay();
+            if (_drainAgain) drainTaps();
         });
     }
 

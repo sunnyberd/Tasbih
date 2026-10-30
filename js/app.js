@@ -1717,21 +1717,28 @@
         }
 
         function increment() {
-            if (isCompletionActive) return;
-            const now = Date.now();
-            if (now - lastIncrementTime < INCREMENT_DEBOUNCE) return;
-            lastIncrementTime = now;
-            // IMPORTANT: vibrate must be called as the FIRST async-free
-            // action inside the click handler, otherwise modern Chrome on
-            // Android will silently ignore it (transient user-activation
-            // gets consumed by other work and Web-Vibration API requires
-            // the activation to still be live).
-            vibrate();
+            // _pipBulk — нажатия плавающей кнопки поверх приложений (pipTapMany):
+            // засчитывается каждое, без защиты от двойного тапа, без вибрации, звука
+            // и анимации на каждое и без карточки достижения (как в тёмном режиме).
+            const bulk = _pipBulk;
+            if (isCompletionActive && !bulk) return;
+            if (!bulk) {
+                const now = Date.now();
+                if (now - lastIncrementTime < INCREMENT_DEBOUNCE) return;
+                lastIncrementTime = now;
+                // IMPORTANT: vibrate must be called as the FIRST async-free
+                // action inside the click handler, otherwise modern Chrome on
+                // Android will silently ignore it (transient user-activation
+                // gets consumed by other work and Web-Vibration API requires
+                // the activation to still be live).
+                vibrate();
+            }
             count++;
             bumpDhikrTotal('main');
-            _timerMain.onClick();
+            if (!bulk) _timerMain.onClick();
             const statDay = recordStat();
             recordDhikrCloudDelta('main', statDay, true);
+            if (!bulk) {
             playClickSound();
             updateDisplay();
             requestAnimationFrame(() => {
@@ -1750,6 +1757,7 @@
                 ring.appendChild(plus);
                 setTimeout(() => plus.remove(), 550);
             });
+            }
             const isCustomGoalActive = document.getElementById('customGoalChip').classList.contains('active');
             const goalHit = !isUnlimited && !goalTriggered && (
                 isCustomGoalActive ? count === goal : ((count - goalBaseline) > 0 && (count - goalBaseline) % goal === 0)
@@ -1757,7 +1765,7 @@
             if (goalHit) {
                 goalTriggered = true;
                 playGoalSound();
-                const isStealthActive = typeof window._stealthIsActive === 'function' && window._stealthIsActive();
+                const isStealthActive = bulk || (typeof window._stealthIsActive === 'function' && window._stealthIsActive());
                 if (isCustomGoalActive) {
                     // Custom goal: show completion overlay (and optionally +100)
                     isCompletionActive = true;
@@ -2402,16 +2410,20 @@
 
         let _specialGoalShown = false;
         function incrementSpecial() {
-            const now = Date.now();
-            if (now - lastSpecialIncrementTime < INCREMENT_DEBOUNCE) return;
-            lastSpecialIncrementTime = now;
-            vibrate();
+            const bulk = _pipBulk;   // нажатия плавающей кнопки — см. increment()
+            if (!bulk) {
+                const now = Date.now();
+                if (now - lastSpecialIncrementTime < INCREMENT_DEBOUNCE) return;
+                lastSpecialIncrementTime = now;
+                vibrate();
+            }
             specialCount++;
             if (currentSpecialId) {
                 updateSpecialResumeSession(currentSpecialId);
                 bumpDhikrTotal(currentSpecialId);
                 recordDhikrCloudDelta(currentSpecialId, null, false);
             }
+            if (!bulk) {
             _timerSpecial.onClick();
             playClickSound();
             updateSpecialDisplay();
@@ -2429,6 +2441,7 @@
                 ring.appendChild(plus);
                 setTimeout(() => plus.remove(), 550);
             });
+            }
             if (specialCount === specialGoal && !_specialGoalShown) {
                 _specialGoalShown = true;
                 playGoalSound();
@@ -2437,7 +2450,7 @@
                 document.getElementById('specialAchieveTitle').innerText = t('completionTitle');
                 document.getElementById('specialAchieveName').innerText = name;
                 document.getElementById('specialAchieveSub').innerText = t('completionSub');
-                if (typeof window._stealthIsActive === 'function' && window._stealthIsActive()) {
+                if (bulk || (typeof window._stealthIsActive === 'function' && window._stealthIsActive())) {
                     vibrateAdvance();
                     onSpecialAchievementTap();
                     return;
@@ -9428,6 +9441,35 @@
             } else {
                 increment();
             }
+        }
+
+        // Нажатия плавающей кнопки поверх приложений (Android, js/native.js).
+        // Android копит их и отдаёт пачкой: пока приложение свёрнуто или занято,
+        // их набирается несколько, а то и сотни. Раньше пачка шла через pipTap()
+        // по одному, и increment() отбрасывал всё, кроме первого (защита от
+        // двойного тапа, 80 мс); карточка «своей цели» останавливала счёт, пока
+        // её не закроют в приложении. Здесь засчитывается каждое нажатие (см.
+        // _pipBulk в increment), вибрацию на каждое даёт сам пузырь, звук — один
+        // на пачку, и всё сразу сохраняется — приложение могут закрыть в любой момент.
+        var _pipBulk = false;   // var: increment() может читать его раньше этой строки
+        function pipTapMany(n) {
+            n = Math.max(0, Math.floor(n) || 0);
+            if (!n) return;
+            _pipBulk = true;
+            try {
+                for (let i = 0; i < n; i++) {
+                    if (pipMode === 'special') incrementSpecial();
+                    else increment();
+                }
+            } finally {
+                _pipBulk = false;
+            }
+            if (pipMode === 'special') updateSpecialDisplay();
+            else updateDisplay();
+            // updateDisplay() в режиме «Зикры после намаза» число пузыря не трогает
+            updatePipCounter();
+            playClickSound();
+            flushSave();
         }
 
         // ---- Document Picture-in-Picture (Chrome/Edge) ----
