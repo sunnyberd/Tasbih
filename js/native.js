@@ -191,19 +191,17 @@
         document.head.appendChild(st);
     }
 
+    // Строка под настройкой только когда нет разрешения «Поверх других приложений».
+    // (Подсказку «разрешение есть, но кнопка не запустилась» убрали: кнопка
+    // стартует за долю секунды, и подсказка мелькала, хотя всё работало.)
     function renderOverlayRow() {
         var row = document.getElementById('natOverlayRow');
         if (!row) return;
-        var ok = status.canDraw && status.running;
-        row.style.display = (!appSettings().pipCounter || ok) ? 'none' : '';
-        if (!status.canDraw) {
+        var show = appSettings().pipCounter && status.canDraw === false;
+        row.style.display = show ? '' : 'none';
+        if (show) {
             row.innerHTML = esc(L('natOverlayNoPerm')) + '<br>' +
                 '<button class="nat-btn" data-act="perm">' + esc(L('natGrant')) + '</button>';
-        } else if (!status.running) {
-            row.innerHTML = esc(L('natOverlayNotStarted')) + ' ' +
-                esc(String(status.manufacturer).toLowerCase().match(/xiaomi|redmi|poco/) ? L('natXiaomiHint') : L('natCheckPerms')) + '<br>' +
-                '<button class="nat-btn" data-act="settings">' + esc(L('natAppSettings')) + '</button>' +
-                '<button class="nat-btn" data-act="retry">' + esc(L('natRetry')) + '</button>';
         }
     }
     function esc(s) {
@@ -236,10 +234,7 @@
             o.addEventListener('click', function (e) {
                 var b = e.target.closest('[data-act]');
                 if (!b) return;
-                var act = b.getAttribute('data-act');
-                if (act === 'perm') askOverlayPermission();
-                else if (act === 'settings') N.openAppSettings();
-                else pushOverlay();
+                if (b.getAttribute('data-act') === 'perm') askOverlayPermission();
                 // Сервис стартует асинхронно — перепроверяем чуть позже.
                 setTimeout(function () { N.getStatus().then(applyStatus); }, 1500);
             });
