@@ -6054,12 +6054,46 @@
             return langPack[id] || enPack[id] || fallback || id;
         }
 
+        // Короткий звук, запущенный «прямо сейчас» (ctx.currentTime), иногда не
+        // слышен: телефон начинает играть чуть позже, а звук (0,03–0,2 с) к этому
+        // времени уже закончился — особенно в Bluetooth-наушниках. Поэтому все
+        // звуки запускаем на SOUND_LEAD_S позже: на слух незаметно, но не пропадают.
+        const SOUND_LEAD_S = 0.04;
+        function _soundCtx(ctx) {
+            return new Proxy(ctx, {
+                get(target, prop) {
+                    if (prop === 'currentTime') return target.currentTime + SOUND_LEAD_S;
+                    const v = target[prop];
+                    return typeof v === 'function' ? v.bind(target) : v;
+                }
+            });
+        }
+        // Громкость щелчка для плавающей кнопки Android: там играет готовый звук,
+        // записанный на громкости 10 (android-app/.../res/raw/click_*.wav).
+        // Возвращает, во сколько раз тише он должен звучать при громкости vol, —
+        // считаем по самому рецепту звука (пиковое усиление при vol и при 10).
+        function clickSoundGain(id, vol) {
+            const snd = CLICK_SOUNDS.find(s => s.id === id) || CLICK_SOUNDS[0];
+            const peak = v => {
+                let max = 0;
+                const noop = () => ({ value: 0, setValueAtTime() {}, linearRampToValueAtTime() {}, exponentialRampToValueAtTime() {} });
+                const rec = () => {
+                    const r = x => { max = Math.max(max, x); };
+                    return { value: 0, setValueAtTime: r, linearRampToValueAtTime: r, exponentialRampToValueAtTime: r };
+                };
+                const node = () => ({ connect() {}, start() {}, stop() {}, type: '', frequency: noop(), gain: rec(), Q: noop() });
+                snd.play({ currentTime: 0, destination: node(), createOscillator: node, createGain: node, createBiquadFilter: node }, v);
+                return max;
+            };
+            const full = peak(10);
+            return full > 0 ? Math.min(1, peak(vol) / full) : 1;
+        }
         function _playClickSoundById(id, vol) {
             const ctx = getAudioCtx();
             const resume = ctx.state === 'suspended' ? ctx.resume() : Promise.resolve();
             resume.then(() => {
                 const snd = CLICK_SOUNDS.find(s => s.id === id) || CLICK_SOUNDS[0];
-                snd.play(ctx, vol);
+                snd.play(_soundCtx(ctx), vol);
             });
         }
         function _playGoalSoundById(id, vol) {
@@ -6067,7 +6101,7 @@
             const resume = ctx.state === 'suspended' ? ctx.resume() : Promise.resolve();
             resume.then(() => {
                 const snd = GOAL_SOUNDS.find(s => s.id === id) || GOAL_SOUNDS[0];
-                snd.play(ctx, vol);
+                snd.play(_soundCtx(ctx), vol);
             });
         }
 
@@ -9449,14 +9483,11 @@
         // по одному, и increment() отбрасывал всё, кроме первого (защита от
         // двойного тапа, 80 мс); карточка «своей цели» останавливала счёт, пока
         // её не закроют в приложении. Здесь засчитывается каждое нажатие (см.
-        // _pipBulk в increment), вибрацию на каждое даёт сам пузырь, щелчок — на
-        // каждое нажатие (до PIP_CLICKS_MAX, с паузой, чтобы не слились в один),
-        // и всё сразу сохраняется — приложение могут закрыть в любой момент.
-        // Большая пачка — это нажатия, сделанные раньше, пока приложение спало:
-        // сотню щелчков подряд не играем.
+        // _pipBulk в increment), и всё сразу сохраняется — приложение могут
+        // закрыть в любой момент. Вибрацию и звук на каждое нажатие даёт сам
+        // пузырь (OverlayService) — даже когда приложение спит, поэтому здесь
+        // их нет.
         var _pipBulk = false;   // var: increment() может читать его раньше этой строки
-        const PIP_CLICKS_MAX = 5;
-        const PIP_CLICK_GAP_MS = 70;
         function pipTapMany(n) {
             n = Math.max(0, Math.floor(n) || 0);
             if (!n) return;
@@ -9473,11 +9504,6 @@
             else updateDisplay();
             // updateDisplay() в режиме «Зикры после намаза» число пузыря не трогает
             updatePipCounter();
-            const clicks = Math.min(n, PIP_CLICKS_MAX);
-            for (let i = 0; i < clicks; i++) {
-                if (i === 0) playClickSound();
-                else setTimeout(playClickSound, i * PIP_CLICK_GAP_MS);
-            }
             flushSave();
         }
 

@@ -116,6 +116,10 @@
             opts.label = (label && label.textContent) || '';
             opts.vibration = !!s.vibration;
             opts.vibrationLevel = s.vibrationLevel || 3;
+            // Звук нажатия пузырь играет сам (OverlayService) — те же вид и громкость
+            opts.clickSound = !!s.clickSound;
+            opts.clickSoundType = s.clickSoundType || 'default';
+            try { opts.clickGain = clickSoundGain(opts.clickSoundType, s.clickSoundVolume !== undefined ? s.clickSoundVolume : 5); } catch (e) { opts.clickGain = 1; }
             opts.notifTitle = L('natOverlayNotifTitle');
             opts.notifText = L('natOverlayNotifText');
             opts.hideLabel = L('natHide');
@@ -410,6 +414,25 @@
         window.toggleSetting = function (key) {
             _origToggleSetting.apply(this, arguments);
             if (key === 'stealthMode' && appSettings().stealthMode && status.dndAccess === false) askDndAccess();
+        };
+    }
+
+    // Поменяли звук, громкость или вибрацию в настройках — сразу сообщаем пузырю
+    var _origUpdateSettingsUI = window.updateSettingsUI;
+    if (typeof _origUpdateSettingsUI === 'function') {
+        window.updateSettingsUI = function () {
+            var r = _origUpdateSettingsUI.apply(this, arguments);
+            try { pushOverlay(); } catch (e) {}
+            return r;
+        };
+    }
+    // Ползунок громкости щелчка: отпустили — пузырь берёт новую громкость
+    var _origPreviewClick = window.previewClickSoundVolume;
+    if (typeof _origPreviewClick === 'function') {
+        window.previewClickSoundVolume = function () {
+            var r = _origPreviewClick.apply(this, arguments);
+            try { pushOverlay(); } catch (e) {}
+            return r;
         };
     }
 
