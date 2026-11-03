@@ -56,7 +56,7 @@
         @font-face { font-family: 'Scheherazade New'; src: url('fonts/scheherazadenew-bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF; }
     </style>
 
-    <link rel="stylesheet" href="css/app.css?v=149">
+    <link rel="stylesheet" href="css/app.css?v=151">
 </head>
 <body>
 
@@ -411,62 +411,46 @@
         <div class="screen-header">
             <h2 id="titleStats">Статистика</h2>
         </div>
-
-        <!-- Общий показатель по зикрам (накопленный, без сброса) — клик открывает детальную статистику -->
-        <div class="checklist-overall-progress clickable" id="dhikrOverallProgress" role="button" tabindex="0"
-             onclick="openDhikrStats()"
-             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDhikrStats();}">
-            <div class="cop-header">
-                <span class="cop-label" id="dhikrProgressLabel">Прогресс зикров</span>
-                <span class="cop-right">
-                    <span class="cop-percent" id="dhikrOverallPercent">0</span>
-                    <svg class="cop-stats-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                </span>
-            </div>
-        </div>
+        <nav class="nv-chips" id="statsChips" aria-label="Период" data-i18n-aria="statsPeriodLabel"></nav>
         </div>
 
-        <div class="stats-summary">
-            <div class="stat-card">
-                <div class="stat-icon">🕐</div>
-                <div class="stat-value" id="statToday">0</div>
-                <div class="stat-label" id="labelToday">Сегодня</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">📅</div>
-                <div class="stat-value" id="statWeek">0</div>
-                <div class="stat-label" id="labelWeek">Неделя</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">📆</div>
-                <div class="stat-value" id="statMonth">0</div>
-                <div class="stat-label" id="labelMonth">Месяц</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🏆</div>
-                <div class="stat-value" id="statTotal">0</div>
-                <div class="stat-label" id="labelTotal">Всего</div>
-            </div>
+        <!-- Пока нет ни одного зикра -->
+        <div class="nv" id="statsEmpty" hidden>
+            <section class="nv-card nv-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg>
+                <h3 id="statsEmptyTitle">Пока пусто</h3>
+                <p id="statsEmptySub">Прочитайте первый зикр — и здесь появится ваш прогресс</p>
+            </section>
         </div>
-        <div class="stats-chart-area">
-            <div class="chart-header">
-                <div class="chart-title" id="chartTitle">Прогресс</div>
-                <div class="period-selector" id="periodSelector">
-                    <button class="period-btn active" data-period="week" id="periodWeek" onclick="setChartPeriod('week')">Неделя</button>
-                    <button class="period-btn" data-period="month" id="periodMonth" onclick="setChartPeriod('month')">Месяц</button>
-                    <button class="period-btn" data-period="year" id="periodYear" onclick="setChartPeriod('year')">Год</button>
+
+        <div class="nv" id="statsBody">
+            <section class="nv-kpis">
+                <div class="nv-card nv-kpi nv-rise"><div class="lbl"><i></i><span id="labelToday">Сегодня</span></div><div class="val" id="statToday">0</div><div class="sub" id="statTodaySub"></div></div>
+                <div class="nv-card nv-kpi nv-rise"><div class="lbl"><i></i><span id="statsPeriodLabel">За период</span></div><div class="val" id="statSum">0</div><div class="sub" id="statSumSub"></div></div>
+                <div class="nv-card nv-kpi nv-rise"><div class="lbl"><i></i><span id="statsAvgLabel">В среднем за день</span></div><div class="val" id="statAvg">0</div><div class="sub" id="statAvgSub"></div></div>
+                <div class="nv-card nv-kpi nv-rise"><div class="lbl"><i></i><span id="statsStreakLabel">Серия дней</span></div><div class="val" id="statStreak">0</div><div class="sub" id="statStreakSub"></div></div>
+            </section>
+            <section class="nv-card nv-chart nv-rise" style="animation-delay:.05s">
+                <div class="nv-h"><h3 id="chartTitle">Прогресс</h3>
+                    <div class="nv-seg" id="statType">
+                        <button data-v="line" aria-pressed="true" aria-label="Линия" data-i18n-aria="statsChartLine"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 16l5-6 4 3.5L21 5"/></svg></button>
+                        <button data-v="bar" aria-pressed="false" aria-label="Столбцы" data-i18n-aria="statsChartBars"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 20V11M12 20V4M19 20v-6"/></svg></button>
+                    </div>
                 </div>
-            </div>
-            <div class="line-chart-container" id="lineChartContainer">
-                <svg class="line-chart-svg" id="lineChartSvg" viewBox="0 0 400 200" preserveAspectRatio="none"></svg>
-            </div>
-        </div>
-
-        <div class="reset-area" style="margin-top: 20px;">
-            <button class="reset-btn" onclick="promptClearStats()" aria-label="Очистить всё" data-i18n-aria="btnClearStats">
-                <svg viewBox="0 0 24 24" width="16" stroke="currentColor" fill="none" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                <span id="btnClearStats">Очистить всё</span>
-            </button>
+                <div class="nv-chart-wrap" id="statChartWrap">
+                    <canvas id="statChart"></canvas>
+                    <div class="nv-tt" id="statTip"></div>
+                </div>
+            </section>
+            <section class="nv-card nv-mt nv-rise nv-donut-card" id="statDonutCard" style="animation-delay:.1s">
+                <div class="nv-h"><h3 id="statsShareTitle">Доли зикров</h3><span class="sub" id="statsAllTime">за всё время</span></div>
+                <div class="nv-donut">
+                    <canvas id="statDonut"></canvas>
+                    <div class="nv-donut-c"><div class="t" id="statDonutT">0</div><div class="s" id="statDonutS"></div></div>
+                </div>
+                <div class="nv-list" id="statDonutList"></div>
+                <button class="nv-more" onclick="openDhikrStats()"><span id="statsAllDhikrs">Все зикры</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+            </section>
         </div>
     </div>
 
@@ -1168,6 +1152,10 @@
                     </button>
                 </div>
                 <input type="file" id="importFileInput" accept=".json" onchange="importData(event)">
+                <button class="reset-btn set-clear-btn" onclick="promptClearStats()" aria-label="Очистить всё" data-i18n-aria="btnClearStats">
+                    <svg viewBox="0 0 24 24" width="16" stroke="currentColor" fill="none" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    <span id="btnClearStats">Очистить всё</span>
+                </button>
             </div>
               </div>
             </div>
@@ -1238,9 +1226,10 @@
         <div class="overlay-card">
             <div class="overlay-title" id="clearStatsTitle">Очистить всё?</div>
             <div class="overlay-sub" id="clearStatsSub">Счётчик и вся статистика зикров будут удалены безвозвратно</div>
+            <div class="overlay-sub clear-hold-hint" id="clearHoldHint">Удержите «Да» 2 секунды</div>
             <div class="overlay-btns">
                 <button class="overlay-btn-cancel" onclick="cancelClearStats()" id="btnNoClearStats">Нет</button>
-                <button class="overlay-btn-confirm" onclick="confirmClearStats()" id="btnYesClearStats">Да</button>
+                <button class="overlay-btn-confirm" id="btnYesClearStats">Да</button>
             </div>
         </div>
     </div>
@@ -2648,7 +2637,7 @@
     // I18N_VERSION менять при КАЖДОМ изменении файлов i18n/ (вместе с CACHE_NAME в sw.js),
     // иначе телефон может взять старую копию из кэша.
     (function () {
-        var I18N_VERSION = '123';
+        var I18N_VERSION = '124';
         var LANGS = ['en', 'de', 'es', 'fr', 'it', 'ja', 'ko', 'ru', 'uz', 'zh', 'tr', 'hi', 'id', 'ms', 'th'];
         var I = window.AZKAR_I18N = window.AZKAR_I18N || {};
         var U = window.AZKAR_UI_TRANSLATIONS = window.AZKAR_UI_TRANSLATIONS || {};
@@ -2708,11 +2697,11 @@
         });
     })();
     </script>
-    <script src="js/feedback.js?v=149"></script>
+    <script src="js/feedback.js?v=151"></script>
     <script src="data/special-dhikrs.js?v=110"></script>
-    <script src="push-config.js?v=149"></script>
-    <script src="js/app.js?v=149"></script>
-    <script src="js/native.js?v=149"></script>
+    <script src="push-config.js?v=151"></script>
+    <script src="js/app.js?v=151"></script>
+    <script src="js/native.js?v=151"></script>
         <script>
         // Реальный свайп — баннер следует за пальцем, при отпускании улетает или возвращается
         window.addEventListener('load', function() {

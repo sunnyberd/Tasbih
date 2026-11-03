@@ -653,7 +653,9 @@
                 headerTitle: 'headerTitle', labelGoal: 'labelGoal', labelGoal2: 'labelGoal', labelGoal3: 'labelGoal',
                 labelCustom: 'labelCustom', btnReset: 'btnReset', titleDua: 'titleDua', subtitleDua: 'subtitleDua',
                 titleFav: 'titleFav', subtitleFav: 'subtitleFav', titleStats: 'titleStats', labelToday: 'labelToday',
-                labelTotal: 'labelTotal', labelWeek: 'labelWeek', labelYear: 'labelYear', labelMonth: 'labelMonth',
+                statsPeriodLabel: 'statsPeriodLabel', statsAvgLabel: 'statsAvgLabel', statsStreakLabel: 'statsStreakLabel',
+                statsShareTitle: 'statsShareTitle', statsAllTime: 'statsAllTime', statsAllDhikrs: 'statsAllDhikrs',
+                statsEmptyTitle: 'statsEmptyTitle', statsEmptySub: 'statsEmptySub',
                 chartTitle: 'chartTitle', timeChartTitle: 'timeChartTitle', titleSettings: 'titleSettings',
                 labelLang: 'labelLang', labelTheme: 'labelTheme', labelOnlinePresence: 'labelOnlinePresence', labelLiteMode: 'labelLiteMode',
                 aeOpt0: 'autoExtendOff', labelSound: 'labelSound',
@@ -667,7 +669,7 @@
                 seoAboutButton: 'aboutApp', seoIntroTitle: 'aboutApp', seoIntroText: 'aboutAppText',
                 deleteListNoBtn: 'btnNo', deleteListYesBtn: 'btnYes', listNameCancelBtn: 'addFolderCancel',
                 btnClearStats: 'btnClearStats',
-                clearStatsTitle: 'clearStatsTitle', clearStatsSub: 'clearStatsSub',
+                clearStatsTitle: 'clearStatsTitle', clearStatsSub: 'clearStatsSub', clearHoldHint: 'clearHoldHint',
                 modalTitleNew: 'modalTitleNew',
                 btnSaveDua: 'btnSaveDua', btnCancel: 'btnCancel', completionTitle: 'completionTitle',
                 completionSub: 'completionSub', resetCounterTitle: 'resetCounterTitle', resetCounterSub: 'resetCounterSub',
@@ -676,7 +678,6 @@
                 btnNoReset: 'btnNo', btnYesClear: 'btnYes', btnNoClear: 'btnNo',
                 btnYesClearStats: 'btnYes', btnNoClearStats: 'btnNo',
                 navAzkar: 'navAzkar', navDua: 'navDua', navChecklist: 'titleChecklist', navStats: 'navStats', navSettings: 'navSettings',
-                periodWeek: 'periodWeek', periodMonth: 'periodMonth', periodYear: 'periodYear',
                 specialListTitle: 'specialListTitle', specialListSubtitle: 'specialListSubtitle',
                 labelPip: 'labelPip',
                 deleteSpecialTitle: 'specialDeleteTitle', deleteSpecialSub: 'specialDeleteSub',
@@ -816,8 +817,7 @@
             else markDirty('dua', 'duaFolders');
             if (_isScreenActive('screen-favorites')) { renderFavorites(); _dirty.favorites = false; }
             else markDirty('favorites');
-            if (_isScreenActive('screen-stats')) { renderStats(); _dirty.stats = false; }
-            else markDirty('stats');
+            renderStats();
             // Обновляем название системной папки «Особые Награды» при смене языка
             (function() {
                 const MIGRATION_ID = 'default_special_rewards';
@@ -981,7 +981,7 @@
         let lastIncrementTime = 0;
         const INCREMENT_DEBOUNCE = 80;
         let goalTriggered = false, duaSearchQuery = '', saveTimeout = null,
-            pendingStatsSave = false, currentPeriod = 'week', audioCtx = null,
+            pendingStatsSave = false, audioCtx = null,
             isCompletionActive = false, dragSrcIndex = null, customGoal = 0;
         let _prevLap = 0; // tracks previous lap to detect fill<->drain transitions
         // Точка отсчёта кольца/шарика для СТАНДАРТНЫХ целей (33/66/100).
@@ -2475,7 +2475,7 @@
                 saveDataDebounced();
                 markDirty('stats');
                 renderSpecialList(); _dirty.special = false;
-                renderStats(); _dirty.stats = false;
+                renderStats();
             }
             isSpecialActive = false;
             _specialGoalShown = false;
@@ -2526,7 +2526,7 @@
                 saveDataDebounced();
                 markDirty('stats');
                 renderSpecialList(); _dirty.special = false;
-                renderStats(); _dirty.stats = false;
+                renderStats();
             }
             isSpecialActive = false;
             _specialGoalShown = false;
@@ -3338,262 +3338,473 @@
 
 
         // ==================== STATS RENDER ====================
-        function setChartPeriod(period) {
-            currentPeriod = period;
-            document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector(`.period-btn[data-period="${period}"]`).classList.add('active');
-            renderLineChart(getStats());
-        }
-        function renderStats() {
-            let stats = getStats();
-            // "Today" follows the Islamic day — it resets at Fajr, not midnight.
-            let today = _islamicDayKey();
-            const anchorDate = _dateFromLocalDayKey(today);
-            // "Week" is a calendar week starting Monday — it resets every
-            // Monday at Fajr, same as "Today" resets daily. We sum only
-            // from this week's Monday up to today (not the full Mon-Sun
-            // span), since future days haven't happened yet.
-            let weekSum = 0;
-            {
-                const dow = anchorDate.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
-                const daysSinceMonday = (dow === 0) ? 6 : dow - 1;
-                for (let i = 0; i <= daysSinceMonday; i++) {
-                    let d = new Date(anchorDate); d.setDate(anchorDate.getDate() - i);
-                    weekSum += stats[_localDayKey(d)]?.count || 0;
-                }
-            }
-            let monthSum = 0;
-            let cur = anchorDate;
-            let year = cur.getFullYear(), month = cur.getMonth() + 1;
-            const daysInMonth = new Date(year, month, 0).getDate();
-            for (let d = 1; d <= daysInMonth; d++) {
-                let key = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                monthSum += stats[key]?.count || 0;
-            }
-            let total = 0; for (let [k, v] of Object.entries(stats)) if (k.includes('-')) total += v.count || 0;
+        // Период всегда начинается с ровной границы: недели — с понедельника,
+        // месяцы — с 1-го числа. Заканчивается сегодняшним исламским днём.
+        const STATS_RANGES = [
+            { id: '7', key: 'statsRange7', unit: 'day', count: 7 },
+            { id: '30', key: 'statsRange30', unit: 'day', count: 30 },
+            { id: '90', key: 'statsRange90', unit: 'week', count: 13 },
+            { id: '180', key: 'statsRange180', unit: 'week', count: 26 },
+            { id: '365', key: 'statsRange365', unit: 'month', count: 12 },
+            { id: 'all', key: 'statsRangeAll' }
+        ];
+        // Проверены на различимость (в том числе при дальтонизме) на фоне своей темы
+        const STATS_DONUT_DARK = ['#c98500', '#3987e5', '#d95926', '#199e70', '#9085e9', '#d55181'];
+        const STATS_DONUT_LIGHT = ['#c98500', '#2a78d6', '#d95926', '#1baf7a', '#6250d6', '#d55181'];
+        const STATS_PAD = { r: 12, t: 16, b: 26 };
+        const _statsUi = { range: '30', bound: false };
+        const _statsChart = { bs: [], cur: [], from: [], prog: 1, hover: -1, type: 'line', L: 40 };
+        const _statsDonut = { rows: [], total: 0, prog: 1, hover: -1 };
+        let _statsFmtCache = null, _statsColors = null;
 
-            // Animated counter roll-up
-            function animateCount(elId, target) {
-                const el = document.getElementById(elId);
-                if (!el) return;
-                // Экран статистики скрыт — анимировать некому, просто ставим число.
-                const statsScreen = document.getElementById('screen-stats');
-                if (!statsScreen || !statsScreen.classList.contains('active')) { el.textContent = target; return; }
-                const start = parseInt(el.textContent) || 0; // textContent не вызывает reflow (innerText вызывает)
-                if (start === target) return;
-                const duration = Math.min(600, Math.max(200, Math.abs(target - start) * 2));
-                const startTime = performance.now();
-                function tick(now) {
-                    const t = Math.min((now - startTime) / duration, 1);
-                    const ease = 1 - Math.pow(1 - t, 3); // cubic ease-out
-                    el.innerText = Math.round(start + (target - start) * ease);
-                    if (t < 1) requestAnimationFrame(tick);
-                    else {
-                        el.innerText = target;
-                        el.classList.add('bump');
-                        setTimeout(() => el.classList.remove('bump'), 200);
-                    }
+        function _statsFmt() {
+            if (_statsFmtCache && _statsFmtCache.lang === currentLang) return _statsFmtCache;
+            const date = (o) => new Intl.DateTimeFormat(currentLang, o);
+            // Тайские сокращения пишутся с точкой на конце («พ.ย.»), её оставляем
+            const tidy = (s) => currentLang === 'th' ? s : s.replace(/(\d)\s*г\.?$/, '$1').replace(/\.$/, '');
+            const num = new Intl.NumberFormat(currentLang);
+            const num1 = new Intl.NumberFormat(currentLang, { maximumFractionDigits: 1 });
+            const short = new Intl.NumberFormat(currentLang, { notation: 'compact', maximumFractionDigits: 1 });
+            const dayMonth = date({ day: 'numeric', month: 'short' });
+            const dayMonthYear = date({ day: 'numeric', month: 'short', year: 'numeric' });
+            const monthShort = date({ month: 'short' });
+            const monthYear = date({ month: 'long', year: 'numeric' });
+            // Не во всех браузерах есть названия месяцев на узбекском: там вместо «noy» получается «M11»
+            const names = /M\d/.test(monthShort.format(new Date(2026, 10, 3))) ? t('monthsShort') : null;
+            _statsFmtCache = {
+                lang: currentLang,
+                num: (v) => num.format(v),
+                num1: (v) => num1.format(v),
+                compact: (v) => v >= 1000 ? short.format(v) : num.format(Math.round(v)),
+                dayMonth: (d) => names ? d.getDate() + ' ' + names[d.getMonth()] : tidy(dayMonth.format(d)),
+                dayMonthYear: (d) => names ? d.getDate() + ' ' + names[d.getMonth()] + ' ' + d.getFullYear() : tidy(dayMonthYear.format(d)),
+                monthShort: (d) => names ? names[d.getMonth()] : tidy(monthShort.format(d)),
+                monthYear: (d) => {
+                    if (names) return names[d.getMonth()] + ' ' + d.getFullYear();
+                    const s = tidy(monthYear.format(d));
+                    return s.charAt(0).toUpperCase() + s.slice(1);
                 }
-                requestAnimationFrame(tick);
-            }
-            animateCount('statToday', stats[today]?.count || 0);
-            animateCount('statWeek', weekSum);
-            animateCount('statMonth', monthSum);
-            animateCount('statTotal', total);
-
-            renderLineChart(stats);
-            updateDhikrOverallProgress();
+            };
+            return _statsFmtCache;
         }
 
-        function renderLineChart(stats) {
-            const svg = document.getElementById('lineChartSvg');
-            svg.innerHTML = '';
-            let data = [];
-            let labels = [];
-            const now = _dateFromLocalDayKey(_islamicDayKey());
-            if (currentPeriod === 'week') {
-                for (let i = 6; i >= 0; i--) {
-                    let d = new Date(now); d.setDate(now.getDate() - i);
-                    let key = _localDayKey(d);
-                    labels.push(d.getDate() + '/' + (d.getMonth()+1));
-                    data.push(stats[key]?.count || 0);
-                }
-            } else if (currentPeriod === 'month') {
-                let daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
-                for (let i = 1; i <= daysInMonth; i++) {
-                    let key = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
-                    labels.push(i);
-                    data.push(stats[key]?.count || 0);
-                }
-            } else {
-                const year = now.getFullYear();
-                for (let month = 0; month < 12; month++) {
-                    let monthKey = `${year}-${String(month+1).padStart(2,'0')}`;
-                    let sum = 0;
-                    for (let d = 1; d <= 31; d++) {
-                        let dk = `${monthKey}-${String(d).padStart(2,'0')}`;
-                        sum += stats[dk]?.count || 0;
-                    }
-                    labels.push(t('monthsShort')[month]);
-                    data.push(sum);
-                }
+        // Цвета темы для canvas: браузер отдаёт их как #rrggbb или rgba() — приводим к числам
+        function _statsReadColors() {
+            const css = getComputedStyle(document.documentElement);
+            const ctx = document.createElement('canvas').getContext('2d');
+            const rgb = (name, fallback) => {
+                ctx.fillStyle = fallback;
+                ctx.fillStyle = css.getPropertyValue(name).trim() || fallback;
+                const v = ctx.fillStyle;
+                if (v.charAt(0) === '#') return [1, 3, 5].map(i => parseInt(v.slice(i, i + 2), 16));
+                return v.match(/[\d.]+/g).slice(0, 3).map(Number);
+            };
+            const gold = rgb('--gold', '#d4af37'), text = rgb('--text', '#ffffff'), surface = rgb('--surface', '#111111');
+            _statsColors = {
+                gold: (a) => 'rgba(' + gold.join(',') + ',' + (a === undefined ? 1 : a) + ')',
+                text: (a) => 'rgba(' + text.join(',') + ',' + a + ')',
+                surface: 'rgb(' + surface.join(',') + ')'
+            };
+        }
+
+        function _statsAddDays(d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
+        function _statsDayDiff(a, b) { return Math.round((b - a) / 864e5); }
+        function _statsMonday(d) { return _statsAddDays(d, -((d.getDay() + 6) % 7)); }
+        function _statsCount(stats, d) { return stats[_localDayKey(d)]?.count || 0; }
+        // Дни с зикрами от старых к новым — будущие даты (например, из другого часового пояса) не считаем
+        function _statsActiveDays(stats, todayKey) {
+            return Object.keys(stats).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k) && k <= todayKey && (stats[k]?.count || 0) > 0).sort();
+        }
+
+        function _statsRangeOf(today, first) {
+            const r = STATS_RANGES.find(x => x.id === _statsUi.range);
+            let a, unit = r.unit;
+            if (r.id === 'all') {
+                a = first || today;
+                // «Всё» у недавно начавших: не один столбец-месяц, а дни или недели
+                const span = _statsDayDiff(a, today) + 1;
+                unit = span <= 31 ? 'day' : span <= 182 ? 'week' : 'month';
             }
-            const maxVal = Math.max(1, ...data);
-            const width = 400, height = 200, padLeft = 30, padRight = 20, padTop = 10, padBottom = 30;
-            const chartW = width - padLeft - padRight;
-            const chartH = height - padTop - padBottom;
-            const points = data.map((v, i) => ({
-                x: padLeft + (i / Math.max(1, data.length - 1)) * chartW,
-                y: padTop + chartH - (v / maxVal) * chartH
-            }));
+            else if (unit === 'day') a = _statsAddDays(today, -(r.count - 1));
+            else if (unit === 'week') a = _statsAddDays(_statsMonday(today), -7 * (r.count - 1));
+            else a = new Date(today.getFullYear(), today.getMonth() - (r.count - 1), 1);
+            const len = _statsDayDiff(a, today) + 1;
+            return { a, b: today, len, unit, prev: r.id === 'all' ? null : _statsAddDays(a, -len) };
+        }
 
-            const axis = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            axis.setAttribute('d', `M${padLeft},${padTop+chartH} L${width-padRight},${padTop+chartH}`);
-            axis.setAttribute('stroke', 'var(--border)');
-            axis.setAttribute('stroke-width', '1');
-            axis.setAttribute('fill', 'none');
-            svg.appendChild(axis);
-
-            if (points.length > 1) {
-                // Build smooth cubic bezier curve path
-                function smoothPath(pts) {
-                    let d = `M${pts[0].x},${pts[0].y}`;
-                    for (let i = 1; i < pts.length; i++) {
-                        const prev = pts[i - 1], cur = pts[i];
-                        const cpx = (prev.x + cur.x) / 2;
-                        d += ` C${cpx},${prev.y} ${cpx},${cur.y} ${cur.x},${cur.y}`;
-                    }
-                    return d;
-                }
-                const smoothD = smoothPath(points);
-
-                // Gradient area fill under the curve
-                const areaD = smoothD + ` L${points[points.length-1].x},${padTop+chartH} L${points[0].x},${padTop+chartH} Z`;
-                const area = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                area.setAttribute('d', areaD);
-                area.setAttribute('fill', 'url(#goldGrad)');
-                area.setAttribute('opacity', '0.13');
-                svg.insertBefore(area, svg.firstChild);
-
-                // Smooth line
-                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                path.setAttribute('d', smoothD);
-                path.setAttribute('stroke', 'url(#goldGrad)');
-                path.setAttribute('stroke-width', '2.5');
-                path.setAttribute('fill', 'none');
-                path.setAttribute('stroke-linecap', 'round');
-                path.setAttribute('stroke-linejoin', 'round');
-                // Animate the line drawing in
-                const pathLen = path.getTotalLength ? path.getTotalLength() : 800;
-                path.style.strokeDasharray = pathLen;
-                path.style.strokeDashoffset = pathLen;
-                path.style.transition = 'stroke-dashoffset 0.7s cubic-bezier(0.2,0.9,0.4,1)';
-                svg.appendChild(path);
-                requestAnimationFrame(() => { path.style.strokeDashoffset = '0'; });
-
-                // Y-axis grid lines (3 horizontal)
-                [0.25, 0.5, 0.75, 1].forEach(frac => {
-                    const gy = padTop + chartH - frac * chartH;
-                    const gline = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                    gline.setAttribute('x1', padLeft); gline.setAttribute('x2', width - padRight);
-                    gline.setAttribute('y1', gy); gline.setAttribute('y2', gy);
-                    gline.setAttribute('stroke', 'var(--border)');
-                    gline.setAttribute('stroke-width', '0.6');
-                    gline.setAttribute('stroke-dasharray', '3,4');
-                    svg.insertBefore(gline, svg.firstChild);
-                    // Label
-                    const glabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                    glabel.setAttribute('x', padLeft - 3);
-                    glabel.setAttribute('y', gy + 4);
-                    glabel.setAttribute('text-anchor', 'end');
-                    glabel.setAttribute('font-size', '9');
-                    glabel.setAttribute('fill', 'var(--text-dim)');
-                    glabel.textContent = Math.round(maxVal * frac);
-                    svg.insertBefore(glabel, svg.firstChild);
-                });
-
-                // X-axis labels
-                const step = (currentPeriod === 'year' || currentPeriod === 'month') ? 1 : Math.ceil(labels.length / 7);
-                labels.forEach((lbl, i) => {
-                    if (i % step !== 0 && i !== labels.length - 1) return;
-                    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                    t.setAttribute('x', points[i].x);
-                    t.setAttribute('y', padTop + chartH + 18);
-                    t.setAttribute('text-anchor', 'middle');
-                    t.setAttribute('font-size', currentPeriod === 'month' ? '8' : '9');
-                    t.setAttribute('fill', 'var(--text-dim)');
-                    t.textContent = lbl;
-                    svg.appendChild(t);
-                });
-
-                // Dots with glow + tooltip
-                points.forEach((p, i) => {
-                    if (data[i] === 0) return; // skip zero points
-                    // Glow halo
-                    const halo = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                    halo.setAttribute('cx', p.x); halo.setAttribute('cy', p.y); halo.setAttribute('r', '8');
-                    halo.setAttribute('fill', 'var(--gold)'); halo.setAttribute('opacity', '0.12');
-                    svg.appendChild(halo);
-                    // Dot
-                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                    circle.setAttribute('cx', p.x);
-                    circle.setAttribute('cy', p.y);
-                    circle.setAttribute('r', '4');
-                    circle.setAttribute('fill', 'var(--gold)');
-                    circle.setAttribute('stroke', 'var(--bg)');
-                    circle.setAttribute('stroke-width', '1.5');
-                    circle.style.cursor = 'default';
-                    // Animate dot appear
-                    circle.style.opacity = '0';
-                    circle.style.transition = `opacity 0.3s ease ${0.5 + i * 0.04}s`;
-                    requestAnimationFrame(() => { circle.style.opacity = '1'; });
-                    svg.appendChild(circle);
-                });
-
-                // Подсказка при наведении: значение за этот период показывается над точкой
-                const svgNS = 'http://www.w3.org/2000/svg';
-                const hoverG = document.createElementNS(svgNS, 'g');
-                hoverG.setAttribute('pointer-events', 'none');
-                hoverG.style.display = 'none';
-                const tipBg = document.createElementNS(svgNS, 'rect');
-                tipBg.setAttribute('rx', '8'); tipBg.setAttribute('ry', '8');
-                tipBg.setAttribute('fill', 'var(--surface)');
-                tipBg.setAttribute('stroke', 'var(--gold)'); tipBg.setAttribute('stroke-width', '1');
-                const tipText = document.createElementNS(svgNS, 'text');
-                tipText.setAttribute('font-size', '10'); tipText.setAttribute('font-weight', '600');
-                tipText.setAttribute('fill', 'var(--gold)'); tipText.setAttribute('text-anchor', 'middle');
-                hoverG.appendChild(tipBg); hoverG.appendChild(tipText);
-                svg.appendChild(hoverG);
-                const vbParts = (svg.getAttribute('viewBox') || '').split(/\s+/).map(Number);
-                const vbW = vbParts[2] || 320;
-                const hideTip = () => { hoverG.style.display = 'none'; };
-                const showTip = (i) => {
-                    const p = points[i];
-                    tipText.textContent = `${labels[i]}: ${data[i]}`;
-                    hoverG.style.display = '';
-                    const bb = tipText.getBBox();
-                    const w = bb.width + 16, h = bb.height + 10;
-                    const cx = Math.max(w / 2 + 2, Math.min(vbW - w / 2 - 2, p.x));
-                    let top = p.y - h - 10;
-                    if (top < 0) top = p.y + 10;
-                    tipBg.setAttribute('x', cx - w / 2); tipBg.setAttribute('y', top);
-                    tipBg.setAttribute('width', w); tipBg.setAttribute('height', h);
-                    tipText.setAttribute('x', cx); tipText.setAttribute('y', top + h / 2 + bb.height * 0.35);
-                };
-                const colW = points.length > 1 ? Math.abs(points[1].x - points[0].x) : 40;
-                let hideT = null;
-                points.forEach((p, i) => {
-                    const hit = document.createElementNS(svgNS, 'rect');
-                    hit.setAttribute('x', p.x - colW / 2); hit.setAttribute('y', padTop);
-                    hit.setAttribute('width', colW); hit.setAttribute('height', chartH);
-                    hit.setAttribute('fill', 'transparent');
-                    hit.addEventListener('pointerenter', () => { clearTimeout(hideT); showTip(i); });
-                    hit.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') { clearTimeout(hideT); hideTip(); } });
-                    hit.addEventListener('pointerdown', () => { clearTimeout(hideT); showTip(i); hideT = setTimeout(hideTip, 1600); });
-                    svg.appendChild(hit);
-                });
-
+        // Столбцы: по дням, по неделям (пн–вс) или по календарным месяцам
+        function _statsBuckets(stats, R) {
+            const keyOf = (d) => R.unit === 'day' ? d.getTime()
+                : R.unit === 'week' ? _statsMonday(d).getTime()
+                : d.getFullYear() * 12 + d.getMonth();
+            const out = [];
+            let key = null;
+            for (let i = 0; i < R.len; i++) {
+                const d = _statsAddDays(R.a, i), k = keyOf(d);
+                if (k !== key) { out.push({ d0: d, d1: d, sum: 0, unit: R.unit, unfinished: false }); key = k; }
+                const b = out[out.length - 1];
+                b.d1 = d; b.sum += _statsCount(stats, d);
             }
+            // Неделя или месяц, который ещё идёт: маленький столбец — это не спад
+            if (R.unit !== 'day' && keyOf(_statsAddDays(R.b, 1)) === keyOf(R.b)) out[out.length - 1].unfinished = true;
+            return out;
+        }
+
+        function _statsStreaks(activeDays, stats, today) {
+            let best = 0, run = 0, prev = null;
+            activeDays.forEach(k => {
+                const d = _dateFromLocalDayKey(k);
+                run = prev && _statsDayDiff(prev, d) === 1 ? run + 1 : 1;
+                if (run > best) best = run;
+                prev = d;
+            });
+            // Сегодня ещё не читали — серия не прервалась, считаем со вчера
+            let cur = 0;
+            let d = _statsCount(stats, today) ? today : _statsAddDays(today, -1);
+            while (_statsCount(stats, d)) { cur++; d = _statsAddDays(d, -1); }
+            return { cur, best };
+        }
+
+        function _statsFit(cv, h) {
+            const dpr = Math.min(devicePixelRatio || 1, 2.5), w = cv.clientWidth, hh = h || cv.clientHeight;
+            if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(hh * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(hh * dpr); }
+            const x = cv.getContext('2d');
+            x.setTransform(dpr, 0, 0, dpr, 0, 0);
+            x.clearRect(0, 0, w, hh);
+            return { x, w, h: hh };
+        }
+        function _statsAnimate(owner, ms, step) {
+            if (matchMedia('(prefers-reduced-motion: reduce)').matches) { step(1); return; }
+            const token = owner._statsAnim = {};
+            const t0 = performance.now();
+            (function frame(now) {
+                if (owner._statsAnim !== token) return;   // запустили новую анимацию — эта больше не нужна
+                const p = Math.min(1, Math.max(0, (now - t0) / ms));
+                step(1 - Math.pow(1 - p, 3));
+                if (p < 1) requestAnimationFrame(frame);
+            })(t0);
+        }
+        function _statsNiceMax(v) {
+            const raw = Math.max(v, 4) / 4, mag = Math.pow(10, Math.floor(Math.log10(raw))), r = raw / mag;
+            // Деления — только целые числа: зикр нельзя прочитать «2,5 раза»
+            return (r <= 1 ? 1 : r <= 2 ? 2 : r <= 3 && mag < 10 ? 3 : r <= 2.5 ? 2.5 : r <= 5 ? 5 : 10) * mag * 4;
+        }
+
+        // --- большой график ---
+        function _statsSetSeries(animated) {
+            const c = _statsChart, n = c.bs.length;
+            const old = c.cur.length ? c.cur : new Array(n).fill(0);
+            c.from = new Array(n).fill(0).map((_, i) => old[Math.min(old.length - 1, Math.round(i * (old.length - 1) / Math.max(1, n - 1)))] || 0);
+            c.cur = c.bs.map(b => b.sum);
+            if (animated === false) { c._statsAnim = null; c.prog = 1; _statsDrawChart(); return; }
+            c.prog = 0;
+            _statsAnimate(c, 620, p => { c.prog = p; _statsDrawChart(); });
+        }
+        function _statsDrawChart() {
+            const c = _statsChart, cv = document.getElementById('statChart');
+            if (!cv || !cv.clientWidth) { _dirty.stats = true; return; }   // экран скрыт — дорисуем при открытии
+            const { x, w, h } = _statsFit(cv);
+            const n = c.cur.length;
+            if (!n) return;
+            const F = _statsFmt(), C = _statsColors;
+            const vals = c.cur.map((v, i) => c.from[i] + (v - c.from[i]) * c.prog);
+            const top = _statsNiceMax(Math.max(...c.cur));
+            x.font = "500 10px Montserrat, sans-serif";
+            // Левое поле — по самой длинной подписи: на разных языках они разной ширины
+            const L = c.L = Math.ceil(Math.max(x.measureText(F.compact(top)).width, x.measureText(F.compact(top * 3 / 4)).width)) + 12;
+            const R = w - STATS_PAD.r, T = STATS_PAD.t, Bm = h - STATS_PAD.b, H = Bm - T, W = R - L;
+            const xAt = (i) => n === 1 ? L + W / 2 : L + W * i / (n - 1);
+            const yAt = (v) => Bm - H * Math.min(v / top, 1.02);
+            x.textBaseline = 'middle';
+            for (let g = 0; g <= 4; g++) {
+                const v = top * g / 4, y = yAt(v);
+                x.strokeStyle = C.text(.08); x.lineWidth = 1;
+                x.beginPath(); x.moveTo(L, Math.round(y) + .5); x.lineTo(R, Math.round(y) + .5); x.stroke();
+                x.fillStyle = C.text(.55); x.textAlign = 'right';
+                x.fillText(F.compact(v), L - 8, y);
+            }
+            x.textAlign = 'center'; x.textBaseline = 'top';
+            const bars = c.type === 'bar', slot = W / n;
+            const barX = (i) => L + slot * (i + .5);
+            const labelOf = (b) => b.unit === 'month' ? F.monthShort(b.d0) : F.dayMonth(b.d0);
+            // Подписи — столько, сколько помещается без наложения
+            const labelW = Math.max(...c.bs.map(b => x.measureText(labelOf(b)).width)) + 10;
+            const stepL = Math.max(1, bars ? Math.ceil(labelW / slot) : Math.max(Math.ceil(n / (w < 420 ? 4 : 7)), Math.ceil(labelW / Math.max(1, W / Math.max(1, n - 1)))));
+            for (let i = 0; i < n; i += stepL) {
+                const lbl = labelOf(c.bs[i]), tw = x.measureText(lbl).width / 2;
+                x.fillText(lbl, Math.min(Math.max(bars ? barX(i) : xAt(i), L + tw), R - tw), Bm + 8);
+            }
+            if (bars) {
+                const bw = Math.min(24, Math.max(2, slot * .62));
+                for (let i = 0; i < n; i++) {
+                    const X = barX(i) - bw / 2, Y = yAt(vals[i]), bh = Math.max(1, Bm - Y), r = Math.min(4, bw / 2, bh);
+                    x.beginPath(); x.moveTo(X, Bm); x.lineTo(X, Y + r); x.quadraticCurveTo(X, Y, X + r, Y); x.lineTo(X + bw - r, Y); x.quadraticCurveTo(X + bw, Y, X + bw, Y + r); x.lineTo(X + bw, Bm); x.closePath();
+                    x.fillStyle = c.hover === i ? C.gold() : c.hover !== -1 ? C.gold(.4) : c.bs[i].unfinished ? C.gold(.5) : C.gold(); x.fill();
+                }
+                return;
+            }
+            // Плавная линия: не выходит выше и ниже настоящих значений
+            const pts = vals.map((v, i) => ({ x: xAt(i), y: yAt(v) }));
+            const curveTo = (a, b) => { const m = (a.x + b.x) / 2; x.bezierCurveTo(m, a.y, m, b.y, b.x, b.y); };
+            const g = x.createLinearGradient(0, T, 0, Bm);
+            g.addColorStop(0, C.gold(.2)); g.addColorStop(1, C.gold(0));
+            x.beginPath(); x.moveTo(pts[0].x, Bm); x.lineTo(pts[0].x, pts[0].y);
+            for (let i = 1; i < n; i++) curveTo(pts[i - 1], pts[i]);
+            x.lineTo(pts[n - 1].x, Bm); x.closePath(); x.fillStyle = g; x.fill();
+            // Участок к неделе или месяцу, который ещё идёт, — пунктиром
+            const unfinished = n > 1 && c.bs[n - 1].unfinished, solid = unfinished ? n - 1 : n;
+            x.beginPath(); x.moveTo(pts[0].x, pts[0].y);
+            for (let i = 1; i < solid; i++) curveTo(pts[i - 1], pts[i]);
+            x.strokeStyle = C.gold(); x.lineWidth = 2; x.lineJoin = 'round'; x.lineCap = 'round'; x.stroke();
+            if (unfinished) {
+                x.save(); x.setLineDash([3, 5]); x.strokeStyle = C.gold(.7);
+                x.beginPath(); x.moveTo(pts[n - 2].x, pts[n - 2].y); curveTo(pts[n - 2], pts[n - 1]); x.stroke();
+                x.restore();
+            }
+            // Точки на всех периодах (при частых — мельче); дни без зикров — без точки
+            const dotR = n <= 14 ? 4 : 2.5;
+            for (let i = 0; i < n; i++) {
+                if (!c.cur[i]) continue;
+                x.beginPath(); x.arc(pts[i].x, pts[i].y, dotR, 0, 7);
+                x.fillStyle = c.bs[i].unfinished ? C.gold(.55) : C.gold(); x.fill();
+                x.lineWidth = 1.5; x.strokeStyle = C.surface; x.stroke();
+            }
+            if (c.hover >= 0 && c.hover < n) {
+                const X = xAt(c.hover), Y = yAt(vals[c.hover]);
+                x.strokeStyle = C.text(.28); x.lineWidth = 1;
+                x.beginPath(); x.moveTo(X, T - 4); x.lineTo(X, Bm); x.stroke();
+                x.beginPath(); x.arc(X, Y, 5, 0, 7); x.fillStyle = C.gold(); x.fill();
+                x.lineWidth = 2; x.strokeStyle = C.surface; x.stroke();
+            }
+        }
+        function _statsShowTip(i, px) {
+            const b = _statsChart.bs[i], F = _statsFmt();
+            if (!b) return;
+            const tip = document.getElementById('statTip'), wrap = document.getElementById('statChartWrap');
+            const label = b.unit === 'day' ? F.dayMonthYear(b.d0)
+                : b.unit === 'month' ? F.monthYear(b.d0)
+                : F.dayMonth(b.d0) + ' — ' + F.dayMonth(b.d1);
+            const note = !b.unfinished ? t('statsUnit') : t('statsUnit') + ' · ' + t(b.unit === 'month' ? 'statsMonthOngoing' : 'statsWeekOngoing');
+            tip.innerHTML = '<div class="d">' + escHtml(label) + '</div><div class="v">' + F.num(b.sum) + '</div><div class="l">' + escHtml(note) + '</div>';
+            const left = Math.min(Math.max(px - tip.offsetWidth / 2, 6), wrap.clientWidth - tip.offsetWidth - 6);
+            tip.style.transform = 'translate3d(' + left + 'px,8px,0)';
+            tip.style.opacity = '1';
+        }
+        function _statsHideTip() {
+            const c = _statsChart, tip = document.getElementById('statTip');
+            if (c.hover !== -1) { c.hover = -1; _statsDrawChart(); }
+            if (tip) tip.style.opacity = '0';
+        }
+        function _statsBindChart() {
+            const c = _statsChart, cv = document.getElementById('statChart');
+            let before = -1, type = 'mouse';
+            const indexAt = (e) => {
+                const r = cv.getBoundingClientRect(), px = e.clientX - r.left, n = c.bs.length, W = r.width - c.L - STATS_PAD.r;
+                if (!n) return -1;
+                const i = c.type === 'bar' ? Math.floor((px - c.L) / (W / n)) : (n < 2 ? 0 : Math.round((px - c.L) / W * (n - 1)));
+                return Math.min(n - 1, Math.max(0, i));
+            };
+            const move = (e) => {
+                const i = indexAt(e);
+                if (i < 0) return;
+                if (i !== c.hover) { c.hover = i; _statsDrawChart(); }
+                _statsShowTip(i, e.clientX - cv.getBoundingClientRect().left);
+            };
+            cv.addEventListener('pointerdown', (e) => { type = e.pointerType; before = c.hover; move(e); }, { passive: true });
+            cv.addEventListener('pointermove', move, { passive: true });
+            cv.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') _statsHideTip(); }, { passive: true });
+            // Палец начал прокручивать страницу — это было не касание графика
+            cv.addEventListener('pointercancel', _statsHideTip, { passive: true });
+            // На телефоне подсказка остаётся после касания; повторное касание того же места её убирает
+            cv.addEventListener('click', (e) => { if (type !== 'mouse' && before !== -1 && indexAt(e) === before) _statsHideTip(); });
+            document.addEventListener('pointerdown', (e) => { if (e.target !== cv) _statsHideTip(); }, { passive: true });
+        }
+
+        // --- доли зикров ---
+        // Основной зикр + самые частые особые, остальное — «Другие»: больше шести
+        // цветов на диаграмме уже не различить. Все зикры — на экране «Все зикры».
+        function _statsDonutRows() {
+            const pal = isDarkTheme() ? STATS_DONUT_DARK : STATS_DONUT_LIGHT;
+            const named = specialDhikrs.map(d => ({ n: getSpecialName(d), v: dhikrTotals[d.id] || 0 })).filter(r => r.v > 0).sort((a, b) => b.v - a.v);
+            const rows = (dhikrTotals['main'] || 0) > 0 ? [{ n: t('dhikrStatsMainDhikr'), v: dhikrTotals['main'], c: pal[0] }] : [];
+            const room = named.length > 5 ? 4 : 5;
+            named.slice(0, room).forEach((r, i) => rows.push({ n: r.n, v: r.v, c: pal[i + 1] }));
+            if (named.length > room) rows.push({ n: t('statsOther'), v: named.slice(room).reduce((s, r) => s + r.v, 0), c: pal[5], other: true });
+            return rows;
+        }
+        function _statsDrawDonut() {
+            const c = _statsDonut, cv = document.getElementById('statDonut');
+            if (!cv || !cv.clientWidth) { _dirty.stats = true; return; }
+            const { x, w, h } = _statsFit(cv, 200);
+            const cx = w / 2, cy = h / 2, RR0 = Math.min(w, h) / 2 - 4, r = RR0 * .68;
+            let ang = -Math.PI / 2;
+            c.rows.forEach((a, i) => {
+                const sw = a.p / 100 * Math.PI * 2 * c.prog;
+                const RR = c.hover === i ? RR0 + 3 : RR0;   // выбранный кусок чуть выступает
+                x.beginPath(); x.arc(cx, cy, RR, ang, ang + sw); x.arc(cx, cy, r, ang + sw, ang, true); x.closePath();
+                x.globalAlpha = c.hover === -1 || c.hover === i ? 1 : .4;
+                x.fillStyle = a.c; x.fill();
+                x.globalAlpha = 1; x.lineWidth = 2; x.strokeStyle = _statsColors.surface; x.stroke();
+                ang += sw;
+            });
+        }
+        function _statsDonutCenter() {
+            const c = _statsDonut, a = c.rows[c.hover];
+            document.getElementById('statDonutT').textContent = _statsFmt().compact(a ? a.v : c.total);
+            document.getElementById('statDonutS').textContent = a ? a.n : t('statsTotalWord');
+        }
+        function _statsSelectSlice(i) {
+            const c = _statsDonut, list = document.getElementById('statDonutList');
+            if (i === c.hover) return;
+            c.hover = i;
+            _statsDrawDonut(); _statsDonutCenter();
+            list.classList.toggle('has-sel', i >= 0);
+            list.querySelectorAll('.nv-lrow').forEach(el => el.classList.toggle('sel', +el.dataset.i === i));
+            document.getElementById('statDonutCard').classList.toggle('dimmed', i >= 0);
+        }
+        function _statsBindDonut() {
+            const c = _statsDonut, cv = document.getElementById('statDonut'), list = document.getElementById('statDonutList');
+            let before = -1, type = 'mouse';
+            const sliceAt = (e) => {
+                const r = cv.getBoundingClientRect(), dx = e.clientX - r.left - r.width / 2, dy = e.clientY - r.top - r.height / 2;
+                const d = Math.hypot(dx, dy), RR = r.height / 2 - 4;
+                if (d > RR + 8 || d < RR * .68 - 8) return -1;   // палец толще мыши — небольшой запас
+                let a = Math.atan2(dy, dx) + Math.PI / 2;
+                if (a < 0) a += Math.PI * 2;
+                let acc = 0;
+                for (let i = 0; i < c.rows.length; i++) { acc += c.rows[i].p / 100 * Math.PI * 2; if (a <= acc) return i; }
+                return -1;
+            };
+            const rowAt = (e) => { const el = e.target.closest && e.target.closest('.nv-lrow'); return el ? +el.dataset.i : -1; };
+            const bind = (el, indexOf) => {
+                el.addEventListener('pointerdown', (e) => { type = e.pointerType; before = c.hover; _statsSelectSlice(indexOf(e)); }, { passive: true });
+                el.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') _statsSelectSlice(-1); }, { passive: true });
+                // Палец начал прокручивать страницу — возвращаем как было
+                el.addEventListener('pointercancel', () => _statsSelectSlice(before), { passive: true });
+                // Повторное касание выбранного снимает выбор
+                el.addEventListener('click', (e) => { if (type !== 'mouse' && before !== -1 && indexOf(e) === before) _statsSelectSlice(-1); });
+            };
+            bind(cv, sliceAt);
+            bind(list, rowAt);
+            // По диаграмме можно вести пальцем, по списку — только мышью: там палец прокручивает страницу
+            cv.addEventListener('pointermove', (e) => _statsSelectSlice(sliceAt(e)), { passive: true });
+            list.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') _statsSelectSlice(rowAt(e)); }, { passive: true });
+            document.addEventListener('pointerdown', (e) => { if (e.target !== cv && !list.contains(e.target)) _statsSelectSlice(-1); }, { passive: true });
+        }
+        function _statsRenderDonut(animated) {
+            const c = _statsDonut, F = _statsFmt(), list = document.getElementById('statDonutList');
+            const rows = _statsDonutRows();
+            c.total = rows.reduce((s, r) => s + r.v, 0);
+            c.rows = rows.map(r => ({ n: r.n, c: r.c, v: r.v, other: !!r.other, p: r.v / (c.total || 1) * 100 }));
+            document.getElementById('statDonutCard').hidden = !c.rows.length;
+            c.hover = -1;
+            list.classList.remove('has-sel');
+            document.getElementById('statDonutCard').classList.remove('dimmed');
+            if (!c.rows.length) return;
+            _statsDonutCenter();
+            list.innerHTML = c.rows.map((a, i) => Object.assign({ i }, a)).sort((a, b) => (a.other - b.other) || (b.v - a.v)).map(a =>
+                '<div class="nv-lrow" data-i="' + a.i + '" style="--c:' + a.c + '"><i style="background:' + a.c + '"></i><span class="n">' + escHtml(a.n) + '</span><span class="q">' + F.compact(a.v) + '</span><span class="p">' + F.num1(a.p) + '%</span></div>').join('');
+            if (animated === false) { c._statsAnim = null; c.prog = 1; _statsDrawDonut(); return; }
+            c.prog = 0;
+            _statsAnimate(c, 700, p => { c.prog = p; _statsDrawDonut(); });
+        }
+
+        // --- вся статистика ---
+        function _statsSetNum(id, v, animated) {
+            const el = document.getElementById(id), F = _statsFmt();
+            const from = parseFloat(el.dataset.raw || '0') || 0;
+            el.dataset.raw = v;
+            if (animated === false) { el._statsAnim = null; el.textContent = F.num(Math.round(v)); return; }
+            _statsAnimate(el, 560, p => { el.textContent = F.num(Math.round(from + (v - from) * p)); });
+        }
+        function _statsDeltaHtml(d) {
+            const up = d >= 0, v = Math.abs(d) >= 100 ? Math.round(d) : d;
+            const arrow = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (up ? '<path d="M12 19V5M5 12l7-7 7 7"/>' : '<path d="M12 5v14M19 12l-7 7-7-7"/>') + '</svg>';
+            return '<span class="nv-delta ' + (up ? 'up' : 'down') + '">' + arrow + (d > 0 ? '+' : '') + _statsFmt().num1(v) + '%</span>';
+        }
+        function _statsBind() {
+            if (_statsUi.bound) return;
+            _statsUi.bound = true;
+            _statsBindChart();
+            _statsBindDonut();
+            document.getElementById('statsChips').addEventListener('click', (e) => {
+                const b = e.target.closest('.nv-chip');
+                if (!b) return;
+                _statsUi.range = b.dataset.id;
+                _statsHideTip();
+                renderStats();
+            });
+            document.getElementById('statType').addEventListener('click', (e) => {
+                const b = e.target.closest('button');
+                if (!b || b.dataset.v === _statsChart.type) return;
+                _statsHideTip();
+                _statsChart.type = b.dataset.v;
+                _statsChart.cur = [];   // столбцы и линия вырастают от нуля
+                _statsPaintType();
+                _statsSetSeries();
+            });
+            let lastW = innerWidth, timer = 0;
+            addEventListener('resize', () => {
+                if (innerWidth === lastW) return;   // панель браузера или клавиатура — ширина та же
+                lastW = innerWidth;
+                clearTimeout(timer);
+                timer = setTimeout(() => { if (_isScreenActive('screen-stats')) renderStats(false); else markDirty('stats'); }, 110);
+            }, { passive: true });
+        }
+        function _statsPaintType() {
+            document.querySelectorAll('#statType button').forEach(o => o.setAttribute('aria-pressed', String(o.dataset.v === _statsChart.type)));
+        }
+        function renderStats(animated) {
+            // Скрытый canvas не имеет размера — нарисуем при открытии вкладки (см. switchTab)
+            if (!_isScreenActive('screen-stats')) { markDirty('stats'); return; }
+            _statsBind();
+            _statsReadColors();
+            const F = _statsFmt();
+            const stats = getStats();
+            const todayKey = _islamicDayKey();
+            const today = _dateFromLocalDayKey(todayKey);   // «сегодня» сбрасывается на Фаджр, а не в полночь
+            const activeDays = _statsActiveDays(stats, todayKey);
+            const first = activeDays.length ? _dateFromLocalDayKey(activeDays[0]) : null;
+            const hasTotals = Object.keys(dhikrTotals).some(k => (dhikrTotals[k] || 0) > 0);
+            const empty = !first && !hasTotals;
+            document.getElementById('statsEmpty').hidden = !empty;
+            document.getElementById('statsBody').hidden = empty;
+            document.getElementById('statsChips').hidden = empty;
+            _dirty.stats = false;
+            if (empty) return;
+
+            document.getElementById('statsChips').innerHTML = STATS_RANGES.map(r => '<button class="nv-chip" data-id="' + r.id + '" aria-pressed="' + (r.id === _statsUi.range) + '">' + escHtml(t(r.key)) + '</button>').join('');
+
+            const R = _statsRangeOf(today, first);
+            let sum = 0, best = 0, bestAt = null;
+            for (let i = 0; i < R.len; i++) {
+                const d = _statsAddDays(R.a, i), v = _statsCount(stats, d);
+                sum += v;
+                if (v > best) { best = v; bestAt = d; }
+            }
+            let prevSum = 0;
+            if (R.prev) for (let i = 0; i < R.len; i++) prevSum += _statsCount(stats, _statsAddDays(R.prev, i));
+            // Среднее — только с первого дня с зикрами, иначе новичку оно занижается пустыми днями
+            const avgLen = first && first > R.a ? _statsDayDiff(first, today) + 1 : R.len;
+            const st = _statsStreaks(activeDays, stats, today);
+
+            _statsSetNum('statToday', _statsCount(stats, today), animated);
+            _statsSetNum('statSum', sum, animated);
+            _statsSetNum('statAvg', sum / avgLen, animated);
+            _statsSetNum('statStreak', st.cur, animated);
+            document.getElementById('statTodaySub').textContent = t('statsYesterday').replace('{n}', F.num(_statsCount(stats, _statsAddDays(today, -1))));
+            const delta = prevSum > 0 ? _statsDeltaHtml((sum - prevSum) / prevSum * 100) + '<br>' : '';
+            const bestTxt = bestAt ? t('statsBestDay').replace('{n}', F.num(best)).replace('{d}', F.dayMonth(bestAt)) : '';
+            document.getElementById('statSumSub').innerHTML = delta + escHtml(bestTxt);
+            document.getElementById('statAvgSub').textContent = t('statsPerDay');
+            document.getElementById('statStreakSub').textContent = t('statsRecord').replace('{n}', F.num(st.best));
+
+            _statsChart.bs = _statsBuckets(stats, R);
+            _statsChart.hover = -1;
+            document.getElementById('statTip').style.opacity = '0';
+            _statsPaintType();
+            _statsSetSeries(animated);
+            _statsRenderDonut(animated);
         }
 
         function showStatsDetail(message) {
@@ -3604,8 +3815,42 @@
             document.getElementById('statsDetailOverlay').classList.remove('show');
         }
 
-        function promptClearStats() { document.getElementById('clearStatsOverlay').classList.add('show'); }
-        function promptClearAll() { document.getElementById('clearStatsOverlay').classList.add('show'); }
+        // «Да» нужно удерживать 2 секунды: случайным нажатием всё не удалить.
+        const CLEAR_HOLD_MS = 2000;
+        let _clearHoldTimer = 0, _clearHoldBound = false;
+        function _clearHoldStop(early) {
+            const btn = document.getElementById('btnYesClearStats');
+            if (!_clearHoldTimer) return;
+            clearTimeout(_clearHoldTimer);
+            _clearHoldTimer = 0;
+            btn.classList.remove('holding');
+            if (early) {
+                const hint = document.getElementById('clearHoldHint');
+                hint.classList.remove('nudge');
+                void hint.offsetWidth;
+                hint.classList.add('nudge');
+            }
+        }
+        function _clearHoldStart() {
+            if (_clearHoldTimer) return;
+            document.getElementById('btnYesClearStats').classList.add('holding');
+            _clearHoldTimer = setTimeout(() => {
+                _clearHoldStop(false);
+                if (navigator.vibrate) { try { navigator.vibrate(30); } catch(err) {} }
+                confirmClearStats();
+            }, CLEAR_HOLD_MS);
+        }
+        function _clearHoldBind() {
+            if (_clearHoldBound) return;
+            _clearHoldBound = true;
+            const btn = document.getElementById('btnYesClearStats');
+            btn.addEventListener('pointerdown', (e) => { if (e.button === 0 || e.pointerType !== 'mouse') _clearHoldStart(); });
+            ['pointerup', 'pointerleave', 'pointercancel', 'blur'].forEach(ev => btn.addEventListener(ev, () => _clearHoldStop(true)));
+            btn.addEventListener('contextmenu', (e) => e.preventDefault());
+            btn.addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) { e.preventDefault(); _clearHoldStart(); } });
+            btn.addEventListener('keyup', (e) => { if (e.key === 'Enter' || e.key === ' ') _clearHoldStop(true); });
+        }
+        function promptClearStats() { _clearHoldBind(); document.getElementById('clearStatsOverlay').classList.add('show'); }
         function confirmClearStats() {
             // Сброс основного счётчика зикра
             count = 0; goalTriggered = false; _prevLap = 0; goalBaseline = 0; customBaseline = 0;
@@ -3651,7 +3896,7 @@
             showToast(t('toastStatsCleared'));
             document.getElementById('clearStatsOverlay').classList.remove('show');
         }
-        function cancelClearStats() { document.getElementById('clearStatsOverlay').classList.remove('show'); }
+        function cancelClearStats() { _clearHoldStop(false); document.getElementById('clearStatsOverlay').classList.remove('show'); }
 
         // ==================== DUAS ====================
         function onDuaSearch() { duaSearchQuery = document.getElementById('duaSearch').value.trim().toLowerCase(); renderDuaFolders(); renderDuas(); _dirty.dua = false; }
@@ -5715,7 +5960,6 @@
                         updateDisplay();
                         updateSettingsUI();
                         updateHadithUI();
-                        try { updateDhikrOverallProgress(); } catch(e5) {}
                         markDirty('dua','favorites','stats','special');
                         syncImportedDhikrKeys(Object.keys(data.snapshot));
                         try { showToast(t('toastImported')); } catch(e3) {}
@@ -5770,7 +6014,6 @@
                     applyTheme(settings.theme || 'dark');
                     applyLanguage(currentLang);
                     updateDisplay();
-                    try { updateDhikrOverallProgress(); } catch(e6) {}
                     // После импорта — помечаем все разделы устаревшими,
                     // они перерисуются при следующем переходе в них
                     markDirty('dua','favorites','stats','special');
@@ -5823,6 +6066,7 @@
                 const isLight = !isDarkTheme(theme);
                 document.querySelector('meta[name="theme-color"]').content = isLight ? '#f4f7fb' : '#0a0a0a';
                 updateSettingsUI();
+                try { renderStats(); } catch(e) {}
             };
 
             const root = document.documentElement;
@@ -7424,9 +7668,8 @@
             loadDhikrTotals();
             updateDisplay();
             try { updatePipCounter(); } catch(e) {}
-            try { updateDhikrOverallProgress(); } catch(e) {}
             markDirty('stats');
-            try { if (_isScreenActive('screen-stats')) { renderStats(); _dirty.stats = false; } } catch(e) {}
+            try { renderStats(); } catch(e) {}
         }
 
         // ---------- last synced copy of the non-dhikr keys ----------
@@ -8379,8 +8622,7 @@
                 if (typeof window._stealthTryActivate === 'function') window._stealthTryActivate('screen-' + tab);
             } catch(e) {}
             // Рендерим раздел только если он «грязный» (первый вход или данные изменились)
-            if (tab === 'stats'        && _dirty.stats)    { renderStats();       _dirty.stats = false; }
-            if (tab === 'stats') { try { updateDhikrOverallProgress(); } catch(e) {} }
+            if (tab === 'stats'        && _dirty.stats)    { renderStats(); }
             if (tab === 'favorites'    && _dirty.favorites) { renderFavorites();   _dirty.favorites = false; }
             if (tab === 'dua'          && _dirty.duaFolders) { renderDuaFolders(); _dirty.duaFolders = false; }
             if (tab === 'dua'          && _dirty.dua)       { renderDuas();        _dirty.dua = false; }
@@ -9773,7 +10015,6 @@
                 updateSettingsUI();
                 updateHadithUI();
                 updatePipCounter();
-                try { updateDhikrOverallProgress(); } catch(e) {}
                 markDirty('dua','favorites','stats','special');
             } catch(e) {
                 console.warn('[Storage] Reload failed:', e);
@@ -10952,15 +11193,6 @@
         // Показывает НАКОПЛЕННЫЙ (lifetime) счётчик по каждому зикру —
         // без дневного сброса и без понятия "% выполнения цели". Просто
         // честная сумма "сколько раз нажато" по каждому зикру и в целом.
-
-        // Обновляет верхний показатель в screen-stats — общая сумма всех
-        // засчитанных нажатий (основной зикр + все специальные), без сброса.
-        function updateDhikrOverallProgress() {
-            let grandTotal = 0;
-            Object.keys(dhikrTotals).forEach(k => { grandTotal += (dhikrTotals[k] || 0); });
-            const pctEl = document.getElementById('dhikrOverallPercent');
-            if (pctEl) pctEl.textContent = formatBigNumber(grandTotal);
-        }
 
         // Компактное форматирование больших чисел (1 234 567 → читаемо с пробелами)
         // Один форматтер на всё приложение: toLocaleString() создаёт новый
@@ -13082,7 +13314,6 @@
                         if (typeof updateDisplay === 'function') updateDisplay();
                         if (typeof updateSettingsUI === 'function') updateSettingsUI();
                         if (typeof updateHadithUI === 'function') updateHadithUI();
-                        try { if (typeof updateDhikrOverallProgress === 'function') updateDhikrOverallProgress(); } catch(e5) {}
                         if (typeof markDirty === 'function') markDirty('dua','favorites','stats','special');
                         if (typeof syncImportedDhikrKeys === 'function') syncImportedDhikrKeys(Object.keys(data.snapshot));
                         closeBackupModal();
@@ -13123,7 +13354,6 @@
                     if (typeof applyTheme === 'function') applyTheme(settings.theme || 'dark');
                     if (typeof applyLanguage === 'function') applyLanguage(currentLang);
                     if (typeof updateDisplay === 'function') updateDisplay();
-                    try { if (typeof updateDhikrOverallProgress === 'function') updateDhikrOverallProgress(); } catch(e7) {}
                     if (typeof markDirty === 'function') markDirty('dua','favorites','stats','special');
                     if (typeof updateSettingsUI === 'function') updateSettingsUI();
                     closeBackupModal();

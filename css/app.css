@@ -5325,3 +5325,135 @@ html.lite #completionOverlay .overlay-card,
 html.lite .about-app-card {
     box-shadow: 0 8px 22px rgba(0, 0, 0, 0.55), 0 0 0 1px var(--border) !important;
 }
+
+/* ===== Статистика ===== */
+.nv {
+    --nv-card: linear-gradient(160deg, color-mix(in srgb, var(--gold) 7%, var(--surface)), var(--surface));
+    --nv-pos: #2fd48f;
+    --nv-neg: #ff5f7e;
+    --nv-ease: cubic-bezier(.22, .85, .28, 1);
+    position: relative;
+    padding: 0 var(--screen-pad-h, 16px) 16px;
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-variant-numeric: lining-nums tabular-nums;
+    color: var(--text);
+    max-width: 620px; width: 100%; margin: 0 auto;
+}
+[data-theme^="light"] .nv { --nv-pos: #0e8a57; --nv-neg: #c8304e; }
+/* Кнопки периода: все на одном ряду, ни одна не уходит за край экрана */
+.nv-chips {
+    display: flex; gap: 6px;
+    padding: 2px var(--screen-pad-h, 16px) 10px;
+    max-width: 620px; margin: 0 auto;
+}
+.nv-chips[hidden] { display: none; }
+.nv-chip {
+    flex: 1 1 auto; min-width: 0; padding: 7px 2px; border-radius: 999px; cursor: pointer; white-space: nowrap;
+    border: 1px solid var(--border); background: var(--surface-light);
+    color: var(--text-muted); font: 600 clamp(10.5px, 3.2vw, 12.5px) 'Montserrat', sans-serif;
+    transition: transform .16s cubic-bezier(.22, .85, .28, 1), background .25s, color .2s;
+}
+.nv-chip:active { transform: scale(.94); }
+.nv-chip[aria-pressed="true"] { background: var(--gold); border-color: transparent; color: var(--bg); }
+
+.nv-card {
+    position: relative; overflow: hidden; border-radius: 22px;
+    border: 1px solid var(--gold); background: var(--nv-card);
+    box-shadow: 0 24px 60px -24px rgba(0, 0, 0, .85);
+}
+[data-theme^="light"] .nv-card { box-shadow: 0 10px 26px -16px rgba(0, 0, 0, .28); }
+.nv-rise { animation: nvRise .55s var(--nv-ease) both; }
+@keyframes nvRise { from { opacity: 0; transform: translate3d(0, 12px, 0); } to { opacity: 1; transform: none; } }
+
+/* показатели */
+.nv-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 4px; }
+.nv-kpi { padding: 14px; display: flex; flex-direction: column; }
+.nv-kpi .lbl { font-size: 12px; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 7px; }
+.nv-kpi .lbl i { width: 7px; height: 7px; border-radius: 2px; background: var(--gold); flex: none; }
+.nv-kpi .val { margin-top: 7px; font-size: clamp(21px, 6vw, 26px); font-weight: 700; letter-spacing: -.035em; line-height: 1.1; white-space: nowrap; }
+.nv-kpi .sub { margin-top: 8px; font-size: 11.5px; line-height: 1.35; color: var(--text-dim); }
+.nv-kpi .sub .nv-delta { margin-bottom: 5px; }
+.nv-delta { display: inline-flex; align-items: center; gap: 3px; flex: none; padding: 3px 7px; border-radius: 8px; font-size: 12px; font-weight: 700; letter-spacing: -.01em; color: var(--nv-pos); background: color-mix(in srgb, var(--nv-pos) 13%, transparent); }
+.nv-delta.down { color: var(--nv-neg); background: color-mix(in srgb, var(--nv-neg) 13%, transparent); }
+.nv-delta svg { width: 11px; height: 11px; }
+
+/* график */
+.nv-chart { margin-top: 12px; }
+.nv-seg { display: inline-flex; gap: 3px; margin-left: auto; padding: 3px; border-radius: 12px; border: 1px solid var(--border); }
+.nv-seg button { padding: 5px 10px; border: 0; border-radius: 9px; background: none; cursor: pointer; color: var(--text-dim); transition: color .2s, background .25s var(--nv-ease); }
+.nv-seg button svg { display: block; width: 15px; height: 15px; }
+.nv-seg button[aria-pressed="true"] { color: var(--bg); background: var(--gold); }
+.nv-chart-wrap { position: relative; padding: 6px 6px 8px; touch-action: pan-y; }
+.nv-chart-wrap canvas { display: block; width: 100%; height: 240px; }
+.nv-tt {
+    position: absolute; top: 0; left: 0; z-index: 8; min-width: 136px; padding: 9px 11px; pointer-events: none;
+    opacity: 0; transition: opacity .16s ease; border-radius: 13px;
+    background: var(--surface); border: 1px solid var(--border-hover);
+    box-shadow: 0 16px 34px -14px rgba(0, 0, 0, .7);
+}
+.nv-tt .d { font-size: 11px; font-weight: 600; color: var(--text-dim); margin-bottom: 5px; }
+.nv-tt .v { font-size: 17px; font-weight: 700; letter-spacing: -.03em; }
+.nv-tt .l { margin-top: 4px; font-size: 12px; color: var(--text-muted); }
+
+/* доли */
+.nv-h { display: flex; align-items: center; gap: 10px; padding: 15px 16px 0; }
+.nv-h h3 { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: -.01em; color: var(--text); }
+.nv-h .sub { margin-left: auto; font-size: 11.5px; font-weight: 500; color: var(--text-dim); }
+.nv-donut { position: relative; display: flex; justify-content: center; padding: 10px 16px 4px; }
+.nv-donut canvas { display: block; width: 200px; height: 200px; touch-action: pan-y; }
+.nv-donut-c { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; text-align: center; pointer-events: none; }
+.nv-donut-c .t { font-size: 20px; font-weight: 700; letter-spacing: -.03em; }
+/* Название зикра в центре кольца: длинное переносится на две строки и обрезается */
+.nv-donut-c .s {
+    margin-top: 1px; max-width: 108px; font-size: 11px; line-height: 1.25; color: var(--text-dim);
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+}
+.nv-list { display: flex; flex-direction: column; gap: 2px; padding: 4px 12px 10px; }
+.nv-lrow { display: flex; align-items: center; gap: 9px; padding: 7px 8px; border-radius: 11px; cursor: default; transition: transform .2s var(--nv-ease), opacity .2s, background .2s; -webkit-tap-highlight-color: transparent; }
+/* Выбранный зикр чуть больше и с дорожкой своего цвета, остальные чуть меньше */
+.nv-list.has-sel .nv-lrow { transform: scale(.97); opacity: .62; }
+.nv-list.has-sel .nv-lrow.sel { transform: scale(1.03); opacity: 1; background: color-mix(in srgb, var(--c) 22%, transparent); }
+.nv-lrow i { width: 9px; height: 9px; border-radius: 3px; flex: none; }
+.nv-lrow .n { min-width: 0; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nv-lrow .q { margin-left: auto; flex: none; font-size: 11.5px; color: var(--text-dim); }
+.nv-lrow .p { width: 50px; flex: none; text-align: right; font-size: 13px; font-weight: 700; letter-spacing: -.02em; }
+.nv-more {
+    display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%; padding: 12px;
+    border: 0; border-top: 1px solid var(--border); background: none; cursor: pointer;
+    color: var(--gold); font: 600 13px 'Montserrat', sans-serif;
+}
+.nv-more svg { width: 14px; height: 14px; }
+.nv-mt { margin-top: 12px; }
+/* При выборе зикра фон карточки темнеет, чтобы выбранное было заметнее */
+.nv-donut-card::after {
+    content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    background: #000; opacity: 0; transition: opacity .25s var(--nv-ease);
+}
+.nv-donut-card.dimmed::after { opacity: .31; }
+[data-theme^="light"] .nv-donut-card.dimmed::after { opacity: .1; }
+.nv-donut-card > * { position: relative; z-index: 1; }
+.nv-donut-card[hidden] { display: none; }
+.nv-empty { margin-top: 4px; padding: 42px 24px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.nv-empty svg { width: 42px; height: 42px; color: var(--gold); opacity: .75; }
+.nv-empty h3 { margin: 14px 0 0; font-size: 16px; font-weight: 700; color: var(--text); }
+.nv-empty p { margin: 7px 0 0; font-size: 13px; line-height: 1.45; color: var(--text-muted); }
+@media (prefers-reduced-motion: reduce) {
+    .nv-rise { animation: none; }
+    .nv *, .nv-chip { transition: none !important; }
+}
+
+/* «Очистить всё» в настройках: «Да» нужно удерживать 2 секунды */
+.set-clear-btn { margin-top: 10px; }
+.clear-hold-hint { margin-top: 6px; color: var(--gold); font-weight: 600; }
+.clear-hold-hint.nudge { animation: clearHoldNudge .3s ease; }
+@keyframes clearHoldNudge { 40% { transform: scale(1.06); } }
+#btnYesClearStats {
+    position: relative; overflow: hidden;
+    -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: none;
+}
+#btnYesClearStats::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: rgba(0, 0, 0, .3);
+    transform: scaleX(0); transform-origin: left center; transition: transform .18s ease-out;
+}
+#btnYesClearStats.holding::before { transform: scaleX(1); transition: transform 2s linear; }
