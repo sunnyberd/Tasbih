@@ -1248,6 +1248,7 @@
             localStorage.setItem('azkar_special_completed', JSON.stringify(completedSpecial));
             localStorage.setItem('azkar_special_progress', JSON.stringify(specialProgress));
             localStorage.setItem('azkar_special_resume_sessions', JSON.stringify(specialResumeSessions));
+            if (pendingStatsSave && _statMinutesCache !== null) { localStorage.setItem('azkar_stats_minutes', JSON.stringify(_statMinutesCache)); }
             if (pendingStatsSave && _statsCache !== null) { localStorage.setItem('azkar_stats_v2', JSON.stringify(_statsCache)); pendingStatsSave = false; }
         }
         function saveDataDebounced() { scheduleSave(); pendingStatsSave = true; markDataChanged(); }
@@ -1313,6 +1314,35 @@
                    String(d.getMonth() + 1).padStart(2, '0') + '-' +
                    String(d.getDate()).padStart(2, '0');
         }
+        // Минут с начала исламского дня (с Фаджра, а если он неизвестен — с полуночи)
+        function _dayMinute() {
+            const now = new Date();
+            const fajrH = parseFloat(localStorage.getItem('azkar_last_fajr_hours'));
+            const start = fajrH > 0 && fajrH < 12 ? Math.round(fajrH * 60) : 0;
+            return (now.getHours() * 60 + now.getMinutes() - start + 1440) % 1440;
+        }
+        // Для сравнения «сегодня к этому часу» и «вчера к этому же часу». В общей
+        // статистике только итог за день, поэтому минуты пишутся отдельно: за сегодня
+        // и вчера, более старые не нужны.
+        let _statMinutesCache = null;
+        function getStatMinutes() {
+            if (_statMinutesCache === null) {
+                try { _statMinutesCache = JSON.parse(localStorage.getItem('azkar_stats_minutes') || '{}') || {}; }
+                catch (e) { _statMinutesCache = {}; }
+            }
+            return _statMinutesCache;
+        }
+        function _recordStatMinute(today, amount) {
+            const all = getStatMinutes();
+            if (!all[today]) {
+                const d = _dateFromLocalDayKey(today);
+                const yesterday = _localDayKey(new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1));
+                Object.keys(all).forEach(k => { if (k !== yesterday) delete all[k]; });
+                all[today] = {};
+            }
+            const m = _dayMinute();
+            all[today][m] = (all[today][m] || 0) + amount;
+        }
         function recordStat(amount) {
             // The "day" rolls over at Fajr (Islamic day), not at midnight — so
             // the daily counter (and the "Today" stat) resets only when the next
@@ -1321,6 +1351,7 @@
             let stats = getStats();
             if (!stats[today]) stats[today] = { count: 0 };
             stats[today].count += (amount || 1);
+            _recordStatMinute(today, amount || 1);
             pendingStatsSave = true; scheduleSave();
             markDirty('stats');
             markDataChanged();
@@ -3450,19 +3481,36 @@
             return out;
         }
 
-        function _statsStreaks(activeDays, stats, today) {
-            let best = 0, run = 0, prev = null;
-            activeDays.forEach(k => {
-                const d = _dateFromLocalDayKey(k);
-                run = prev && _statsDayDiff(prev, d) === 1 ? run + 1 : 1;
-                if (run > best) best = run;
-                prev = d;
-            });
+        function _statsStreak(stats, today) {
             // Сегодня ещё не читали — серия не прервалась, считаем со вчера
             let cur = 0;
             let d = _statsCount(stats, today) ? today : _statsAddDays(today, -1);
             while (_statsCount(stats, d)) { cur++; d = _statsAddDays(d, -1); }
-            return { cur, best };
+            return cur;
+        }
+        // Сколько было вчера к этому же времени дня; null — сравнивать не с чем.
+        // Сравнивать с целым вчерашним днём нельзя: утром всегда получался бы большой минус.
+        function _statsYesterdayByNow(stats, today) {
+            const key = _localDayKey(_statsAddDays(today, -1));
+            const total = stats[key]?.count || 0, minutes = getStatMinutes()[key];
+            if (!total || !minutes) return null;
+            const now = _dayMinute();
+            let recorded = 0, upToNow = 0;
+            Object.keys(minutes).forEach(k => {
+                const v = minutes[k] || 0;
+                recorded += v;
+                if (+k <= now) upToNow += v;
+            });
+            // Записана малая часть дня (обновились вчера вечером) — честно сравнить нельзя
+            if (recorded < total * .5) return null;
+            // Итог мог включать другое устройство, поэтому берём долю дня, а не сами минуты
+            return upToNow / recorded * total;
+        }
+        function _statsPaintTodayDelta() {
+            const stats = getStats(), today = _dateFromLocalDayKey(_islamicDayKey());
+            const byNow = _statsYesterdayByNow(stats, today);
+            document.getElementById('statTodaySub').innerHTML = byNow > 0
+                ? _statsDeltaHtml((_statsCount(stats, today) - byNow) / byNow * 100) : '';
         }
 
         function _statsFit(cv, h) {
@@ -3776,28 +3824,19 @@
             document.getElementById('statsChips').innerHTML = STATS_RANGES.map(r => '<button class="nv-chip" data-id="' + r.id + '" aria-pressed="' + (r.id === _statsUi.range) + '">' + escHtml(t(r.key)) + '</button>').join('');
 
             const R = _statsRangeOf(today, first);
-            let sum = 0, best = 0, bestAt = null;
-            for (let i = 0; i < R.len; i++) {
-                const d = _statsAddDays(R.a, i), v = _statsCount(stats, d);
-                sum += v;
-                if (v > best) { best = v; bestAt = d; }
-            }
+            let sum = 0;
+            for (let i = 0; i < R.len; i++) sum += _statsCount(stats, _statsAddDays(R.a, i));
             let prevSum = 0;
             if (R.prev) for (let i = 0; i < R.len; i++) prevSum += _statsCount(stats, _statsAddDays(R.prev, i));
             // Среднее — только с первого дня с зикрами, иначе новичку оно занижается пустыми днями
             const avgLen = first && first > R.a ? _statsDayDiff(first, today) + 1 : R.len;
-            const st = _statsStreaks(activeDays, stats, today);
 
             _statsSetNum('statToday', _statsCount(stats, today), animated);
             _statsSetNum('statSum', sum, animated);
             _statsSetNum('statAvg', sum / avgLen, animated);
-            _statsSetNum('statStreak', st.cur, animated);
-            document.getElementById('statTodaySub').textContent = t('statsYesterday').replace('{n}', F.num(_statsCount(stats, _statsAddDays(today, -1))));
-            const delta = prevSum > 0 ? _statsDeltaHtml((sum - prevSum) / prevSum * 100) + '<br>' : '';
-            const bestTxt = bestAt ? t('statsBestDay').replace('{n}', F.num(best)).replace('{d}', F.dayMonth(bestAt)) : '';
-            document.getElementById('statSumSub').innerHTML = delta + escHtml(bestTxt);
-            document.getElementById('statAvgSub').textContent = t('statsPerDay');
-            document.getElementById('statStreakSub').textContent = t('statsRecord').replace('{n}', F.num(st.best));
+            _statsSetNum('statStreak', _statsStreak(stats, today), animated);
+            _statsPaintTodayDelta();
+            document.getElementById('statSumSub').innerHTML = prevSum > 0 ? _statsDeltaHtml((sum - prevSum) / prevSum * 100) : '';
 
             _statsChart.bs = _statsBuckets(stats, R);
             _statsChart.hover = -1;
@@ -3869,7 +3908,9 @@
             updateDisplay(); saveDataDebounced();
             // Сброс статистики
             localStorage.removeItem('azkar_stats_v2');
+            localStorage.removeItem('azkar_stats_minutes');
             _statsCache = {};
+            _statMinutesCache = {};
             pendingStatsSave = false;
             dhikrTotals = {};
             saveDhikrTotals();
@@ -8622,7 +8663,7 @@
                 if (typeof window._stealthTryActivate === 'function') window._stealthTryActivate('screen-' + tab);
             } catch(e) {}
             // Рендерим раздел только если он «грязный» (первый вход или данные изменились)
-            if (tab === 'stats'        && _dirty.stats)    { renderStats(); }
+            if (tab === 'stats')      { if (_dirty.stats) renderStats(); else _statsPaintTodayDelta(); }
             if (tab === 'favorites'    && _dirty.favorites) { renderFavorites();   _dirty.favorites = false; }
             if (tab === 'dua'          && _dirty.duaFolders) { renderDuaFolders(); _dirty.duaFolders = false; }
             if (tab === 'dua'          && _dirty.dua)       { renderDuas();        _dirty.dua = false; }

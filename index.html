@@ -56,7 +56,7 @@
         @font-face { font-family: 'Scheherazade New'; src: url('fonts/scheherazadenew-bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF; }
     </style>
 
-    <link rel="stylesheet" href="css/app.css?v=151">
+    <link rel="stylesheet" href="css/app.css?v=152">
 </head>
 <body>
 
@@ -427,8 +427,8 @@
             <section class="nv-kpis">
                 <div class="nv-card nv-kpi nv-rise"><div class="lbl"><i></i><span id="labelToday">Сегодня</span></div><div class="val" id="statToday">0</div><div class="sub" id="statTodaySub"></div></div>
                 <div class="nv-card nv-kpi nv-rise"><div class="lbl"><i></i><span id="statsPeriodLabel">За период</span></div><div class="val" id="statSum">0</div><div class="sub" id="statSumSub"></div></div>
-                <div class="nv-card nv-kpi nv-rise"><div class="lbl"><i></i><span id="statsAvgLabel">В среднем за день</span></div><div class="val" id="statAvg">0</div><div class="sub" id="statAvgSub"></div></div>
-                <div class="nv-card nv-kpi nv-rise"><div class="lbl"><i></i><span id="statsStreakLabel">Серия дней</span></div><div class="val" id="statStreak">0</div><div class="sub" id="statStreakSub"></div></div>
+                <div class="nv-card nv-kpi nv-rise"><div class="lbl"><i></i><span id="statsAvgLabel">В среднем за день</span></div><div class="val" id="statAvg">0</div></div>
+                <div class="nv-card nv-kpi nv-rise"><div class="lbl"><i></i><span id="statsStreakLabel">Серия дней</span></div><div class="val" id="statStreak">0</div></div>
             </section>
             <section class="nv-card nv-chart nv-rise" style="animation-delay:.05s">
                 <div class="nv-h"><h3 id="chartTitle">Прогресс</h3>
@@ -2637,7 +2637,7 @@
     // I18N_VERSION менять при КАЖДОМ изменении файлов i18n/ (вместе с CACHE_NAME в sw.js),
     // иначе телефон может взять старую копию из кэша.
     (function () {
-        var I18N_VERSION = '124';
+        var I18N_VERSION = '125';
         var LANGS = ['en', 'de', 'es', 'fr', 'it', 'ja', 'ko', 'ru', 'uz', 'zh', 'tr', 'hi', 'id', 'ms', 'th'];
         var I = window.AZKAR_I18N = window.AZKAR_I18N || {};
         var U = window.AZKAR_UI_TRANSLATIONS = window.AZKAR_UI_TRANSLATIONS || {};
@@ -2697,11 +2697,11 @@
         });
     })();
     </script>
-    <script src="js/feedback.js?v=151"></script>
+    <script src="js/feedback.js?v=152"></script>
     <script src="data/special-dhikrs.js?v=110"></script>
-    <script src="push-config.js?v=151"></script>
-    <script src="js/app.js?v=151"></script>
-    <script src="js/native.js?v=151"></script>
+    <script src="push-config.js?v=152"></script>
+    <script src="js/app.js?v=152"></script>
+    <script src="js/native.js?v=152"></script>
         <script>
         // Реальный свайп — баннер следует за пальцем, при отпускании улетает или возвращается
         window.addEventListener('load', function() {

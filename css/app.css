@@ -5371,8 +5371,8 @@ html.lite .about-app-card {
 .nv-kpi .lbl { font-size: 12px; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 7px; }
 .nv-kpi .lbl i { width: 7px; height: 7px; border-radius: 2px; background: var(--gold); flex: none; }
 .nv-kpi .val { margin-top: 7px; font-size: clamp(21px, 6vw, 26px); font-weight: 700; letter-spacing: -.035em; line-height: 1.1; white-space: nowrap; }
-.nv-kpi .sub { margin-top: 8px; font-size: 11.5px; line-height: 1.35; color: var(--text-dim); }
-.nv-kpi .sub .nv-delta { margin-bottom: 5px; }
+.nv-kpi .sub { margin-top: 8px; }
+.nv-kpi .sub:empty { display: none; }
 .nv-delta { display: inline-flex; align-items: center; gap: 3px; flex: none; padding: 3px 7px; border-radius: 8px; font-size: 12px; font-weight: 700; letter-spacing: -.01em; color: var(--nv-pos); background: color-mix(in srgb, var(--nv-pos) 13%, transparent); }
 .nv-delta.down { color: var(--nv-neg); background: color-mix(in srgb, var(--nv-neg) 13%, transparent); }
 .nv-delta svg { width: 11px; height: 11px; }
