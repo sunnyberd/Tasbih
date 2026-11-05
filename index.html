@@ -56,7 +56,7 @@
         @font-face { font-family: 'Scheherazade New'; src: url('fonts/scheherazadenew-bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF; }
     </style>
 
-    <link rel="stylesheet" href="css/app.css?v=153">
+    <link rel="stylesheet" href="css/app.css?v=155">
 </head>
 <body>
 
@@ -450,8 +450,22 @@
                     <div class="nv-donut-c"><div class="t" id="statDonutT">0</div><div class="s" id="statDonutS"></div></div>
                 </div>
                 <div class="nv-list" id="statDonutList"></div>
-                <button class="nv-more" onclick="openDhikrStats()"><span id="statsAllDhikrs">Все зикры</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+                <button class="nv-more" onclick="openStatsAll()"><span id="statsAllDhikrs">Все зикры</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
             </section>
+        </div>
+    </div>
+
+    <div class="screen" id="screen-stats-all">
+        <div class="screen-sticky-head">
+        <div class="screen-header">
+            <h2 id="statsAllTitle">Все зикры</h2>
+        </div>
+        <!-- Слева вверху уже стоит счётчик онлайна, поэтому «Назад» — строкой под заголовком -->
+        <button class="nv-back" onclick="closeStatsAll()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg><span id="statsBackLabel">Статистика</span></button>
+        </div>
+        <div class="nv">
+            <section class="nv-card nv-kpi nv-all-total nv-rise"><div class="lbl"><i></i><span id="statsTotalDhikrs">Всего зикров</span></div><div class="val" id="statAllTotal">0</div></section>
+            <section class="nv-card nv-mt nv-bars nv-rise" id="statAllBars" style="animation-delay:.05s"></section>
         </div>
     </div>
 
@@ -1236,11 +1250,19 @@
     </div>
 
     <div class="overlay" id="statsCustomOverlay">
-        <div class="overlay-card">
+        <div class="overlay-card nv-custom-card">
             <div class="overlay-title" id="statsCustomTitle">Свой период</div>
             <div class="nv-custom-fields">
-                <label class="nv-date-row"><span id="statsFromLabel">С</span><input type="date" class="nv-date" id="statsCustomFrom"></label>
-                <label class="nv-date-row"><span id="statsToLabel">По</span><input type="date" class="nv-date" id="statsCustomTo"></label>
+                <button type="button" class="nv-date-field" id="statsCustomFrom" onclick="statsCalPick('from')"><span class="k" id="statsFromLabel">С</span><span class="v"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></button>
+                <button type="button" class="nv-date-field" id="statsCustomTo" onclick="statsCalPick('to')"><span class="k" id="statsToLabel">По</span><span class="v"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></button>
+            </div>
+            <div class="nv-cal">
+                <div class="nv-cal-head">
+                    <button type="button" class="nv-cal-nav" id="statsCalPrev" onclick="statsCalShift(-1)" aria-label="Назад" data-i18n-aria="statsPrevMonth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+                    <button type="button" class="nv-cal-title" onclick="statsCalToggleMonths()"><span id="statsCalTitleText"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+                    <button type="button" class="nv-cal-nav" id="statsCalNext" onclick="statsCalShift(1)" aria-label="Вперёд" data-i18n-aria="statsNextMonth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+                </div>
+                <div class="nv-cal-grid" id="statsCalGrid"></div>
             </div>
             <div class="overlay-btns">
                 <button class="overlay-btn-cancel" onclick="cancelStatsCustom()" id="statsCustomCancel">Отмена</button>
@@ -2652,7 +2674,7 @@
     // I18N_VERSION менять при КАЖДОМ изменении файлов i18n/ (вместе с CACHE_NAME в sw.js),
     // иначе телефон может взять старую копию из кэша.
     (function () {
-        var I18N_VERSION = '126';
+        var I18N_VERSION = '128';
         var LANGS = ['en', 'de', 'es', 'fr', 'it', 'ja', 'ko', 'ru', 'uz', 'zh', 'tr', 'hi', 'id', 'ms', 'th'];
         var I = window.AZKAR_I18N = window.AZKAR_I18N || {};
         var U = window.AZKAR_UI_TRANSLATIONS = window.AZKAR_UI_TRANSLATIONS || {};
@@ -2712,11 +2734,11 @@
         });
     })();
     </script>
-    <script src="js/feedback.js?v=153"></script>
+    <script src="js/feedback.js?v=155"></script>
     <script src="data/special-dhikrs.js?v=110"></script>
-    <script src="push-config.js?v=153"></script>
-    <script src="js/app.js?v=153"></script>
-    <script src="js/native.js?v=153"></script>
+    <script src="push-config.js?v=155"></script>
+    <script src="js/app.js?v=155"></script>
+    <script src="js/native.js?v=155"></script>
         <script>
         // Реальный свайп — баннер следует за пальцем, при отпускании улетает или возвращается
         window.addEventListener('load', function() {

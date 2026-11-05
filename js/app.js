@@ -657,6 +657,7 @@
                 statsShareTitle: 'statsShareTitle', statsAllTime: 'statsAllTime', statsAllDhikrs: 'statsAllDhikrs',
                 statsEmptyTitle: 'statsEmptyTitle', statsEmptySub: 'statsEmptySub',
                 statsCustomTitle: 'statsCustomTitle', statsFromLabel: 'statsFrom', statsToLabel: 'statsTo',
+                statsAllTitle: 'statsAllDhikrs', statsTotalDhikrs: 'statsTotalDhikrs', statsBackLabel: 'titleStats',
                 chartTitle: 'chartTitle', timeChartTitle: 'timeChartTitle', titleSettings: 'titleSettings',
                 labelLang: 'labelLang', labelTheme: 'labelTheme', labelOnlinePresence: 'labelOnlinePresence', labelLiteMode: 'labelLiteMode',
                 aeOpt0: 'autoExtendOff', labelSound: 'labelSound',
@@ -1328,7 +1329,7 @@
             markDirty('stats');
             markDataChanged();
             // Статистика открыта (нажимают плавающую кнопку) — числа и проценты меняются сразу
-            if (_isScreenActive('screen-stats')) _statsRefreshSoon();
+            if (_isScreenActive('screen-stats') || _isScreenActive('screen-stats-all')) _statsRefreshSoon();
             return today;
         }
 
@@ -3627,15 +3628,19 @@
         }
 
         // --- доли зикров ---
-        // Основной зикр + самые частые особые, остальное — «Другие»: больше шести
-        // цветов на диаграмме уже не различить. Все зикры — на экране «Все зикры».
+        // Всегда один порядок: основной зикр, тасбих после намаза (33 + 33 + 34), тахлиль
+        // и «Другие» — все остальные особые зикры. Строки с нулём тоже остаются на месте.
+        // Все зикры по количеству — на экране «Все зикры».
+        const STATS_DONUT_FIXED = ['subhanallah', 'alhamdulillah', 'allahuakbar', 'tahlil'];
         function _statsDonutRows() {
             const pal = isDarkTheme() ? STATS_DONUT_DARK : STATS_DONUT_LIGHT;
-            const named = specialDhikrs.map(d => ({ n: getSpecialName(d), v: dhikrTotals[d.id] || 0 })).filter(r => r.v > 0).sort((a, b) => b.v - a.v);
-            const rows = (dhikrTotals['main'] || 0) > 0 ? [{ n: t('dhikrStatsMainDhikr'), v: dhikrTotals['main'], c: pal[0] }] : [];
-            const room = named.length > 5 ? 4 : 5;
-            named.slice(0, room).forEach((r, i) => rows.push({ n: r.n, v: r.v, c: pal[i + 1] }));
-            if (named.length > room) rows.push({ n: t('statsOther'), v: named.slice(room).reduce((s, r) => s + r.v, 0), c: pal[5], other: true });
+            const rows = [{ n: t('dhikrStatsMainDhikr'), v: dhikrTotals['main'] || 0, c: pal[0] }];
+            STATS_DONUT_FIXED.forEach((id, i) => {
+                const d = specialDhikrs.find(x => x.id === id);   // зикр могли удалить
+                if (d) rows.push({ n: getSpecialName(d), v: dhikrTotals[id] || 0, c: pal[i + 1] });
+            });
+            const rest = specialDhikrs.filter(d => !STATS_DONUT_FIXED.includes(d.id)).reduce((sum, d) => sum + (dhikrTotals[d.id] || 0), 0);
+            rows.push({ n: t('statsOther'), v: rest, c: pal[5] });
             return rows;
         }
         function _statsDrawDonut() {
@@ -3645,6 +3650,7 @@
             const cx = w / 2, cy = h / 2, RR0 = Math.min(w, h) / 2 - 4, r = RR0 * .68;
             let ang = -Math.PI / 2;
             c.rows.forEach((a, i) => {
+                if (!a.p) return;   // у нулевой строки куска нет
                 const sw = a.p / 100 * Math.PI * 2 * c.prog;
                 const RR = c.hover === i ? RR0 + 3 : RR0;   // выбранный кусок чуть выступает
                 x.beginPath(); x.arc(cx, cy, RR, ang, ang + sw); x.arc(cx, cy, r, ang + sw, ang, true); x.closePath();
@@ -3678,7 +3684,7 @@
                 let a = Math.atan2(dy, dx) + Math.PI / 2;
                 if (a < 0) a += Math.PI * 2;
                 let acc = 0;
-                for (let i = 0; i < c.rows.length; i++) { acc += c.rows[i].p / 100 * Math.PI * 2; if (a <= acc) return i; }
+                for (let i = 0; i < c.rows.length; i++) { acc += c.rows[i].p / 100 * Math.PI * 2; if (a <= acc && c.rows[i].p > 0) return i; }
                 return -1;
             };
             const rowAt = (e) => { const el = e.target.closest && e.target.closest('.nv-lrow'); return el ? +el.dataset.i : -1; };
@@ -3701,14 +3707,14 @@
             const c = _statsDonut, F = _statsFmt(), list = document.getElementById('statDonutList');
             const rows = _statsDonutRows();
             c.total = rows.reduce((s, r) => s + r.v, 0);
-            c.rows = rows.map(r => ({ n: r.n, c: r.c, v: r.v, other: !!r.other, p: r.v / (c.total || 1) * 100 }));
+            c.rows = rows.map(r => ({ n: r.n, c: r.c, v: r.v, p: r.v / (c.total || 1) * 100 }));
             document.getElementById('statDonutCard').hidden = !c.rows.length;
             c.hover = -1;
             list.classList.remove('has-sel');
             document.getElementById('statDonutCard').classList.remove('dimmed');
             if (!c.rows.length) return;
             _statsDonutCenter();
-            list.innerHTML = c.rows.map((a, i) => Object.assign({ i }, a)).sort((a, b) => (a.other - b.other) || (b.v - a.v)).map(a =>
+            list.innerHTML = c.rows.map((a, i) => Object.assign({ i }, a)).map(a =>
                 '<div class="nv-lrow" data-i="' + a.i + '" style="--c:' + a.c + '"><i style="background:' + a.c + '"></i><span class="n">' + escHtml(a.n) + '</span><span class="q">' + F.compact(a.v) + '</span><span class="p">' + F.num1(a.p) + '%</span></div>').join('');
             if (animated === false) { c._statsAnim = null; c.prog = 1; _statsDrawDonut(); return; }
             c.prog = 0;
@@ -3733,6 +3739,7 @@
             _statsUi.bound = true;
             _statsBindChart();
             _statsBindDonut();
+            _statsCalBind();
             document.getElementById('statsChips').addEventListener('click', (e) => {
                 const b = e.target.closest('.nv-chip');
                 if (!b) return;
@@ -3758,15 +3765,19 @@
                 timer = setTimeout(() => { if (_isScreenActive('screen-stats')) renderStats(false); else markDirty('stats'); }, 110);
             }, { passive: true });
         }
+        // Свой период: свой календарь вместо телефонного — он выглядит одинаково
+        // на всех телефонах и в браузере и показывает выбранный отрезок целиком.
+        const _statsCal = { from: null, to: null, active: 'from', view: null, months: false, min: null, max: null };
         function openStatsCustom() {
+            const c = _statsCal;
             const today = _dateFromLocalDayKey(_islamicDayKey());
             const days = _statsActiveDays(getStats(), _localDayKey(today));
-            const first = days.length ? _dateFromLocalDayKey(days[0]) : today;
             const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-            const from = document.getElementById('statsCustomFrom'), to = document.getElementById('statsCustomTo');
-            [from, to].forEach(el => { el.min = _localDayKey(first); el.max = _localDayKey(today); });
-            from.value = _localDayKey(_statsUi.from || (first > monthStart ? first : monthStart));
-            to.value = _localDayKey(_statsUi.to || today);
+            c.min = days.length ? _dateFromLocalDayKey(days[0]) : today;
+            c.max = today;
+            c.from = _statsUi.from || (c.min > monthStart ? c.min : monthStart);
+            c.to = _statsUi.to || today;
+            statsCalPick('from');
             // applyLanguage подписывает все кнопки окон «Да» и «Нет», поэтому текст ставим здесь
             document.getElementById('statsCustomApply').textContent = t('statsShow');
             document.getElementById('statsCustomCancel').textContent = t('btnCancel');
@@ -3774,23 +3785,139 @@
         }
         function cancelStatsCustom() { document.getElementById('statsCustomOverlay').classList.remove('show'); }
         function applyStatsCustom() {
-            const fromV = document.getElementById('statsCustomFrom').value, toV = document.getElementById('statsCustomTo').value;
-            if (!fromV || !toV) return;
-            const today = _dateFromLocalDayKey(_islamicDayKey());
-            const limit = (d) => d > today ? today : d;
-            const a = limit(_dateFromLocalDayKey(fromV)), b = limit(_dateFromLocalDayKey(toV));
+            const c = _statsCal;
             // Перепутанные «С» и «По» меняем местами
-            _statsUi.from = a <= b ? a : b;
-            _statsUi.to = a <= b ? b : a;
+            _statsUi.from = c.from <= c.to ? c.from : c.to;
+            _statsUi.to = c.from <= c.to ? c.to : c.from;
             _statsUi.range = 'custom';
             cancelStatsCustom();
             _statsHideTip();
             renderStats();
         }
+        function statsCalPick(which) {
+            const c = _statsCal, d = c[which];
+            c.active = which;
+            c.view = new Date(d.getFullYear(), d.getMonth(), 1);
+            c.months = false;
+            _statsCalRender();
+        }
+        function statsCalShift(step) {
+            const c = _statsCal;
+            c.view = c.months ? new Date(c.view.getFullYear() + step, c.view.getMonth(), 1)
+                : new Date(c.view.getFullYear(), c.view.getMonth() + step, 1);
+            _statsCalRender();
+        }
+        // Нажатие на название месяца открывает выбор месяца — чтобы не листать год назад по одному
+        function statsCalToggleMonths() { _statsCal.months = !_statsCal.months; _statsCalRender(); }
+        function _statsCalDay(d) {
+            const c = _statsCal;
+            if (c.active === 'from') {
+                c.from = d;
+                if (d > c.to) c.to = d;
+                c.active = 'to';   // после «С» сразу выбирается «По»
+            } else {
+                c.to = d;
+                if (d < c.from) c.from = d;
+            }
+            _statsCalRender();
+        }
+        function _statsCalMonth(m) {
+            const c = _statsCal;
+            c.view = new Date(c.view.getFullYear(), m, 1);
+            c.months = false;
+            _statsCalRender();
+        }
+        function _statsCalRender() {
+            const c = _statsCal, F = _statsFmt();
+            const ym = (d) => d.getFullYear() * 12 + d.getMonth();
+            ['from', 'to'].forEach(k => {
+                const el = document.getElementById(k === 'from' ? 'statsCustomFrom' : 'statsCustomTo');
+                el.querySelector('.v').textContent = F.dayMonthYear(c[k]);
+                el.classList.toggle('active', c.active === k);
+                el.setAttribute('aria-pressed', String(c.active === k));
+            });
+            const y = c.view.getFullYear();
+            document.getElementById('statsCalTitleText').textContent = c.months ? String(y) : F.monthYear(c.view);
+            document.getElementById('statsCalPrev').disabled = c.months ? y <= c.min.getFullYear() : ym(c.view) <= ym(c.min);
+            document.getElementById('statsCalNext').disabled = c.months ? y >= c.max.getFullYear() : ym(c.view) >= ym(c.max);
+            const grid = document.getElementById('statsCalGrid');
+            grid.classList.toggle('nv-cal-months', c.months);
+            if (c.months) {
+                const cur = c[c.active];
+                grid.innerHTML = Array.from({ length: 12 }, (_, m) => {
+                    const v = y * 12 + m, sel = v === ym(cur);
+                    return '<button type="button" class="nv-cal-month' + (sel ? ' sel' : '') + '" data-m="' + m + '"' + (v < ym(c.min) || v > ym(c.max) ? ' disabled' : '') + '>' + escHtml(F.monthShort(new Date(y, m, 1))) + '</button>';
+                }).join('');
+                return;
+            }
+            const lo = c.from <= c.to ? c.from : c.to, hi = c.from <= c.to ? c.to : c.from;
+            const wd = t('statsWeekdays');
+            let html = (Array.isArray(wd) ? wd : []).map(n => '<span class="nv-cal-wd">' + escHtml(n) + '</span>').join('');
+            const first = c.view, lead = (first.getDay() + 6) % 7;
+            const daysIn = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate();
+            // Всегда 6 строк: окно не прыгает по высоте от месяца к месяцу
+            for (let i = 0; i < 42; i++) {
+                const n = i - lead + 1;
+                if (n < 1 || n > daysIn) { html += '<span class="nv-cal-day"></span>'; continue; }
+                const d = new Date(first.getFullYear(), first.getMonth(), n), time = d.getTime();
+                const cls = ['nv-cal-day'];
+                if (time === lo.getTime()) cls.push('lo');
+                if (time === hi.getTime()) cls.push('hi');
+                if (time === c.max.getTime()) cls.push('today');
+                const off = d < c.min || d > c.max;
+                html += '<button type="button" class="' + cls.join(' ') + '" data-d="' + n + '"' + (off ? ' disabled' : '') + ' aria-label="' + escHtml(F.dayMonthYear(d)) + '"><span>' + n + '</span></button>';
+            }
+            grid.innerHTML = html;
+        }
+        function _statsCalBind() {
+            document.getElementById('statsCalGrid').addEventListener('click', (e) => {
+                const b = e.target.closest('button');
+                if (!b || b.disabled) return;
+                const c = _statsCal;
+                if (b.dataset.m !== undefined) _statsCalMonth(+b.dataset.m);
+                else _statsCalDay(new Date(c.view.getFullYear(), c.view.getMonth(), +b.dataset.d));
+            });
+        }
+        // «Все зикры»: каждый зикр отдельной строкой со столбиком, по количеству — от большего к меньшему
+        function openStatsAll() {
+            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+            const screen = document.getElementById('screen-stats-all');
+            screen.classList.add('active');
+            screen.scrollTop = 0;
+            renderStatsAll();
+        }
+        function closeStatsAll() {
+            document.getElementById('screen-stats-all').classList.remove('active');
+            document.getElementById('screen-stats').classList.add('active');
+            if (_dirty.stats) renderStats();
+        }
+        function renderStatsAll(animated) {
+            const F = _statsFmt();
+            const rows = [{ n: t('dhikrStatsMainDhikr'), v: dhikrTotals['main'] || 0 }]
+                .concat(specialDhikrs.map(d => ({ n: getSpecialName(d), v: dhikrTotals[d.id] || 0 })))
+                .filter(r => r.v > 0)
+                .sort((a, b) => b.v - a.v);
+            const total = rows.reduce((sum, r) => sum + r.v, 0), max = Math.max(1, ...rows.map(r => r.v));
+            _statsSetNum('statAllTotal', total, animated);
+            const box = document.getElementById('statAllBars');
+            box.hidden = !rows.length;
+            box.innerHTML = rows.map((r, i) =>
+                '<div class="nv-bar-row"><span class="nv-bar-rank">' + (i + 1) + '</span><div class="nv-bar-main">' +
+                '<div class="nv-bar-top"><span class="n">' + escHtml(r.n) + '</span><span class="q">' + F.compact(r.v) + '</span><span class="p">' + F.num1(r.v / (total || 1) * 100) + '%</span></div>' +
+                '<div class="nv-bar-track"><i data-w="' + (r.v / max * 100) + '"></i></div></div></div>').join('');
+            const grow = () => box.querySelectorAll('.nv-bar-track i').forEach(el => { el.style.width = el.dataset.w + '%'; });
+            // Столбики вырастают от нуля
+            if (animated === false || matchMedia('(prefers-reduced-motion: reduce)').matches) grow();
+            else requestAnimationFrame(() => requestAnimationFrame(grow));
+        }
         let _statsRefreshTimer = 0;
         function _statsRefreshSoon() {
             if (_statsRefreshTimer) return;
-            _statsRefreshTimer = setTimeout(() => { _statsRefreshTimer = 0; renderStats(false); }, 200);
+            _statsRefreshTimer = setTimeout(() => {
+                _statsRefreshTimer = 0;
+                renderStats(false);
+                if (_isScreenActive('screen-stats-all')) renderStatsAll(false);
+            }, 200);
         }
         function _statsPaintType() {
             document.querySelectorAll('#statType button').forEach(o => o.setAttribute('aria-pressed', String(o.dataset.v === _statsChart.type)));
