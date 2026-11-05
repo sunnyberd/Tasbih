@@ -56,7 +56,7 @@
         @font-face { font-family: 'Scheherazade New'; src: url('fonts/scheherazadenew-bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF; }
     </style>
 
-    <link rel="stylesheet" href="css/app.css?v=152">
+    <link rel="stylesheet" href="css/app.css?v=153">
 </head>
 <body>
 
@@ -412,6 +412,7 @@
             <h2 id="titleStats">Статистика</h2>
         </div>
         <nav class="nv-chips" id="statsChips" aria-label="Период" data-i18n-aria="statsPeriodLabel"></nav>
+        <button class="nv-custom-range" id="statsCustomRange" onclick="openStatsCustom()" hidden></button>
         </div>
 
         <!-- Пока нет ни одного зикра -->
@@ -1230,6 +1231,20 @@
             <div class="overlay-btns">
                 <button class="overlay-btn-cancel" onclick="cancelClearStats()" id="btnNoClearStats">Нет</button>
                 <button class="overlay-btn-confirm" id="btnYesClearStats">Да</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="statsCustomOverlay">
+        <div class="overlay-card">
+            <div class="overlay-title" id="statsCustomTitle">Свой период</div>
+            <div class="nv-custom-fields">
+                <label class="nv-date-row"><span id="statsFromLabel">С</span><input type="date" class="nv-date" id="statsCustomFrom"></label>
+                <label class="nv-date-row"><span id="statsToLabel">По</span><input type="date" class="nv-date" id="statsCustomTo"></label>
+            </div>
+            <div class="overlay-btns">
+                <button class="overlay-btn-cancel" onclick="cancelStatsCustom()" id="statsCustomCancel">Отмена</button>
+                <button class="overlay-btn-confirm" onclick="applyStatsCustom()" id="statsCustomApply">Показать</button>
             </div>
         </div>
     </div>
@@ -2637,7 +2652,7 @@
     // I18N_VERSION менять при КАЖДОМ изменении файлов i18n/ (вместе с CACHE_NAME в sw.js),
     // иначе телефон может взять старую копию из кэша.
     (function () {
-        var I18N_VERSION = '125';
+        var I18N_VERSION = '126';
         var LANGS = ['en', 'de', 'es', 'fr', 'it', 'ja', 'ko', 'ru', 'uz', 'zh', 'tr', 'hi', 'id', 'ms', 'th'];
         var I = window.AZKAR_I18N = window.AZKAR_I18N || {};
         var U = window.AZKAR_UI_TRANSLATIONS = window.AZKAR_UI_TRANSLATIONS || {};
@@ -2697,11 +2712,11 @@
         });
     })();
     </script>
-    <script src="js/feedback.js?v=152"></script>
+    <script src="js/feedback.js?v=153"></script>
     <script src="data/special-dhikrs.js?v=110"></script>
-    <script src="push-config.js?v=152"></script>
-    <script src="js/app.js?v=152"></script>
-    <script src="js/native.js?v=152"></script>
+    <script src="push-config.js?v=153"></script>
+    <script src="js/app.js?v=153"></script>
+    <script src="js/native.js?v=153"></script>
         <script>
         // Реальный свайп — баннер следует за пальцем, при отпускании улетает или возвращается
         window.addEventListener('load', function() {

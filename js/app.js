@@ -656,6 +656,7 @@
                 statsPeriodLabel: 'statsPeriodLabel', statsAvgLabel: 'statsAvgLabel', statsStreakLabel: 'statsStreakLabel',
                 statsShareTitle: 'statsShareTitle', statsAllTime: 'statsAllTime', statsAllDhikrs: 'statsAllDhikrs',
                 statsEmptyTitle: 'statsEmptyTitle', statsEmptySub: 'statsEmptySub',
+                statsCustomTitle: 'statsCustomTitle', statsFromLabel: 'statsFrom', statsToLabel: 'statsTo',
                 chartTitle: 'chartTitle', timeChartTitle: 'timeChartTitle', titleSettings: 'titleSettings',
                 labelLang: 'labelLang', labelTheme: 'labelTheme', labelOnlinePresence: 'labelOnlinePresence', labelLiteMode: 'labelLiteMode',
                 aeOpt0: 'autoExtendOff', labelSound: 'labelSound',
@@ -1248,7 +1249,6 @@
             localStorage.setItem('azkar_special_completed', JSON.stringify(completedSpecial));
             localStorage.setItem('azkar_special_progress', JSON.stringify(specialProgress));
             localStorage.setItem('azkar_special_resume_sessions', JSON.stringify(specialResumeSessions));
-            if (pendingStatsSave && _statMinutesCache !== null) { localStorage.setItem('azkar_stats_minutes', JSON.stringify(_statMinutesCache)); }
             if (pendingStatsSave && _statsCache !== null) { localStorage.setItem('azkar_stats_v2', JSON.stringify(_statsCache)); pendingStatsSave = false; }
         }
         function saveDataDebounced() { scheduleSave(); pendingStatsSave = true; markDataChanged(); }
@@ -1314,35 +1314,8 @@
                    String(d.getMonth() + 1).padStart(2, '0') + '-' +
                    String(d.getDate()).padStart(2, '0');
         }
-        // Минут с начала исламского дня (с Фаджра, а если он неизвестен — с полуночи)
-        function _dayMinute() {
-            const now = new Date();
-            const fajrH = parseFloat(localStorage.getItem('azkar_last_fajr_hours'));
-            const start = fajrH > 0 && fajrH < 12 ? Math.round(fajrH * 60) : 0;
-            return (now.getHours() * 60 + now.getMinutes() - start + 1440) % 1440;
-        }
-        // Для сравнения «сегодня к этому часу» и «вчера к этому же часу». В общей
-        // статистике только итог за день, поэтому минуты пишутся отдельно: за сегодня
-        // и вчера, более старые не нужны.
-        let _statMinutesCache = null;
-        function getStatMinutes() {
-            if (_statMinutesCache === null) {
-                try { _statMinutesCache = JSON.parse(localStorage.getItem('azkar_stats_minutes') || '{}') || {}; }
-                catch (e) { _statMinutesCache = {}; }
-            }
-            return _statMinutesCache;
-        }
-        function _recordStatMinute(today, amount) {
-            const all = getStatMinutes();
-            if (!all[today]) {
-                const d = _dateFromLocalDayKey(today);
-                const yesterday = _localDayKey(new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1));
-                Object.keys(all).forEach(k => { if (k !== yesterday) delete all[k]; });
-                all[today] = {};
-            }
-            const m = _dayMinute();
-            all[today][m] = (all[today][m] || 0) + amount;
-        }
+        // В версии 0.13 здесь хранилось время каждого зикра; теперь оно не нужно
+        try { localStorage.removeItem('azkar_stats_minutes'); } catch (e) {}
         function recordStat(amount) {
             // The "day" rolls over at Fajr (Islamic day), not at midnight — so
             // the daily counter (and the "Today" stat) resets only when the next
@@ -1351,10 +1324,11 @@
             let stats = getStats();
             if (!stats[today]) stats[today] = { count: 0 };
             stats[today].count += (amount || 1);
-            _recordStatMinute(today, amount || 1);
             pendingStatsSave = true; scheduleSave();
             markDirty('stats');
             markDataChanged();
+            // Статистика открыта (нажимают плавающую кнопку) — числа и проценты меняются сразу
+            if (_isScreenActive('screen-stats')) _statsRefreshSoon();
             return today;
         }
 
@@ -3369,22 +3343,22 @@
 
 
         // ==================== STATS RENDER ====================
-        // Период всегда начинается с ровной границы: недели — с понедельника,
-        // месяцы — с 1-го числа. Заканчивается сегодняшним исламским днём.
+        // Неделя, месяц и год — календарные: начинаются с нуля и сравниваются со всем
+        // прошлым периодом, поэтому процент идёт от −100% и выходит в плюс, когда
+        // прошлый период обойдён. «Всё» и свой период сравнивать не с чем.
         const STATS_RANGES = [
-            { id: '7', key: 'statsRange7', unit: 'day', count: 7 },
-            { id: '30', key: 'statsRange30', unit: 'day', count: 30 },
-            { id: '90', key: 'statsRange90', unit: 'week', count: 13 },
-            { id: '180', key: 'statsRange180', unit: 'week', count: 26 },
-            { id: '365', key: 'statsRange365', unit: 'month', count: 12 },
-            { id: 'all', key: 'statsRangeAll' }
+            { id: 'week', key: 'periodWeek' },
+            { id: 'month', key: 'periodMonth' },
+            { id: 'year', key: 'periodYear' },
+            { id: 'all', key: 'statsRangeAll' },
+            { id: 'custom', key: 'statsRangeCustom' }
         ];
         // Проверены на различимость (в том числе при дальтонизме) на фоне своей темы
         const STATS_DONUT_DARK = ['#c98500', '#3987e5', '#d95926', '#199e70', '#9085e9', '#d55181'];
         const STATS_DONUT_LIGHT = ['#c98500', '#2a78d6', '#d95926', '#1baf7a', '#6250d6', '#d55181'];
         const STATS_PAD = { r: 12, t: 16, b: 26 };
-        const _statsUi = { range: '30', bound: false };
-        const _statsChart = { bs: [], cur: [], from: [], prog: 1, hover: -1, type: 'line', L: 40 };
+        const _statsUi = { range: 'month', from: null, to: null, bound: false };
+        const _statsChart = { bs: [], cur: [], from: [], prog: 1, hover: -1, type: 'line', L: 40, pastN: 0 };
         const _statsDonut = { rows: [], total: 0, prog: 1, hover: -1 };
         let _statsFmtCache = null, _statsColors = null;
 
@@ -3447,37 +3421,44 @@
             return Object.keys(stats).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k) && k <= todayKey && (stats[k]?.count || 0) > 0).sort();
         }
 
+        // a–b — за что считаем зикры, a–end — что показывает график: у недели, месяца
+        // и года он идёт до конца периода, а оставшиеся дни пока пустые.
         function _statsRangeOf(today, first) {
-            const r = STATS_RANGES.find(x => x.id === _statsUi.range);
-            let a, unit = r.unit;
-            if (r.id === 'all') {
-                a = first || today;
-                // «Всё» у недавно начавших: не один столбец-месяц, а дни или недели
-                const span = _statsDayDiff(a, today) + 1;
-                unit = span <= 31 ? 'day' : span <= 182 ? 'week' : 'month';
+            const y = today.getFullYear(), m = today.getMonth();
+            // У длинного отрезка один столбец на день не поместится
+            const unitFor = (a, b) => {
+                const span = _statsDayDiff(a, b) + 1;
+                return span <= 31 ? 'day' : span <= 182 ? 'week' : 'month';
+            };
+            const calendar = (a, end, unit, prevA) => ({ a, b: today, end, unit, prevA, prevB: _statsAddDays(a, -1) });
+            if (_statsUi.range === 'week') {
+                const a = _statsMonday(today);
+                return calendar(a, _statsAddDays(a, 6), 'day', _statsAddDays(a, -7));
             }
-            else if (unit === 'day') a = _statsAddDays(today, -(r.count - 1));
-            else if (unit === 'week') a = _statsAddDays(_statsMonday(today), -7 * (r.count - 1));
-            else a = new Date(today.getFullYear(), today.getMonth() - (r.count - 1), 1);
-            const len = _statsDayDiff(a, today) + 1;
-            return { a, b: today, len, unit, prev: r.id === 'all' ? null : _statsAddDays(a, -len) };
+            if (_statsUi.range === 'month') return calendar(new Date(y, m, 1), new Date(y, m + 1, 0), 'day', new Date(y, m - 1, 1));
+            if (_statsUi.range === 'year') return calendar(new Date(y, 0, 1), new Date(y, 11, 31), 'month', new Date(y - 1, 0, 1));
+            const a = _statsUi.range === 'custom' ? _statsUi.from : (first || today);
+            const b = _statsUi.range === 'custom' ? _statsUi.to : today;
+            return { a, b, end: b, unit: unitFor(a, b), prevA: null, prevB: null };
         }
 
         // Столбцы: по дням, по неделям (пн–вс) или по календарным месяцам
-        function _statsBuckets(stats, R) {
+        function _statsBuckets(stats, R, today) {
             const keyOf = (d) => R.unit === 'day' ? d.getTime()
                 : R.unit === 'week' ? _statsMonday(d).getTime()
                 : d.getFullYear() * 12 + d.getMonth();
             const out = [];
+            const len = _statsDayDiff(R.a, R.end) + 1;
             let key = null;
-            for (let i = 0; i < R.len; i++) {
+            for (let i = 0; i < len; i++) {
                 const d = _statsAddDays(R.a, i), k = keyOf(d);
-                if (k !== key) { out.push({ d0: d, d1: d, sum: 0, unit: R.unit, unfinished: false }); key = k; }
+                if (k !== key) { out.push({ d0: d, d1: d, sum: 0, unit: R.unit, unfinished: false, future: d > today }); key = k; }
                 const b = out[out.length - 1];
                 b.d1 = d; b.sum += _statsCount(stats, d);
             }
             // Неделя или месяц, который ещё идёт: маленький столбец — это не спад
-            if (R.unit !== 'day' && keyOf(_statsAddDays(R.b, 1)) === keyOf(R.b)) out[out.length - 1].unfinished = true;
+            const current = out.find(b => b.d0 <= today && b.d1 >= today);
+            if (current && R.unit !== 'day' && keyOf(_statsAddDays(today, 1)) === keyOf(today)) current.unfinished = true;
             return out;
         }
 
@@ -3488,31 +3469,6 @@
             while (_statsCount(stats, d)) { cur++; d = _statsAddDays(d, -1); }
             return cur;
         }
-        // Сколько было вчера к этому же времени дня; null — сравнивать не с чем.
-        // Сравнивать с целым вчерашним днём нельзя: утром всегда получался бы большой минус.
-        function _statsYesterdayByNow(stats, today) {
-            const key = _localDayKey(_statsAddDays(today, -1));
-            const total = stats[key]?.count || 0, minutes = getStatMinutes()[key];
-            if (!total || !minutes) return null;
-            const now = _dayMinute();
-            let recorded = 0, upToNow = 0;
-            Object.keys(minutes).forEach(k => {
-                const v = minutes[k] || 0;
-                recorded += v;
-                if (+k <= now) upToNow += v;
-            });
-            // Записана малая часть дня (обновились вчера вечером) — честно сравнить нельзя
-            if (recorded < total * .5) return null;
-            // Итог мог включать другое устройство, поэтому берём долю дня, а не сами минуты
-            return upToNow / recorded * total;
-        }
-        function _statsPaintTodayDelta() {
-            const stats = getStats(), today = _dateFromLocalDayKey(_islamicDayKey());
-            const byNow = _statsYesterdayByNow(stats, today);
-            document.getElementById('statTodaySub').innerHTML = byNow > 0
-                ? _statsDeltaHtml((_statsCount(stats, today) - byNow) / byNow * 100) : '';
-        }
-
         function _statsFit(cv, h) {
             const dpr = Math.min(devicePixelRatio || 1, 2.5), w = cv.clientWidth, hh = h || cv.clientHeight;
             if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(hh * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(hh * dpr); }
@@ -3544,6 +3500,7 @@
             const old = c.cur.length ? c.cur : new Array(n).fill(0);
             c.from = new Array(n).fill(0).map((_, i) => old[Math.min(old.length - 1, Math.round(i * (old.length - 1) / Math.max(1, n - 1)))] || 0);
             c.cur = c.bs.map(b => b.sum);
+            c.pastN = c.bs.filter(b => !b.future).length;
             if (animated === false) { c._statsAnim = null; c.prog = 1; _statsDrawChart(); return; }
             c.prog = 0;
             _statsAnimate(c, 620, p => { c.prog = p; _statsDrawChart(); });
@@ -3584,7 +3541,7 @@
             }
             if (bars) {
                 const bw = Math.min(24, Math.max(2, slot * .62));
-                for (let i = 0; i < n; i++) {
+                for (let i = 0; i < c.pastN; i++) {
                     const X = barX(i) - bw / 2, Y = yAt(vals[i]), bh = Math.max(1, Bm - Y), r = Math.min(4, bw / 2, bh);
                     x.beginPath(); x.moveTo(X, Bm); x.lineTo(X, Y + r); x.quadraticCurveTo(X, Y, X + r, Y); x.lineTo(X + bw - r, Y); x.quadraticCurveTo(X + bw, Y, X + bw, Y + r); x.lineTo(X + bw, Bm); x.closePath();
                     x.fillStyle = c.hover === i ? C.gold() : c.hover !== -1 ? C.gold(.4) : c.bs[i].unfinished ? C.gold(.5) : C.gold(); x.fill();
@@ -3592,26 +3549,27 @@
                 return;
             }
             // Плавная линия: не выходит выше и ниже настоящих значений
+            const past = c.pastN;   // дни, которые ещё не наступили, не рисуем
             const pts = vals.map((v, i) => ({ x: xAt(i), y: yAt(v) }));
             const curveTo = (a, b) => { const m = (a.x + b.x) / 2; x.bezierCurveTo(m, a.y, m, b.y, b.x, b.y); };
             const g = x.createLinearGradient(0, T, 0, Bm);
             g.addColorStop(0, C.gold(.2)); g.addColorStop(1, C.gold(0));
             x.beginPath(); x.moveTo(pts[0].x, Bm); x.lineTo(pts[0].x, pts[0].y);
-            for (let i = 1; i < n; i++) curveTo(pts[i - 1], pts[i]);
-            x.lineTo(pts[n - 1].x, Bm); x.closePath(); x.fillStyle = g; x.fill();
+            for (let i = 1; i < past; i++) curveTo(pts[i - 1], pts[i]);
+            x.lineTo(pts[past - 1].x, Bm); x.closePath(); x.fillStyle = g; x.fill();
             // Участок к неделе или месяцу, который ещё идёт, — пунктиром
-            const unfinished = n > 1 && c.bs[n - 1].unfinished, solid = unfinished ? n - 1 : n;
+            const unfinished = past > 1 && c.bs[past - 1].unfinished, solid = unfinished ? past - 1 : past;
             x.beginPath(); x.moveTo(pts[0].x, pts[0].y);
             for (let i = 1; i < solid; i++) curveTo(pts[i - 1], pts[i]);
             x.strokeStyle = C.gold(); x.lineWidth = 2; x.lineJoin = 'round'; x.lineCap = 'round'; x.stroke();
             if (unfinished) {
                 x.save(); x.setLineDash([3, 5]); x.strokeStyle = C.gold(.7);
-                x.beginPath(); x.moveTo(pts[n - 2].x, pts[n - 2].y); curveTo(pts[n - 2], pts[n - 1]); x.stroke();
+                x.beginPath(); x.moveTo(pts[past - 2].x, pts[past - 2].y); curveTo(pts[past - 2], pts[past - 1]); x.stroke();
                 x.restore();
             }
             // Точки на всех периодах (при частых — мельче); дни без зикров — без точки
             const dotR = n <= 14 ? 4 : 2.5;
-            for (let i = 0; i < n; i++) {
+            for (let i = 0; i < past; i++) {
                 if (!c.cur[i]) continue;
                 x.beginPath(); x.arc(pts[i].x, pts[i].y, dotR, 0, 7);
                 x.fillStyle = c.bs[i].unfinished ? C.gold(.55) : C.gold(); x.fill();
@@ -3650,7 +3608,7 @@
                 const r = cv.getBoundingClientRect(), px = e.clientX - r.left, n = c.bs.length, W = r.width - c.L - STATS_PAD.r;
                 if (!n) return -1;
                 const i = c.type === 'bar' ? Math.floor((px - c.L) / (W / n)) : (n < 2 ? 0 : Math.round((px - c.L) / W * (n - 1)));
-                return Math.min(n - 1, Math.max(0, i));
+                return Math.min(c.pastN - 1, Math.max(0, i));
             };
             const move = (e) => {
                 const i = indexAt(e);
@@ -3778,6 +3736,7 @@
             document.getElementById('statsChips').addEventListener('click', (e) => {
                 const b = e.target.closest('.nv-chip');
                 if (!b) return;
+                if (b.dataset.id === 'custom') { openStatsCustom(); return; }
                 _statsUi.range = b.dataset.id;
                 _statsHideTip();
                 renderStats();
@@ -3799,6 +3758,40 @@
                 timer = setTimeout(() => { if (_isScreenActive('screen-stats')) renderStats(false); else markDirty('stats'); }, 110);
             }, { passive: true });
         }
+        function openStatsCustom() {
+            const today = _dateFromLocalDayKey(_islamicDayKey());
+            const days = _statsActiveDays(getStats(), _localDayKey(today));
+            const first = days.length ? _dateFromLocalDayKey(days[0]) : today;
+            const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+            const from = document.getElementById('statsCustomFrom'), to = document.getElementById('statsCustomTo');
+            [from, to].forEach(el => { el.min = _localDayKey(first); el.max = _localDayKey(today); });
+            from.value = _localDayKey(_statsUi.from || (first > monthStart ? first : monthStart));
+            to.value = _localDayKey(_statsUi.to || today);
+            // applyLanguage подписывает все кнопки окон «Да» и «Нет», поэтому текст ставим здесь
+            document.getElementById('statsCustomApply').textContent = t('statsShow');
+            document.getElementById('statsCustomCancel').textContent = t('btnCancel');
+            document.getElementById('statsCustomOverlay').classList.add('show');
+        }
+        function cancelStatsCustom() { document.getElementById('statsCustomOverlay').classList.remove('show'); }
+        function applyStatsCustom() {
+            const fromV = document.getElementById('statsCustomFrom').value, toV = document.getElementById('statsCustomTo').value;
+            if (!fromV || !toV) return;
+            const today = _dateFromLocalDayKey(_islamicDayKey());
+            const limit = (d) => d > today ? today : d;
+            const a = limit(_dateFromLocalDayKey(fromV)), b = limit(_dateFromLocalDayKey(toV));
+            // Перепутанные «С» и «По» меняем местами
+            _statsUi.from = a <= b ? a : b;
+            _statsUi.to = a <= b ? b : a;
+            _statsUi.range = 'custom';
+            cancelStatsCustom();
+            _statsHideTip();
+            renderStats();
+        }
+        let _statsRefreshTimer = 0;
+        function _statsRefreshSoon() {
+            if (_statsRefreshTimer) return;
+            _statsRefreshTimer = setTimeout(() => { _statsRefreshTimer = 0; renderStats(false); }, 200);
+        }
         function _statsPaintType() {
             document.querySelectorAll('#statType button').forEach(o => o.setAttribute('aria-pressed', String(o.dataset.v === _statsChart.type)));
         }
@@ -3818,27 +3811,36 @@
             document.getElementById('statsEmpty').hidden = !empty;
             document.getElementById('statsBody').hidden = empty;
             document.getElementById('statsChips').hidden = empty;
+            const customLabel = document.getElementById('statsCustomRange');
+            customLabel.hidden = empty || _statsUi.range !== 'custom';
             _dirty.stats = false;
             if (empty) return;
 
             document.getElementById('statsChips').innerHTML = STATS_RANGES.map(r => '<button class="nv-chip" data-id="' + r.id + '" aria-pressed="' + (r.id === _statsUi.range) + '">' + escHtml(t(r.key)) + '</button>').join('');
 
-            const R = _statsRangeOf(today, first);
-            let sum = 0;
-            for (let i = 0; i < R.len; i++) sum += _statsCount(stats, _statsAddDays(R.a, i));
-            let prevSum = 0;
-            if (R.prev) for (let i = 0; i < R.len; i++) prevSum += _statsCount(stats, _statsAddDays(R.prev, i));
-            // Среднее — только с первого дня с зикрами, иначе новичку оно занижается пустыми днями
-            const avgLen = first && first > R.a ? _statsDayDiff(first, today) + 1 : R.len;
+            if (!customLabel.hidden) customLabel.textContent = F.dayMonthYear(_statsUi.from) + ' — ' + F.dayMonthYear(_statsUi.to);
 
-            _statsSetNum('statToday', _statsCount(stats, today), animated);
+            const R = _statsRangeOf(today, first);
+            const sumOf = (a, b) => {
+                let sum = 0;
+                for (let d = a; d <= b; d = _statsAddDays(d, 1)) sum += _statsCount(stats, d);
+                return sum;
+            };
+            const sum = sumOf(R.a, R.b);
+            // Среднее — только с первого дня с зикрами, иначе новичку оно занижается пустыми днями
+            const avgFrom = first && first > R.a ? first : R.a;
+            const avgLen = Math.max(1, _statsDayDiff(avgFrom, R.b) + 1);
+            const todayCount = _statsCount(stats, today);
+
+            _statsSetNum('statToday', todayCount, animated);
             _statsSetNum('statSum', sum, animated);
             _statsSetNum('statAvg', sum / avgLen, animated);
             _statsSetNum('statStreak', _statsStreak(stats, today), animated);
-            _statsPaintTodayDelta();
-            document.getElementById('statSumSub').innerHTML = prevSum > 0 ? _statsDeltaHtml((sum - prevSum) / prevSum * 100) : '';
+            const deltaHtml = (now, prev) => prev > 0 ? _statsDeltaHtml((now - prev) / prev * 100) : '';
+            document.getElementById('statTodaySub').innerHTML = deltaHtml(todayCount, _statsCount(stats, _statsAddDays(today, -1)));
+            document.getElementById('statSumSub').innerHTML = R.prevA ? deltaHtml(sum, sumOf(R.prevA, R.prevB)) : '';
 
-            _statsChart.bs = _statsBuckets(stats, R);
+            _statsChart.bs = _statsBuckets(stats, R, today);
             _statsChart.hover = -1;
             document.getElementById('statTip').style.opacity = '0';
             _statsPaintType();
@@ -3908,9 +3910,7 @@
             updateDisplay(); saveDataDebounced();
             // Сброс статистики
             localStorage.removeItem('azkar_stats_v2');
-            localStorage.removeItem('azkar_stats_minutes');
             _statsCache = {};
-            _statMinutesCache = {};
             pendingStatsSave = false;
             dhikrTotals = {};
             saveDhikrTotals();
@@ -8663,7 +8663,7 @@
                 if (typeof window._stealthTryActivate === 'function') window._stealthTryActivate('screen-' + tab);
             } catch(e) {}
             // Рендерим раздел только если он «грязный» (первый вход или данные изменились)
-            if (tab === 'stats')      { if (_dirty.stats) renderStats(); else _statsPaintTodayDelta(); }
+            if (tab === 'stats'        && _dirty.stats)    { renderStats(); }
             if (tab === 'favorites'    && _dirty.favorites) { renderFavorites();   _dirty.favorites = false; }
             if (tab === 'dua'          && _dirty.duaFolders) { renderDuaFolders(); _dirty.duaFolders = false; }
             if (tab === 'dua'          && _dirty.dua)       { renderDuas();        _dirty.dua = false; }

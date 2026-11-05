@@ -5457,3 +5457,19 @@ html.lite .about-app-card {
     transform: scaleX(0); transform-origin: left center; transition: transform .18s ease-out;
 }
 #btnYesClearStats.holding::before { transform: scaleX(1); transition: transform 2s linear; }
+
+/* Свой период */
+.nv-custom-range {
+    display: block; margin: -2px auto 10px; padding: 3px 10px; border: 0; background: none; cursor: pointer;
+    color: var(--gold); font: 600 12px 'Montserrat', sans-serif; font-variant-numeric: lining-nums;
+}
+.nv-custom-range[hidden] { display: none; }
+.nv-custom-fields { display: flex; flex-direction: column; gap: 10px; margin: 14px 0 16px; }
+.nv-date-row { display: flex; align-items: center; gap: 10px; color: var(--text-muted); font-size: 13px; font-weight: 600; }
+.nv-date-row span { flex: 0 0 34px; }
+.nv-date {
+    flex: 1 1 auto; min-width: 0; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--surface-light); color: var(--text); font: 500 14px 'Montserrat', sans-serif;
+    color-scheme: dark;
+}
+[data-theme^="light"] .nv-date { color-scheme: light; }
