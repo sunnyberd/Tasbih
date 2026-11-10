@@ -28,7 +28,11 @@
         "dark": ["#0a0a0a", "#d4af37"], "dark-emerald": ["#060f0a", "#2ecc71"], "dark-purple": ["#07050f", "#a855f7"],
         "dark-blue": ["#030b12", "#38bdf8"], "dark-rose": ["#0f0509", "#f472b6"],
         "light": ["#f8f6f2", "#b85c1a"], "light-rosesapphire": ["#fdf2f6", "#c2698f"], "light-lavender": ["#f5f3fa", "#7c5cbf"],
-        "light-ocean": ["#f0f7fc", "#0369a1"], "light-mint": ["#f0faf6", "#0d7a5f"]
+        "light-ocean": ["#f0f7fc", "#0369a1"], "light-mint": ["#f0faf6", "#0d7a5f"],
+        "dark-garnet": ["#100405", "#f2546b"], "dark-lime": ["#070a03", "#a3e635"], "dark-turquoise": ["#021010", "#2ee6d0"],
+        "dark-indigo": ["#05061a", "#7c83ff"], "dark-graphite": ["#0b0c0e", "#d5dbe3"],
+        "light-cherry": ["#fbf3f1", "#c81e3c"], "light-olive": ["#f6f7ee", "#5f7a12"], "light-lagoon": ["#eef8f8", "#0e7c86"],
+        "light-fuchsia": ["#faf3fb", "#b0157f"], "light-marble": ["#f4f4f2", "#3f4a59"]
     };
     var STAR_PATH = "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z";
     var HEART_PATH = "M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z";

@@ -3344,9 +3344,9 @@
 
 
         // ==================== STATS RENDER ====================
-        // Неделя, месяц и год — календарные: начинаются с нуля и сравниваются со всем
-        // прошлым периодом, поэтому процент идёт от −100% и выходит в плюс, когда
-        // прошлый период обойдён. «Всё» и свой период сравнивать не с чем.
+        // Неделя, месяц и год: число и процент считаются с начала периода и сравниваются со всем
+        // прошлым таким периодом — процент идёт от −100% и выходит в плюс, когда прошлый обойдён.
+        // График при этом скользящий: заканчивается сегодня. «Всё» и свой период сравнивать не с чем.
         const STATS_RANGES = [
             { id: 'week', key: 'periodWeek' },
             { id: 'month', key: 'periodMonth' },
@@ -3355,13 +3355,40 @@
             { id: 'custom', key: 'statsRangeCustom' }
         ];
         // Проверены на различимость (в том числе при дальтонизме) на фоне своей темы
-        const STATS_DONUT_DARK = ['#c98500', '#3987e5', '#d95926', '#199e70', '#9085e9', '#d55181'];
-        const STATS_DONUT_LIGHT = ['#c98500', '#2a78d6', '#d95926', '#1baf7a', '#6250d6', '#d55181'];
+        // Последний — серый для «Других»: это не отдельный зикр, а все остальные вместе
+        const STATS_DONUT_DARK = ['#c98500', '#3987e5', '#d95926', '#199e70', '#9085e9', '#d55181', '#5f5f59'];
+        const STATS_DONUT_LIGHT = ['#c98500', '#2a78d6', '#d95926', '#1baf7a', '#6250d6', '#d55181', '#b4b4ad'];
         const STATS_PAD = { r: 12, t: 16, b: 26 };
         const _statsUi = { range: 'month', from: null, to: null, bound: false };
         const _statsChart = { bs: [], cur: [], from: [], prog: 1, hover: -1, type: 'line', L: 40, pastN: 0 };
         const _statsDonut = { rows: [], total: 0, prog: 1, hover: -1 };
         let _statsFmtCache = null, _statsColors = null;
+        // Выбранный период и вид графика запоминаются на этом устройстве и остаются после закрытия приложения
+        (function _statsLoadView() {
+            try {
+                const v = JSON.parse(localStorage.getItem('azkar_stats_view') || 'null');
+                if (!v) return;
+                const isDay = (k) => /^\d{4}-\d{2}-\d{2}$/.test(k || '');
+                if (v.range === 'custom' && isDay(v.from) && isDay(v.to)) {
+                    _statsUi.range = 'custom';
+                    _statsUi.from = _dateFromLocalDayKey(v.from);
+                    _statsUi.to = _dateFromLocalDayKey(v.to);
+                } else if (v.range !== 'custom' && STATS_RANGES.some(r => r.id === v.range)) {
+                    _statsUi.range = v.range;
+                }
+                if (v.type === 'line' || v.type === 'bar') _statsChart.type = v.type;
+            } catch (e) {}
+        })();
+        function _statsSaveView() {
+            try {
+                localStorage.setItem('azkar_stats_view', JSON.stringify({
+                    range: _statsUi.range,
+                    from: _statsUi.from ? _localDayKey(_statsUi.from) : null,
+                    to: _statsUi.to ? _localDayKey(_statsUi.to) : null,
+                    type: _statsChart.type
+                }));
+            } catch (e) {}
+        }
 
         function _statsFmt() {
             if (_statsFmtCache && _statsFmtCache.lang === currentLang) return _statsFmtCache;
@@ -3422,8 +3449,7 @@
             return Object.keys(stats).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k) && k <= todayKey && (stats[k]?.count || 0) > 0).sort();
         }
 
-        // a–b — за что считаем зикры, a–end — что показывает график: у недели, месяца
-        // и года он идёт до конца периода, а оставшиеся дни пока пустые.
+        // a–b — за что считаем зикры, prevA–prevB — с чем сравниваем, chartA–end — что показывает график
         function _statsRangeOf(today, first) {
             const y = today.getFullYear(), m = today.getMonth();
             // У длинного отрезка один столбец на день не поместится
@@ -3431,16 +3457,18 @@
                 const span = _statsDayDiff(a, b) + 1;
                 return span <= 31 ? 'day' : span <= 182 ? 'week' : 'month';
             };
-            const calendar = (a, end, unit, prevA) => ({ a, b: today, end, unit, prevA, prevB: _statsAddDays(a, -1) });
+            // Ровно N месяцев назад: то же число (если его нет — последний день месяца), со следующего дня
+            const monthsBack = (n) => new Date(y, m - n, Math.min(today.getDate(), new Date(y, m - n + 1, 0).getDate()) + 1);
+            const calendar = (a, chartA, unit, prevA) => ({ a, b: today, chartA, end: today, unit, prevA, prevB: _statsAddDays(a, -1) });
             if (_statsUi.range === 'week') {
                 const a = _statsMonday(today);
-                return calendar(a, _statsAddDays(a, 6), 'day', _statsAddDays(a, -7));
+                return calendar(a, _statsAddDays(today, -6), 'day', _statsAddDays(a, -7));
             }
-            if (_statsUi.range === 'month') return calendar(new Date(y, m, 1), new Date(y, m + 1, 0), 'day', new Date(y, m - 1, 1));
-            if (_statsUi.range === 'year') return calendar(new Date(y, 0, 1), new Date(y, 11, 31), 'month', new Date(y - 1, 0, 1));
+            if (_statsUi.range === 'month') return calendar(new Date(y, m, 1), monthsBack(1), 'day', new Date(y, m - 1, 1));
+            if (_statsUi.range === 'year') return calendar(new Date(y, 0, 1), monthsBack(12), 'month', new Date(y - 1, 0, 1));
             const a = _statsUi.range === 'custom' ? _statsUi.from : (first || today);
             const b = _statsUi.range === 'custom' ? _statsUi.to : today;
-            return { a, b, end: b, unit: unitFor(a, b), prevA: null, prevB: null };
+            return { a, b, chartA: a, end: b, unit: unitFor(a, b), prevA: null, prevB: null };
         }
 
         // Столбцы: по дням, по неделям (пн–вс) или по календарным месяцам
@@ -3449,10 +3477,10 @@
                 : R.unit === 'week' ? _statsMonday(d).getTime()
                 : d.getFullYear() * 12 + d.getMonth();
             const out = [];
-            const len = _statsDayDiff(R.a, R.end) + 1;
+            const len = _statsDayDiff(R.chartA, R.end) + 1;
             let key = null;
             for (let i = 0; i < len; i++) {
-                const d = _statsAddDays(R.a, i), k = keyOf(d);
+                const d = _statsAddDays(R.chartA, i), k = keyOf(d);
                 if (k !== key) { out.push({ d0: d, d1: d, sum: 0, unit: R.unit, unfinished: false, future: d > today }); key = k; }
                 const b = out[out.length - 1];
                 b.d1 = d; b.sum += _statsCount(stats, d);
@@ -3460,6 +3488,8 @@
             // Неделя или месяц, который ещё идёт: маленький столбец — это не спад
             const current = out.find(b => b.d0 <= today && b.d1 >= today);
             if (current && R.unit !== 'day' && keyOf(_statsAddDays(today, 1)) === keyOf(today)) current.unfinished = true;
+            // Первый месяц, если отрезок начался не с 1-го числа, тоже неполный
+            if (R.unit === 'month' && out[0].d0.getDate() !== 1) out[0].partial = true;
             return out;
         }
 
@@ -3545,7 +3575,7 @@
                 for (let i = 0; i < c.pastN; i++) {
                     const X = barX(i) - bw / 2, Y = yAt(vals[i]), bh = Math.max(1, Bm - Y), r = Math.min(4, bw / 2, bh);
                     x.beginPath(); x.moveTo(X, Bm); x.lineTo(X, Y + r); x.quadraticCurveTo(X, Y, X + r, Y); x.lineTo(X + bw - r, Y); x.quadraticCurveTo(X + bw, Y, X + bw, Y + r); x.lineTo(X + bw, Bm); x.closePath();
-                    x.fillStyle = c.hover === i ? C.gold() : c.hover !== -1 ? C.gold(.4) : c.bs[i].unfinished ? C.gold(.5) : C.gold(); x.fill();
+                    x.fillStyle = c.hover === i ? C.gold() : c.hover !== -1 ? C.gold(.4) : (c.bs[i].unfinished || c.bs[i].partial) ? C.gold(.5) : C.gold(); x.fill();
                 }
                 return;
             }
@@ -3573,7 +3603,7 @@
             for (let i = 0; i < past; i++) {
                 if (!c.cur[i]) continue;
                 x.beginPath(); x.arc(pts[i].x, pts[i].y, dotR, 0, 7);
-                x.fillStyle = c.bs[i].unfinished ? C.gold(.55) : C.gold(); x.fill();
+                x.fillStyle = (c.bs[i].unfinished || c.bs[i].partial) ? C.gold(.55) : C.gold(); x.fill();
                 x.lineWidth = 1.5; x.strokeStyle = C.surface; x.stroke();
             }
             if (c.hover >= 0 && c.hover < n) {
@@ -3591,7 +3621,8 @@
             const label = b.unit === 'day' ? F.dayMonthYear(b.d0)
                 : b.unit === 'month' ? F.monthYear(b.d0)
                 : F.dayMonth(b.d0) + ' — ' + F.dayMonth(b.d1);
-            const note = !b.unfinished ? t('statsUnit') : t('statsUnit') + ' · ' + t(b.unit === 'month' ? 'statsMonthOngoing' : 'statsWeekOngoing');
+            const noteKey = b.partial ? 'statsMonthPartial' : !b.unfinished ? null : b.unit === 'month' ? 'statsMonthOngoing' : 'statsWeekOngoing';
+            const note = noteKey ? t('statsUnit') + ' · ' + t(noteKey) : t('statsUnit');
             tip.innerHTML = '<div class="d">' + escHtml(label) + '</div><div class="v">' + F.num(b.sum) + '</div><div class="l">' + escHtml(note) + '</div>';
             const left = Math.min(Math.max(px - tip.offsetWidth / 2, 6), wrap.clientWidth - tip.offsetWidth - 6);
             tip.style.transform = 'translate3d(' + left + 'px,8px,0)';
@@ -3628,10 +3659,10 @@
         }
 
         // --- доли зикров ---
-        // Всегда один порядок: основной зикр, тасбих после намаза (33 + 33 + 34), тахлиль
-        // и «Другие» — все остальные особые зикры. Строки с нулём тоже остаются на месте.
+        // Всегда один порядок: основной зикр, тасбих после намаза (33 + 33 + 34), тахлиль,
+        // салават и «Другие» — все остальные особые зикры. Строки с нулём тоже остаются на месте.
         // Все зикры по количеству — на экране «Все зикры».
-        const STATS_DONUT_FIXED = ['subhanallah', 'alhamdulillah', 'allahuakbar', 'tahlil'];
+        const STATS_DONUT_FIXED = ['subhanallah', 'alhamdulillah', 'allahuakbar', 'tahlil', 'salavat'];
         function _statsDonutRows() {
             const pal = isDarkTheme() ? STATS_DONUT_DARK : STATS_DONUT_LIGHT;
             const rows = [{ n: t('dhikrStatsMainDhikr'), v: dhikrTotals['main'] || 0, c: pal[0] }];
@@ -3640,7 +3671,7 @@
                 if (d) rows.push({ n: getSpecialName(d), v: dhikrTotals[id] || 0, c: pal[i + 1] });
             });
             const rest = specialDhikrs.filter(d => !STATS_DONUT_FIXED.includes(d.id)).reduce((sum, d) => sum + (dhikrTotals[d.id] || 0), 0);
-            rows.push({ n: t('statsOther'), v: rest, c: pal[5] });
+            rows.push({ n: t('statsOther'), v: rest, c: pal[6] });
             return rows;
         }
         function _statsDrawDonut() {
@@ -3745,6 +3776,7 @@
                 if (!b) return;
                 if (b.dataset.id === 'custom') { openStatsCustom(); return; }
                 _statsUi.range = b.dataset.id;
+                _statsSaveView();
                 _statsHideTip();
                 renderStats();
             });
@@ -3753,6 +3785,7 @@
                 if (!b || b.dataset.v === _statsChart.type) return;
                 _statsHideTip();
                 _statsChart.type = b.dataset.v;
+                _statsSaveView();
                 _statsChart.cur = [];   // столбцы и линия вырастают от нуля
                 _statsPaintType();
                 _statsSetSeries();
@@ -3790,6 +3823,7 @@
             _statsUi.from = c.from <= c.to ? c.from : c.to;
             _statsUi.to = c.from <= c.to ? c.to : c.from;
             _statsUi.range = 'custom';
+            _statsSaveView();
             cancelStatsCustom();
             _statsHideTip();
             renderStats();
@@ -3878,7 +3912,8 @@
                 else _statsCalDay(new Date(c.view.getFullYear(), c.view.getMonth(), +b.dataset.d));
             });
         }
-        // «Все зикры»: каждый зикр отдельной строкой со столбиком, по количеству — от большего к меньшему
+        // «Все зикры»: каждый зикр отдельной строкой со столбиком, по количеству — от большего к меньшему.
+        // Показываются все, даже ни разу не прочитанные; с одинаковым числом — в порядке списка особых зикров.
         function openStatsAll() {
             document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
             const screen = document.getElementById('screen-stats-all');
@@ -3895,7 +3930,6 @@
             const F = _statsFmt();
             const rows = [{ n: t('dhikrStatsMainDhikr'), v: dhikrTotals['main'] || 0 }]
                 .concat(specialDhikrs.map(d => ({ n: getSpecialName(d), v: dhikrTotals[d.id] || 0 })))
-                .filter(r => r.v > 0)
                 .sort((a, b) => b.v - a.v);
             const total = rows.reduce((sum, r) => sum + r.v, 0), max = Math.max(1, ...rows.map(r => r.v));
             _statsSetNum('statAllTotal', total, animated);
@@ -5935,7 +5969,10 @@
             const FADED = '.post-salah-select-wrap, .quick-toggles, #mainGoalsArea';
             const root = document.documentElement;
             let timer = null;
-            let swallowUntil = 0;   // касание, которое только показало кнопки, не должно их нажать
+            // Касание, которое только показало кнопки, не должно их нажать. Глушится только
+            // оно и только на самих кнопках: следующее касание нажимает сразу, а круг
+            // счётчика не глушится никогда.
+            let swallowing = false, swallowUntil = 0;
             function arm() { clearTimeout(timer); timer = setTimeout(sleep, IDLE_MS); }
             function sleep() {
                 if (!idleFadeOn()) return;
@@ -5946,9 +5983,11 @@
             // Будят только касания самих кнопок (FADED). Навбар, время намаза, свайп,
             // круг счётчика и всё остальное — не будят и не продлевают таймер.
             function wake(e) {
+                swallowing = false;   // новое касание — прошлое уже закончилось
                 const el = e && e.target;
                 if (!el || !el.closest || !el.closest(FADED)) return;
                 if (root.classList.contains('ui-idle') && idleFadeLevel() < IDLE_FADE_REVEAL_BELOW) {
+                    swallowing = true;
                     swallowUntil = Date.now() + 800;
                     e.stopPropagation();
                     if (e.cancelable) e.preventDefault();
@@ -5957,10 +5996,12 @@
                 arm();
             }
             function swallow(e) {
-                if (Date.now() > swallowUntil) return;
+                if (!swallowing || Date.now() > swallowUntil) return;
+                const el = e.target;
+                if (!el || !el.closest || !el.closest(FADED)) return;
                 e.stopPropagation();
                 if (e.cancelable) e.preventDefault();
-                if (e.type === 'click') swallowUntil = 0;
+                if (e.type === 'click') swallowing = false;
             }
             document.addEventListener('pointerdown', wake, true);
             ['touchstart', 'mousedown', 'touchend', 'mouseup', 'click'].forEach(type =>
@@ -6202,6 +6243,11 @@
             { id: 'dark-purple', bg: '#07050f',  accent: '#a855f7' },
             { id: 'dark-blue', bg: '#030b12',  accent: '#38bdf8' },
             { id: 'dark-rose', bg: '#0f0509',  accent: '#f472b6' },
+            { id: 'dark-garnet', bg: '#100405',  accent: '#f2546b' },
+            { id: 'dark-lime', bg: '#070a03',  accent: '#a3e635' },
+            { id: 'dark-turquoise', bg: '#021010',  accent: '#2ee6d0' },
+            { id: 'dark-indigo', bg: '#05061a',  accent: '#7c83ff' },
+            { id: 'dark-graphite', bg: '#0b0c0e',  accent: '#d5dbe3' },
         ];
         const LIGHT_THEMES = [
             { id: 'light', bg: '#f8f6f2',  accent: '#b85c1a' },
@@ -6209,6 +6255,11 @@
             { id: 'light-lavender', bg: '#f5f3fa',  accent: '#7c5cbf' },
             { id: 'light-ocean', bg: '#f0f7fc',  accent: '#0369a1' },
             { id: 'light-mint', bg: '#f0faf6',  accent: '#0d7a5f' },
+            { id: 'light-cherry', bg: '#fbf3f1',  accent: '#c81e3c' },
+            { id: 'light-olive', bg: '#f6f7ee',  accent: '#5f7a12' },
+            { id: 'light-lagoon', bg: '#eef8f8',  accent: '#0e7c86' },
+            { id: 'light-fuchsia', bg: '#faf3fb',  accent: '#b0157f' },
+            { id: 'light-marble', bg: '#f4f4f2',  accent: '#3f4a59' },
         ];
 
         function isDarkTheme(th) {
