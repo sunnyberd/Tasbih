@@ -3539,8 +3539,8 @@ input, textarea, [contenteditable="true"] {
     font-size: 1.1rem; border-radius: 50%;
     background: var(--accent-glow);
 }
-.notif-lbl { flex: 1; min-width: 0; font-size: 0.93rem; font-weight: 600; color: var(--text-main); line-height: 1.25; }
-.notif-pop.master-off .notif-row { opacity: 0.45; }
+.notif-lbl { flex: 1; min-width: 0; font-size: 0.93rem; font-weight: 600; color: var(--text); line-height: 1.25; }
+.notif-pop.master-off .notif-lbl { opacity: 0.6; }   /* общий выключатель выключен: тускнеют только подписи, значки и ползунки остаются яркими */
 
 /* ===== THEME PICKER MODAL ===== */
 .theme-picker-overlay {
