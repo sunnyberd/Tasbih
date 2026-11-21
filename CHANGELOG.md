@@ -3,6 +3,14 @@
 Android versions are published on the [Releases](https://github.com/sunnyberd/Tasbih/releases) page.
 The web app updates by itself; its cache version is noted in brackets.
 
+## 0.29 — 2026-11-22 (web v172)
+
+### Added
+- **My reminders**: up to 3 reminders of your own for any prayer time (sunrise too) — your text, before or after, 5–60 minutes or any number up to 180. They arrive every day, even if the notification for the prayer itself is off.
+
+### Changed
+- Abu Umamah's du'a is no longer a separate switch and is not turned on for new users. If it was on, it became an ordinary reminder with the same time, so nothing is lost.
+
 ## 0.28 — 2026-11-21 (web v171)
 
 ### Changed

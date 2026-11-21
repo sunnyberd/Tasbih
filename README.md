@@ -39,7 +39,7 @@ Free, ad‑free, works offline, in 15 languages.
 | **Statistics** | Day / week / month / year, streaks, share of each dhikr, custom periods |
 | **Dark dhikr mode** | Fully black screen, tap anywhere to count; on Android also hides system bars and silences other apps |
 | **Floating counter** | Android: a bubble over other apps — every tap is counted, even when the app is asleep |
-| **Reminders** | Prayer times, Abu Umamah's dua; on Android they arrive even when the app is closed |
+| **Reminders** | Prayer times and up to 3 of your own reminders before or after any prayer; on Android they arrive even when the app is closed |
 | **Sync & backup** | Google sign‑in with cloud sync between devices, export / import to a file |
 | **Themes** | Dark and light themes in many colours |
 
