@@ -3,6 +3,12 @@
 Android versions are published on the [Releases](https://github.com/sunnyberd/Tasbih/releases) page.
 The web app updates by itself; its cache version is noted in brackets.
 
+## 0.28 — 2026-11-21 (web v171)
+
+### Changed
+- "Calculation method" is now a bottom sheet like "Prayer times": a handle on top, swipe it down to close. While it is open the prayer times sheet hides behind it; pulling the method sheet down reveals the prayer times sheet behind it.
+- After exporting data the message is now simply "Data exported", like after importing.
+
 ## 0.27 — 2026-11-21 (web v170)
 
 ### Changed
