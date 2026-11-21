@@ -1,0 +1,1 @@
+self.AZKAR_PUSH={server:"https://azkar-push.azkar-push.workers.dev",publicKey:"BNbA2Y26OCfNW6X2zLqaWdJAZAvpC5FJy9mgp8dpobUltJIn7JPZl28Kc5be4wA2_k3UqEoOBmbdN-6F7VTqs0o"};
